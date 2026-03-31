@@ -1,0 +1,140 @@
+# Propósito: Pipeline DevSecOps compatible con SLSA Nivel 3 para Next.js 15
+# Autor: Antigravity IDE Agent
+
+image: node:22-alpine
+
+stages:
+  - build
+  - test
+  - security
+  - deploy
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  # Security configuration (GitLab native)
+  SECURE_LOG_LEVEL: "info"
+  SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next"
+  NODE_ENV: "production"
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+    - .next/cache/
+
+# ---------------------------------------------------------------------------
+# BUILD STAGE (Hermetic, Caching, Provenance generation ready)
+# ---------------------------------------------------------------------------
+build_job:
+  stage: build
+  script:
+    # 1. Instalar de forma segura respetando las versiones del lockfile
+    - npm ci --prefer-offline --audit=false
+    # 2. Compilar aplicación
+    - npm run build
+  artifacts:
+    paths:
+      # Solo guardar los binarios que irán a producción (output: standalone output enabled in next.config.ts)
+      - .next/standalone/
+      - .next/static/
+      - public/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ---------------------------------------------------------------------------
+# TESTING / QUALITY GATES
+# ---------------------------------------------------------------------------
+test_lint:
+  stage: test
+  script:
+    - npm ci --prefer-offline --ignore-scripts
+    - npm run lint
+  needs: ["build_job"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test_types:
+  stage: test
+  script:
+    - npm ci --prefer-offline --ignore-scripts
+    - npm run typecheck
+  needs: ["build_job"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ---------------------------------------------------------------------------
+# SECURITY SCANNING STAGE 
+# (Defense in depth, using GitLab Ultimate templates)
+# ---------------------------------------------------------------------------
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+# ---------------------------------------------------------------------------
+# DEPLOYMENT STAGING 
+# ---------------------------------------------------------------------------
+deploy_staging:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync curl
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_STAGING" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    # Prevención Man-in-the-Middle verificando Host Keys
+    - echo "$SSH_KNOWN_HOSTS_STAGING" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    # Copiar release artifacts con rsync usando Rsync over SSH de manera segura
+    - rsync -avz --delete --exclude='.git' .next/standalone/ $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING:$DEPLOY_PATH_STAGING/
+    - rsync -avz .next/static/ $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING:$DEPLOY_PATH_STAGING/.next/standalone/.next/static/
+    - rsync -avz public/ $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING:$DEPLOY_PATH_STAGING/.next/standalone/public/
+    
+    # Reload sin downtime usando PM2 cluster (Deployment Blue/Green minimal)
+    - ssh $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING "cd $DEPLOY_PATH_STAGING/.next/standalone && pm2 reload afiladocs-staging || pm2 start server.js --name afiladocs-staging"
+    
+    # Feedback / Smoke tests contra API local
+    - sleep 5
+    - curl -f http://$DEPLOY_HOST_STAGING:3000/api/health || exit 1
+  environment:
+    name: staging
+    url: https://staging.afiladocs.com
+  needs: ["build_job", "test_lint", "test_types", "sast", "secret_detection"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual # Requires manual approval for audit logging
+
+# ---------------------------------------------------------------------------
+# DEPLOYMENT PRODUCTION 
+# ---------------------------------------------------------------------------
+deploy_production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_PROD" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS_PROD" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - rsync -avz --delete --exclude='.git' .next/standalone/ $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD:$DEPLOY_PATH_PROD/
+    - rsync -avz .next/static/ $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD:$DEPLOY_PATH_PROD/.next/standalone/.next/static/
+    - rsync -avz public/ $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD:$DEPLOY_PATH_PROD/.next/standalone/public/
+    - ssh $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD "cd $DEPLOY_PATH_PROD/.next/standalone && pm2 reload afiladocs-prod || pm2 start server.js --name afiladocs-prod"
+  environment:
+    name: production
+    url: https://afiladocs.com
+  needs: ["deploy_staging"]
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

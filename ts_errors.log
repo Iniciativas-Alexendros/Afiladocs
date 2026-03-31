@@ -1,0 +1,1 @@
+src/app/api/checkout/route.ts(32,34): error TS2307: Cannot find module 'stripe' or its corresponding type declarations.
