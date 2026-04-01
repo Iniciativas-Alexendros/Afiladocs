@@ -1,0 +1,80 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma/client'
+import crypto from 'crypto'
+
+// The secret provided by Documenso webhooks to verify payloads
+const DOCUMENSO_WEBHOOK_SECRET = process.env.DOCUMENSO_WEBHOOK_SECRET
+
+export async function POST(req: Request) {
+  try {
+    const bodyText = await req.text()
+    
+    // 1. Verify Signature (if secret is configured)
+    if (DOCUMENSO_WEBHOOK_SECRET) {
+      const signature = req.headers.get('documenso-signature')
+      if (!signature) {
+        return new NextResponse('Missing signature', { status: 401 })
+      }
+      
+      const expectedSignature = crypto
+        .createHmac('sha256', DOCUMENSO_WEBHOOK_SECRET)
+        .update(bodyText)
+        .digest('hex')
+        
+      if (signature !== expectedSignature) {
+        return new NextResponse('Invalid signature', { status: 401 })
+      }
+    }
+
+    const payload = JSON.parse(bodyText)
+    const { event, documentId } = payload
+
+    // We only care when the document gets completed/signed by all parties
+    if (event !== 'DOCUMENT_COMPLETED') {
+        return new NextResponse('Ignored event', { status: 200 })
+    }
+
+    // 2. Find the corresponding document in our db
+    const doc = await prisma.documents.findFirst({
+        where: { documenso_document_id: documentId }
+    })
+
+    if (!doc) {
+        return new NextResponse('Document not found in internal tracking', { status: 404 })
+    }
+
+    // 3. Update document status
+    await prisma.documents.update({
+        where: { id: doc.id },
+        data: {
+            status: 'final',
+            signed_at: new Date(),
+            // Here we would ideally download the signed PDF from Documenso API and 
+            // upload it to our Supabase Storage `documents` bucket, then update `signed_pdf_path`.
+            // signed_pdf_path: ...
+        }
+    })
+
+    // 4. Update order status if all documents are finished
+    // (In a real scenario, we check if all required docs for the order are signed)
+    const order = await prisma.orders.update({
+        where: { id: doc.order_id },
+        data: { status: 'completed' }
+    })
+
+    // 5. Audit log
+    await prisma.audit_log.create({
+        data: {
+            event: 'document_signed_via_documenso',
+            order_id: doc.order_id,
+            user_id: order.user_id,
+            metadata: { documenso_id: documentId }
+        }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Documenso Webhook Error:', error)
+    return new NextResponse('Webhook processing failed', { status: 500 })
+  }
+}
