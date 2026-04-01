@@ -34,10 +34,10 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   const displayName = profile?.full_name || profile?.company_name || user.email?.split('@')[0]
 
   const navItems = [
-    { name: 'Dashboard', href: '/(portal)', icon: Home },
-    { name: 'Mis Pedidos', href: '/(portal)/pedidos', icon: FileText },
-    { name: 'Suscripciones', href: '/(portal)/suscripciones', icon: ShieldCheck },
-    { name: 'Configuración', href: '/(portal)/configuracion', icon: Settings },
+    { name: 'Dashboard', href: '/portal', icon: Home },
+    { name: 'Mis Pedidos', href: '/portal/pedidos', icon: FileText },
+    { name: 'Suscripciones', href: '/portal/suscripciones', icon: ShieldCheck },
+    { name: 'Configuración', href: '/portal/configuracion', icon: Settings },
   ]
 
   // If user is admin/ops, show link to ops panel
@@ -61,7 +61,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         })}
         {isOps && (
           <Link
-            href="/(ops)"
+            href="/ops"
             className="group flex items-center rounded-md px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 hover:text-amber-800 mt-4 border border-amber-200"
           >
             <BuildingIcon className="mr-3 h-5 w-5 flex-shrink-0 text-amber-500 group-hover:text-amber-600" />

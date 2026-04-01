@@ -89,7 +89,7 @@ export default async function OpsDashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight">Pedidos que requieren atención</h2>
-          <Link href="/(ops)/pedidos" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
+          <Link href="/ops/pedidos" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
             Ver todos los pedidos <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
