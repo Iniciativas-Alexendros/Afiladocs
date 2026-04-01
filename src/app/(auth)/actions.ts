@@ -24,7 +24,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/portal')
+  redirect('/(portal)')
 }
 
 export async function register(formData: FormData) {
@@ -58,7 +58,7 @@ export async function register(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/portal')
+  redirect('/(portal)')
 }
 
 export async function logout() {

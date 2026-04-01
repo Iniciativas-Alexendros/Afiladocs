@@ -10,7 +10,7 @@ The pipeline uses GitLab's native DAG (Directed Acyclic Graph) features with `ne
 
 ### Stages
 
-1. **Build**:
+1. **Build**: 
    - Uses `node:22-alpine` for reproducible, hermetic builds.
    - Leverages `npm ci --prefer-offline` for deterministic dependency installation.
    - Caches the `.next/cache` and `.npm` folders to accelerate subsequent runs.
@@ -38,7 +38,7 @@ The pipeline uses GitLab's native DAG (Directed Acyclic Graph) features with `ne
 ## Security Control Mapping Matrix
 
 | Security Goal | Implementation in Pipeline | Standard/Framework |
-| ------------- | -------------------------- | ------------------ |
+|---------------|----------------------------|--------------------|
 | **Hermetic Builds** | Hardcoded Node version (`node:22-alpine`), locked dependencies (`npm ci`) | SLSA Level 3 |
 | **Secrets Management** | Vault/GitLab variables masked & protected. Passed in memory. | NIST SP 800-204D |
 | **Vulnerability Scanning** | SAST, Secret Detection, Dependency Scanning | OWASP / DoD DevSecOps |
@@ -66,7 +66,7 @@ To ensure the pipeline functions securely, configure the following settings in G
    Ensure all below variables are marked as **Masked** and **Protected** (where applicable):
 
    | Variable | Description |
-   | -------- | ----------- |
+   |----------|-------------|
    | `SSH_PRIVATE_KEY_STAGING` | Ed25519/RSA private key for staging server access. |
    | `SSH_KNOWN_HOSTS_STAGING` | The public host key (`ssh-keyscan`) of the staging server. |
    | `DEPLOY_USER_STAGING` | SSH username for staging (e.g., `deployer`). |
