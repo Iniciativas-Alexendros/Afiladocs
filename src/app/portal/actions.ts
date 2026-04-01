@@ -54,6 +54,6 @@ export async function submitIntake(orderId: string, formData: FormData) {
     return { error: 'Ocurrió un error al guardar los datos' }
   }
 
-  revalidatePath(`/(portal)/pedido/${orderId}`, 'page')
+  revalidatePath(`/portal/pedido/${orderId}`, 'page')
   redirect(`/pedido/${orderId}`)
 }

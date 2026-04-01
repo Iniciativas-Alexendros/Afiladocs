@@ -31,7 +31,7 @@ build_job:
   stage: build
   script:
     # 1. Instalar de forma segura respetando las versiones del lockfile
-    - npm ci --prefer-offline --audit=false
+    - npm ci --include=dev --prefer-offline --audit=false
     # 2. Compilar aplicación
     - npm run build
   artifacts:
@@ -51,7 +51,7 @@ build_job:
 test_lint:
   stage: test
   script:
-    - npm ci --prefer-offline --ignore-scripts
+    - npm ci --include=dev --prefer-offline --ignore-scripts
     - npm run lint
   needs: ["build_job"]
   rules:
@@ -61,7 +61,7 @@ test_lint:
 test_types:
   stage: test
   script:
-    - npm ci --prefer-offline --ignore-scripts
+    - npm ci --include=dev --prefer-offline --ignore-scripts
     - npm run typecheck
   needs: ["build_job"]
   rules:

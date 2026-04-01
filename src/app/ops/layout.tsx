@@ -35,10 +35,10 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
   const displayName = profile?.full_name || user.email?.split('@')[0]
 
   const navItems = [
-    { name: 'Ops Dashboard', href: '/(ops)', icon: Home },
-    { name: 'Gestión Pedidos', href: '/(ops)/pedidos', icon: FileText },
-    { name: 'Gestión Clientes', href: '/(ops)/clientes', icon: Users },
-    { name: 'Monitor Normativo', href: '/(ops)/monitor', icon: ShieldAlert },
+    { name: 'Ops Dashboard', href: '/ops', icon: Home },
+    { name: 'Gestión Pedidos', href: '/ops/pedidos', icon: FileText },
+    { name: 'Gestión Clientes', href: '/ops/clientes', icon: Users },
+    { name: 'Monitor Normativo', href: '/ops/monitor', icon: ShieldAlert },
   ]
 
   const NavLinks = () => (
@@ -60,7 +60,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
         {/* Link back to client portal */}
         <div className="pt-6 mt-6 border-t border-slate-200">
           <Link
-            href="/(portal)"
+            href="/portal"
             className="group flex items-center rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
           >
             <Briefcase className="mr-3 h-5 w-5 flex-shrink-0 text-blue-500" />

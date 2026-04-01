@@ -74,7 +74,7 @@ export default async function OpsOrdersPage() {
                       {(order.amount_cents / 100).toLocaleString('es-ES', { style: 'currency', currency: order.currency.toUpperCase() })}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link href={`/(ops)/pedido/${order.id}`} className="font-medium text-blue-600 hover:text-blue-800 flex justify-end items-center">
+                      <Link href={`/ops/pedido/${order.id}`} className="font-medium text-blue-600 hover:text-blue-800 flex justify-end items-center">
                         Gestionar <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
                     </td>

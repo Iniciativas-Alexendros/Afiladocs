@@ -30,7 +30,7 @@ export default async function OpsOrderDetailPage(props: { params: Promise<{ id: 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <Link href="/(ops)/pedidos" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 mb-4 transition-colors">
+        <Link href="/ops/pedidos" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 mb-4 transition-colors">
           <ArrowLeft className="mr-1 h-4 w-4" /> Volver a pedidos
         </Link>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-3">

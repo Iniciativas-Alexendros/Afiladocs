@@ -26,8 +26,8 @@ export async function opsUpdateOrderStatus(orderId: string, formData: FormData) 
       }
     })
 
-    revalidatePath(`/(ops)/pedido/${orderId}`, 'page')
-    revalidatePath(`/(ops)/pedidos`, 'page')
+    revalidatePath(`/ops/pedido/${orderId}`, 'page')
+    revalidatePath(`/ops/pedidos`, 'page')
     return { success: true }
   } catch (error) {
     console.error(error)
@@ -94,7 +94,7 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
       }
     })
 
-    revalidatePath(`/(ops)/pedido/${orderId}`, 'page')
+    revalidatePath(`/ops/pedido/${orderId}`, 'page')
     return { success: true }
   } catch (err) {
     console.error('Database update error after upload:', err)
