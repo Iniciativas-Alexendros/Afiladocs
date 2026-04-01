@@ -2,7 +2,7 @@
 
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function opsUpdateOrderStatus(orderId: string, formData: FormData) {
@@ -46,7 +46,7 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
   const order = await prisma.orders.findUnique({ where: { id: orderId } })
   if (!order) return { error: 'Pedido no encontrado' }
 
-  const supabase = createServerClient()
+  const supabase = await createClient()
   
   // Storage Path: owner_user_id/order_id/filename
   const fileName = `${type}_${Date.now()}.pdf`

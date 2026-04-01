@@ -1,3 +1,4 @@
+import sonarjs from "eslint-plugin-sonarjs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
@@ -13,10 +14,10 @@ const eslintConfig = [
   ...compat.extends(
     "next/core-web-vitals",
     "next/typescript",
-    "plugin:sonarjs/recommended",
     "plugin:security/recommended",
     "plugin:promise/recommended"
   ),
+  sonarjs.configs.recommended,
   {
     rules: {
       "complexity": ["warn", 10],
