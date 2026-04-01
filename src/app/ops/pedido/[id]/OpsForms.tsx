@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { opsUpdateOrderStatus, opsUploadDocument } from '../actions'
+import { opsUpdateOrderStatus, opsUploadDocument } from '../../actions'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
