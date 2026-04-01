@@ -51,7 +51,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/(portal)" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 mb-4 transition-colors">
+        <Link href="/portal" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 mb-4 transition-colors">
           <ArrowLeft className="mr-1 h-4 w-4" /> Volver al panel
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
