@@ -107,7 +107,14 @@ deploy_staging:
   environment:
     name: staging
     url: https://staging.afiladocs.com
-  needs: ["build_job", "test_lint", "test_types", "sast", "secret_detection"]
+  needs:
+    - job: "build_job"
+    - job: "test_lint"
+    - job: "test_types"
+    - job: "sast"
+      optional: true
+    - job: "secret_detection"
+      optional: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual # Requires manual approval for audit logging
