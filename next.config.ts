@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
 
+  // Logging de fetch requests visible en desarrollo (sin impacto en producción)
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
+
   experimental: {
     optimizePackageImports: [
       'lucide-react',
@@ -68,7 +75,8 @@ const nextConfig: NextConfig = {
               // *.supabase.co cubre tanto imágenes como documentos almacenados en Supabase Storage
               "img-src 'self' data: blob: https: https://*.supabase.co",
               // api.stripe.com para Stripe API; *.supabase.co para Supabase API y Storage
-              "connect-src 'self' https://api.stripe.com https://*.supabase.co",
+              // vitals.vercel-insights.com para Vercel Speed Insights / Analytics
+              "connect-src 'self' https://api.stripe.com https://*.supabase.co https://vitals.vercel-insights.com",
               // js.stripe.com y hooks.stripe.com para Stripe Elements/Checkout
               "frame-src https://js.stripe.com https://hooks.stripe.com",
               "object-src 'none'",

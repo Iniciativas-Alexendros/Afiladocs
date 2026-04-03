@@ -69,7 +69,11 @@ function handlePaymentFailed(intent: Stripe.PaymentIntent) {
 export async function POST(req: Request) {
   const stripe = getStripe()
   if (!stripe || !serverEnv.stripeWebhookSecret) {
-    console.error('[stripe-webhook] Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET')
+    console.error(JSON.stringify({
+      event: 'stripe.webhook.misconfigured',
+      message: 'Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET',
+      ts: new Date().toISOString(),
+    }))
     return new NextResponse('Webhook not configured', { status: 503 })
   }
 
@@ -88,7 +92,11 @@ export async function POST(req: Request) {
     event = await stripe.webhooks.constructEventAsync(rawBody, sig, serverEnv.stripeWebhookSecret)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[stripe-webhook] Signature verification failed:', message)
+    console.error(JSON.stringify({
+      event: 'stripe.webhook.signature_failed',
+      message,
+      ts: new Date().toISOString(),
+    }))
     return new NextResponse(`Webhook signature invalid: ${message}`, { status: 400 })
   }
 

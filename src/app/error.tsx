@@ -12,11 +12,13 @@ export default function ErrorPage({
 }) {
   useEffect(() => {
     // Structured error logging — replace with Sentry in production
-    console.error('[GlobalError]', {
+    console.error(JSON.stringify({
+      event: 'app.error',
       message: error.message,
-      digest: error.digest,
-      timestamp: new Date().toISOString(),
-    })
+      digest: error.digest ?? null,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      ts: new Date().toISOString(),
+    }))
   }, [error])
 
   return (
