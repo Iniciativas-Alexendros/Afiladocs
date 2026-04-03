@@ -51,6 +51,7 @@ test_lint:
   stage: test
   script:
     - npm ci --include=dev --prefer-offline --ignore-scripts
+    - npx prisma generate
     - npm run lint
   needs: ["build_job"]
   rules:
@@ -61,6 +62,7 @@ test_types:
   stage: test
   script:
     - npm ci --include=dev --prefer-offline --ignore-scripts
+    - npx prisma generate
     - npm run typecheck
   needs: ["build_job"]
   rules:
