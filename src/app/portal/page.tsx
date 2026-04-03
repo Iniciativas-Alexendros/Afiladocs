@@ -1,9 +1,9 @@
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { FileText, ShieldCheck, ArrowRight, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export const metadata = {
   title: 'Dashboard | Afiladocs',
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight">Actividad reciente</h2>
-          <Link href="/pedidos" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
+          <Link href="/portal/pedidos" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
             Ver todos <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="min-w-0 flex-auto">
                       <p className="text-sm font-semibold leading-6 text-slate-900">
-                        <Link href={`/pedido/${order.id}`}>
+                        <Link href={`/portal/pedido/${order.id}`}>
                           <span className="absolute inset-x-0 -top-px bottom-0" />
                           Pedido {order.product_id}
                         </Link>

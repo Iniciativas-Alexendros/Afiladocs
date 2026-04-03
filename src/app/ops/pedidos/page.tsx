@@ -1,8 +1,8 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, ArrowRight } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { ArrowRight } from 'lucide-react'
 
 export const metadata = {
   title: 'Gestión de Pedidos | Ops',
@@ -27,7 +27,7 @@ export default async function OpsOrdersPage() {
   const orders = await prisma.orders.findMany({
     include: {
       user: {
-        select: { email: true, full_name: true }
+        select: { full_name: true }
       }
     },
     orderBy: { created_at: 'desc' },
@@ -64,7 +64,7 @@ export default async function OpsOrdersPage() {
                   <tr key={order.id} className="bg-white border-b hover:bg-slate-50">
                     <td className="px-6 py-4 font-mono text-xs">{order.id.slice(0,8)}</td>
                     <td className="px-6 py-4">
-                      {order.user?.email}
+                      {order.user?.full_name ?? order.user_id.slice(0, 8)}
                     </td>
                     <td className="px-6 py-4 font-medium">{order.product_id}</td>
                     <td className="px-6 py-4">

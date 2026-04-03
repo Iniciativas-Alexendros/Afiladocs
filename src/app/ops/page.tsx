@@ -29,7 +29,7 @@ export default async function OpsDashboardPage() {
     },
     include: {
       user: {
-        select: { email: true, full_name: true }
+        select: { full_name: true }
       }
     },
     orderBy: { created_at: 'desc' },
@@ -112,13 +112,13 @@ export default async function OpsDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-auto">
                       <p className="text-sm font-semibold leading-6 text-slate-900">
-                        <Link href={`/pedido/${order.id}`}>
+                        <Link href={`/ops/pedido/${order.id}`}>
                           <span className="absolute inset-x-0 -top-px bottom-0" />
                           {order.product_id}
                         </Link>
                       </p>
                       <p className="mt-1 flex text-xs leading-5 text-slate-500 line-clamp-1">
-                        Cliente: {order.user?.email}
+                        Cliente: {order.user?.full_name ?? order.user_id.slice(0, 8)}
                       </p>
                     </div>
                   </div>

@@ -4,14 +4,13 @@ import { requireRole } from '@/lib/auth'
 import { logout } from '@/app/(auth)/actions'
 import { 
   BuildingIcon, 
-  FileText, 
   Home, 
-  Settings, 
   ShieldAlert, 
   LogOut,
   Users,
   Menu,
-  Briefcase
+  Briefcase,
+  FileText
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -30,9 +29,9 @@ export const metadata = {
 
 export default async function OpsLayout({ children }: { children: ReactNode }) {
   // Enforce Ops or Admin access
-  const { user, profile } = await requireRole(['admin', 'ops'])
+  const { user, role } = await requireRole(['admin', 'ops'])
 
-  const displayName = profile?.full_name || user.email?.split('@')[0]
+  const displayName = user.email?.split('@')[0]
 
   const navItems = [
     { name: 'Ops Dashboard', href: '/ops', icon: Home },
@@ -109,7 +108,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
           <div className="flex flex-1"></div>
           <div className="flex items-center gap-x-4 lg:gap-x-6">
              <span className="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-800 rounded-md ring-1 ring-inset ring-amber-600/20 mr-2 uppercase">
-               {profile.role}
+               {role}
              </span>
             <span className="text-sm font-medium text-slate-700">{displayName}</span>
           </div>
@@ -139,7 +138,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
                       <span aria-hidden="true" className="truncate">{displayName}</span>
                     </div>
                     <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded uppercase ring-1 ring-inset ring-amber-600/20">
-                      {profile.role}
+                      {role}
                     </span>
                   </div>
                   <form action={logout}>

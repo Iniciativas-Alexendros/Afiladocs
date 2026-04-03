@@ -1,15 +1,15 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+
 import { requireAuth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { logout } from '@/app/(auth)/actions'
-import { 
-  BuildingIcon, 
-  FileText, 
-  Home, 
-  Settings, 
-  ShieldCheck, 
+import {
+  Home,
+  FileText,
+  ShieldCheck,
+  Settings,
+  Building2,
   LogOut,
   Menu
 } from 'lucide-react'
@@ -64,7 +64,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
             href="/ops"
             className="group flex items-center rounded-md px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 hover:text-amber-800 mt-4 border border-amber-200"
           >
-            <BuildingIcon className="mr-3 h-5 w-5 flex-shrink-0 text-amber-500 group-hover:text-amber-600" />
+            <Building2 className="mr-3 h-5 w-5 flex-shrink-0 text-amber-500 group-hover:text-amber-600" />
             <span className="truncate">Panel de Operaciones</span>
           </Link>
         )}

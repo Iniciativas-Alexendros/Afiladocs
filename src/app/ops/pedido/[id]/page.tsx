@@ -50,7 +50,7 @@ export default async function OpsOrderDetailPage(props: { params: Promise<{ id: 
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
-                <p><span className="text-slate-500">Email:</span> {order.user?.email}</p>
+                <p><span className="text-slate-500">ID:</span> {order.user_id.slice(0, 8)}</p>
                 <p><span className="text-slate-500">Nombre:</span> {order.user?.full_name}</p>
                 <p><span className="text-slate-500">Registro:</span> {order.user?.created_at?.toLocaleDateString('es-ES')}</p>
               </div>

@@ -14,8 +14,11 @@ export function ChangeStatusForm({ orderId, currentStatus }: { orderId: string, 
       const formData = new FormData()
       formData.append('status', newStatus)
       const res = await opsUpdateOrderStatus(orderId, formData)
-      if (res?.error) toast.error(res.error)
-      else toast.success('Estado actualizado correctamente')
+      if (res?.error) {
+        toast.error(res.error)
+      } else {
+        toast.success('Estado actualizado correctamente')
+      }
     })
   }
 
@@ -52,18 +55,20 @@ export function UploadDocumentForm({ orderId, type }: { orderId: string, type: '
     })
   }
 
+  const uploadLabel = type === 'draft' ? 'Subir Borrador (.pdf)' : 'Subir Documento Final (.pdf)'
+
   return (
     <form onSubmit={handleUpload} className="flex flex-col gap-4">
-      <input 
-        type="file" 
-        name="file" 
-        accept="application/pdf" 
-        required 
+      <input
+        type="file"
+        name="file"
+        accept="application/pdf"
+        required
         disabled={isPending}
         className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
       />
       <Button type="submit" disabled={isPending} className="w-fit">
-        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subiendo...</> : `Subir ${type === 'draft' ? 'Borrador' : 'Documento Final'} (.pdf)`}
+        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subiendo...</> : uploadLabel}
       </Button>
     </form>
   )

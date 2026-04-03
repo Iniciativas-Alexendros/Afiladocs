@@ -87,7 +87,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
               <CardContent>
                 <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white font-medium">
                   {/* Redirecting to a specific intake form inside the portal */}
-                  <Link href={`/pedido/${order.id}/intake`}>
+                  <Link href={`/portal/pedido/${order.id}/intake`}>
                     Completar Formulario
                   </Link>
                 </Button>
@@ -112,15 +112,16 @@ export default async function OrderDetailPage({ params }: PageProps) {
                 </div>
               ) : (
                 <ul role="list" className="divide-y divide-slate-100 border rounded-md">
-                  {order.documents.map((doc) => (
+                  {order.documents.map((doc) => {
+                    const docStatusMap: Record<string, string> = { draft: 'Borrador', final: 'Versión final' }
+                    const docStatusLabel = docStatusMap[doc.status] ?? doc.status
+                    return (
                     <li key={doc.id} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-x-3">
                         <FileText className="h-5 w-5 text-blue-600" />
                         <div>
                           <p className="text-sm font-medium text-slate-900">Documento v{doc.version}</p>
-                          <p className="text-xs text-slate-500">
-                            {doc.status === 'draft' ? 'Borrador' : (doc.status === 'final' ? 'Versión final' : doc.status)}
-                          </p>
+                          <p className="text-xs text-slate-500">{docStatusLabel}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -138,7 +139,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
                         )}
                       </div>
                     </li>
-                  ))}
+                  )})}
                 </ul>
               )}
             </CardContent>

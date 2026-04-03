@@ -1,7 +1,6 @@
 'use client'
 
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { submitIntake } from '../../../actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +11,6 @@ import { Loader2, ArrowRight } from 'lucide-react'
 
 export function IntakeForm({ orderId, productName }: { orderId: string, productName: string }) {
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
