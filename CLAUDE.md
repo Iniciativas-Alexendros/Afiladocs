@@ -22,6 +22,22 @@ Dominio: pendiente de adquirir. URL actual: subdominio `.vercel.app`.
 - Las variables de entorno se centralizan en `src/lib/env.ts` con lazy getters (evita errores en build time).
 - El SDK de Stripe y Resend se instancian de forma lazy (nunca al nivel de módulo).
 
+## Repositorios remotos — sincronización obligatoria
+
+Al finalizar cada tarea que genere commits, SIEMPRE sincronizar con ambos remotos en este orden:
+
+```bash
+git push official main   # GitLab  — https://gitlab.com/Alexendros/afiladocs
+git push github main     # GitHub  — https://github.com/alexendros/afiladocs
+```
+
+Remotos configurados:
+
+- `official` → GitLab (CI/CD principal, SLSA pipeline)
+- `github`   → GitHub (mirror público, GitHub Apps access)
+
+Si algún push falla, reportarlo explícitamente antes de cerrar la tarea. Nunca asumir que el mirror está sincronizado sin confirmar el éxito de ambos pushes.
+
 ## Comandos del proyecto
 - `npm run dev` — Turbopack dev server en :3000
 - `npm run build` — Build de producción (sin `output: standalone` — Vercel lo gestiona)
