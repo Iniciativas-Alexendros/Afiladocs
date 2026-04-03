@@ -6,21 +6,39 @@ import { Toaster } from '@/components/ui/sonner'
 const dmSans = DM_Sans({
   subsets: ['latin', 'latin-ext'],
   variable: '--font-sans',
+  // Preload de los weights más usados para evitar FOUT y mejorar LCP
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 })
 
+// Resolución dinámica de metadataBase:
+//   1. NEXT_PUBLIC_SITE_URL — dominio propio (configurar en Vercel cuando se adquiera)
+//   2. VERCEL_URL — subdominio gratuito inyectado por Vercel en build time
+//   3. localhost:3000 — desarrollo local
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
+// FASE ACTUAL: dominio no adquirido → noindex para evitar indexación del subdominio .vercel.app.
+// Cuando se defina NEXT_PUBLIC_SITE_URL con el dominio real:
+//   robots pasa a { index: true, follow: true } automáticamente.
+const hasDomain = Boolean(process.env.NEXT_PUBLIC_SITE_URL)
+
 export const metadata: Metadata = {
   title: {
-    default: 'afilodocs – Documentos legales claros, sin tecnicismos',
-    template: '%s | afilodocs',
+    default: 'afiladocs – Documentos legales claros, sin tecnicismos',
+    template: '%s | afiladocs',
   },
   description:
     'Redacción y revisión de documentos legales en lenguaje claro. Precio cerrado, plazos realistas, trabajo 100% online desde Valencia.',
-  metadataBase: new URL('https://afilodocs.com'),
+  metadataBase: new URL(siteUrl),
+  robots: hasDomain
+    ? { index: true, follow: true }
+    : { index: false, follow: false },
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    siteName: 'afilodocs',
+    siteName: 'afiladocs',
   },
 }
 

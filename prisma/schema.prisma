@@ -1,5 +1,7 @@
 generator client {
   provider = "prisma-client-js"
+  // driverAdapters estable en Prisma 7 — no requiere previewFeatures.
+  // @prisma/adapter-pg se pasa al constructor en src/lib/prisma/client.ts.
 }
 
 datasource db {
