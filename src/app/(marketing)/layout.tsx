@@ -1,6 +1,7 @@
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { CartProvider } from '@/hooks/useCart'
+import { CookieBanner } from '@/components/CookieBanner'
 
 export default function MarketingLayout({
   children,
@@ -12,6 +13,7 @@ export default function MarketingLayout({
       <Header />
       <main>{children}</main>
       <Footer />
+      <CookieBanner />
     </CartProvider>
   )
 }
