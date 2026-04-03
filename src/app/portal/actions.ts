@@ -21,11 +21,20 @@ export async function submitIntake(orderId: string, formData: FormData) {
     return { error: 'Este pedido ya tiene sus datos completados u orientados' }
   }
 
+  // Validar campos del formulario antes de castear
+  const titular = formData.get('titular')
+  const actividad = formData.get('actividad')
+  const detalles = formData.get('detalles')
+
+  if (!titular || !actividad || !detalles) {
+    return { error: 'Faltan campos obligatorios del formulario' }
+  }
+
   // Parse generic intake data fields into JSON
   const intakeData = {
-    titular: formData.get('titular') as string,
-    actividad: formData.get('actividad') as string,
-    detalles: formData.get('detalles') as string,
+    titular: titular.toString().trim(),
+    actividad: actividad.toString().trim(),
+    detalles: detalles.toString().trim(),
     submittedAt: new Date().toISOString(),
   }
 
@@ -55,5 +64,5 @@ export async function submitIntake(orderId: string, formData: FormData) {
   }
 
   revalidatePath(`/portal/pedido/${orderId}`, 'page')
-  redirect(`/pedido/${orderId}`)
+  redirect(`/portal/pedido/${orderId}`)
 }

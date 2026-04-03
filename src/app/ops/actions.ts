@@ -1,20 +1,61 @@
 'use server'
 
+import React from 'react'
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service'
+import { sendEmail } from '@/lib/email/send'
+import { publicEnv } from '@/lib/env'
+import { DocumentReadyEmail } from '@/emails/document-ready'
 import { revalidatePath } from 'next/cache'
+
+const VALID_ORDER_STATUSES = ['intake_pending', 'processing', 'draft_ready', 'completed'] as const
+type OrderStatus = typeof VALID_ORDER_STATUSES[number]
+
+async function notifyDraftReady(orderId: string) {
+  const order = await prisma.orders.findUnique({ where: { id: orderId } })
+  if (!order) return
+
+  const adminClient = createServiceRoleClient()
+  const { data: authUser } = await adminClient.auth.admin.getUserById(order.user_id)
+  const customerEmail = authUser?.user?.email
+  if (!customerEmail) return
+
+  const profile = await prisma.profiles.findUnique({
+    where: { id: order.user_id },
+    select: { full_name: true },
+  })
+
+  await sendEmail({
+    to: customerEmail,
+    subject: 'Tu borrador está listo para revisar — Afiladocs',
+    react: React.createElement(DocumentReadyEmail, {
+      userName: profile?.full_name ?? 'Cliente',
+      productName: order.product_id,
+      version: '1',
+      documentUrl: `${publicEnv.siteUrl}/portal/pedido/${orderId}`,
+    }),
+  })
+}
 
 export async function opsUpdateOrderStatus(orderId: string, formData: FormData) {
   const { user } = await requireRole(['admin', 'ops'])
-  const newStatus = formData.get('status') as string
+  const rawStatus = formData.get('status')
 
-  if (!newStatus) return { error: 'Estado no válido' }
+  if (!rawStatus) return { error: 'Estado no proporcionado' }
+
+  const newStatus = rawStatus.toString()
+  if (!(VALID_ORDER_STATUSES as readonly string[]).includes(newStatus)) {
+    return { error: 'Estado no válido' }
+  }
+
+  const validatedStatus = newStatus as OrderStatus
 
   try {
-    const order = await prisma.orders.update({
+    await prisma.orders.update({
       where: { id: orderId },
-      data: { status: newStatus },
+      data: { status: validatedStatus },
     })
 
     await prisma.audit_log.create({
@@ -22,12 +63,24 @@ export async function opsUpdateOrderStatus(orderId: string, formData: FormData) 
         event: 'order_status_updated_manually',
         order_id: orderId,
         user_id: user.id,
-        metadata: { new_status: newStatus }
-      }
+        metadata: { new_status: validatedStatus },
+      },
     })
 
     revalidatePath(`/ops/pedido/${orderId}`, 'page')
     revalidatePath(`/ops/pedidos`, 'page')
+
+    if (validatedStatus === 'draft_ready') {
+      notifyDraftReady(orderId).catch((emailErr) => {
+        console.error(JSON.stringify({
+          event: 'email.draft_ready.failed',
+          orderId,
+          message: emailErr instanceof Error ? emailErr.message : 'Unknown error',
+          ts: new Date().toISOString(),
+        }))
+      })
+    }
+
     return { success: true }
   } catch (error) {
     console.error(error)
@@ -47,57 +100,50 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
   if (!order) return { error: 'Pedido no encontrado' }
 
   const supabase = await createClient()
-  
-  // Storage Path: owner_user_id/order_id/filename
+
   const fileName = `${type}_${Date.now()}.pdf`
   const filePath = `${order.user_id}/${order.id}/${fileName}`
 
-  // Upload to Supabase Storage 'documents' bucket
   const { data, error } = await supabase.storage
     .from('documents')
     .upload(filePath, file, {
       contentType: 'application/pdf',
-      upsert: true
+      upsert: true,
     })
 
   if (error) {
-    console.error('Storage Upload Error:', error)
+    console.error(JSON.stringify({ event: 'storage.upload.error', message: error.message, ts: new Date().toISOString() }))
     return { error: 'Error al subir el archivo a Storage' }
   }
 
-  // Record it in our 'documents' table
   try {
     const documentRecord = await prisma.documents.create({
       data: {
         order_id: orderId,
-        type: 'pdf',
+        product_id: order.product_id,
+        eideas_level: order.eideas_level,
         status: type === 'draft' ? 'draft' : 'final',
         draft_pdf_path: type === 'draft' ? data.path : null,
         signed_pdf_path: type === 'signed' ? data.path : null,
-      }
+      },
     })
 
-    // Update order status based on upload type
-    const newStatus = type === 'draft' ? 'draft_ready' : 'completed'
-    await prisma.orders.update({
-      where: { id: orderId },
-      data: { status: newStatus }
-    })
+    const uploadStatus = type === 'draft' ? 'draft_ready' : 'completed'
+    await prisma.orders.update({ where: { id: orderId }, data: { status: uploadStatus } })
 
-    // Audit log
     await prisma.audit_log.create({
       data: {
         event: `document_${type}_uploaded`,
         order_id: orderId,
         user_id: user.id,
-        metadata: { document_id: documentRecord.id, path: data.path }
-      }
+        metadata: { document_id: documentRecord.id, path: data.path },
+      },
     })
 
     revalidatePath(`/ops/pedido/${orderId}`, 'page')
     return { success: true }
   } catch (err) {
-    console.error('Database update error after upload:', err)
+    console.error(JSON.stringify({ event: 'db.update.error_after_upload', message: err instanceof Error ? err.message : 'Unknown', ts: new Date().toISOString() }))
     return { error: 'Archivo subido pero error al actualizar base de datos' }
   }
 }
