@@ -3,18 +3,21 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
+
   "functions": {
-    "src/app/api/checkout/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/webhooks/stripe/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/webhooks/documenso/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/contact/route.ts": {
-      "maxDuration": 10
+    "src/app/api/checkout/route.ts": { "maxDuration": 30 },
+    "src/app/api/webhooks/stripe/route.ts": { "maxDuration": 30 },
+    "src/app/api/webhooks/documenso/route.ts": { "maxDuration": 30 },
+    "src/app/api/contact/route.ts": { "maxDuration": 10 }
+  },
+
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "staging": true,
+      "develop": true
     }
-  }
+  },
+
+  "crons": []
 }

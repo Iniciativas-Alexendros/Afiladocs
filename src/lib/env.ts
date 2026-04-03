@@ -66,4 +66,17 @@ export const publicEnv = {
   siteUrl: resolveSiteUrl(),
   get supabaseUrl() { return process.env.NEXT_PUBLIC_SUPABASE_URL ?? '' },
   get supabaseAnonKey() { return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '' },
+  // Vercel runtime env — inyectado automáticamente por Vercel en cada deployment.
+  // 'production' | 'preview' | 'development'
+  // En desarrollo local sin Vercel: undefined → se trata como 'development'.
+  get vercelEnv() {
+    return (process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development') as
+      | 'production'
+      | 'preview'
+      | 'development'
+  },
+  get vercelGitBranch() { return process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF ?? '' },
+  get vercelGitSha() {
+    return (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7)
+  },
 } as const
