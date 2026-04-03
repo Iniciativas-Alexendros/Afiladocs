@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useCart, formatCurrency } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
-import { X, Trash2, Plus, Minus } from "lucide-react";
+import { X, Trash2, Plus, Minus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShoppingCartProps {
@@ -13,8 +14,10 @@ interface ShoppingCartProps {
 export function ShoppingCart({ isCartOpen, setIsCartOpen }: ShoppingCartProps) {
   const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal } =
     useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleCheckout = async () => {
+    setIsCheckingOut(true);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -35,9 +38,11 @@ export function ShoppingCart({ isCartOpen, setIsCartOpen }: ShoppingCartProps) {
         window.location.href = data.url;
       } else {
         toast.error("No se pudo iniciar el proceso de pago");
+        setIsCheckingOut(false);
       }
     } catch {
       toast.error("Error al conectar con el servicio de pagos");
+      setIsCheckingOut(false);
     }
   };
 
@@ -147,8 +152,13 @@ export function ShoppingCart({ isCartOpen, setIsCartOpen }: ShoppingCartProps) {
             <Button
               className="w-full bg-primary text-white hover:bg-primary/90"
               onClick={handleCheckout}
+              disabled={isCheckingOut}
             >
-              Proceder al pago
+              {isCheckingOut ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Redirigiendo al pago...</>
+              ) : (
+                "Proceder al pago"
+              )}
             </Button>
             <Button
               variant="ghost"
