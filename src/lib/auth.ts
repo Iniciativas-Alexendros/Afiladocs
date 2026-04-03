@@ -34,7 +34,7 @@ export async function requireRole(allowedRoles: string[]) {
     .single()
 
   if (!profile || !allowedRoles.includes(profile.role)) {
-    redirect('/dashboard')
+    redirect('/portal')
   }
 
   return { user, role: profile.role }

@@ -35,6 +35,17 @@ interface CartItem {
   quantity: number;
 }
 
+// Module-level helper to stay within sonarjs nesting depth limits
+function mergeCartItem(prevItems: CartItem[], product: CartProduct, variant: CartVariant, quantity: number): CartItem[] {
+  const existing = prevItems.find((item) => item.variant.id === variant.id)
+  if (existing) {
+    return prevItems.map((item) =>
+      item.variant.id === variant.id ? { ...item, quantity: item.quantity + quantity } : item
+    )
+  }
+  return [...prevItems, { product, variant, quantity }]
+}
+
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (
@@ -120,19 +131,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        setCartItems((prevItems) => {
-          const existingItem = prevItems.find(
-            (item) => item.variant.id === variant.id
-          );
-          if (existingItem) {
-            return prevItems.map((item) =>
-              item.variant.id === variant.id
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            );
-          }
-          return [...prevItems, { product, variant, quantity }];
-        });
+        setCartItems((prev) => mergeCartItem(prev, product, variant, quantity));
         resolve();
       });
     },

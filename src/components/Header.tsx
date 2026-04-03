@@ -39,7 +39,7 @@ export function Header() {
             <Link href="/" className="flex items-center gap-2 group">
               <FileText className="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-200" />
               <span className="text-xl font-bold text-foreground">
-                afilodocs
+                afiladocs
               </span>
             </Link>
 

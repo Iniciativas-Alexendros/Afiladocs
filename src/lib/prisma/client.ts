@@ -1,4 +1,10 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+
+// Prisma 7 usa el engine "client" (JS puro) por defecto — no requiere binario nativo.
+// PrismaPg proporciona el driver adapter para conectar con PostgreSQL sin binario.
+// Requerido tanto en Vercel (serverless) como en desarrollo local sin engines instalados.
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL ?? '' })
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -7,7 +13,7 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL,
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   })
 
