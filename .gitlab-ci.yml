@@ -1,5 +1,6 @@
-# Propósito: Pipeline DevSecOps compatible con SLSA Nivel 3 para Next.js 15
-# Autor: Antigravity IDE Agent
+# Propósito: Pipeline DevSecOps para Next.js 15 en Vercel
+# Deploy exclusivo vía Vercel — los jobs VPS (rsync/PM2) han sido eliminados
+# ya que next.config.ts no usa output:standalone (incompatible con Vercel).
 
 image: node:22-alpine
 
@@ -11,7 +12,6 @@ stages:
 
 variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
-  # Security configuration (GitLab native)
   SECURE_LOG_LEVEL: "info"
   SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next"
   NODE_ENV: "production"
@@ -20,25 +20,24 @@ cache:
   key:
     files:
       - package-lock.json
+    prefix: node22
   paths:
     - .npm/
     - .next/cache/
 
 # ---------------------------------------------------------------------------
-# BUILD STAGE (Hermetic, Caching, Provenance generation ready)
+# BUILD STAGE
 # ---------------------------------------------------------------------------
 build_job:
   stage: build
   script:
-    # 1. Instalar de forma segura respetando las versiones del lockfile
-    - npm ci --include=dev --prefer-offline --audit=false
-    # 2. Compilar aplicación
+    # npm ci no tiene flag --audit (ese es npm audit); --prefer-offline reduce latencia
+    - npm ci --include=dev --prefer-offline
     - npm run build
   artifacts:
     paths:
-      # Solo guardar los binarios que irán a producción (output: standalone output enabled in next.config.ts)
-      - .next/standalone/
-      - .next/static/
+      # .next/ completo para vercel deploy --prebuilt
+      - .next/
       - public/
     expire_in: 1 week
   rules:
@@ -68,9 +67,21 @@ test_types:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# Auditoría de dependencias — non-blocking hasta que el baseline esté limpio
+test_audit:
+  stage: test
+  script:
+    - npm ci --include=dev --prefer-offline --ignore-scripts
+    - npm audit --audit-level=high
+  needs: ["build_job"]
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # ---------------------------------------------------------------------------
-# SECURITY SCANNING STAGE 
-# (Defense in depth, using GitLab Ultimate templates)
+# SECURITY SCANNING STAGE
+# (GitLab Ultimate templates — SAST, Secret Detection, Dependency Scanning)
 # ---------------------------------------------------------------------------
 include:
   - template: Security/SAST.gitlab-ci.yml
@@ -78,35 +89,30 @@ include:
   - template: Security/Dependency-Scanning.gitlab-ci.yml
 
 # ---------------------------------------------------------------------------
-# DEPLOYMENT STAGING 
+# DEPLOYMENT VERCEL (canal único de producción)
 # ---------------------------------------------------------------------------
-deploy_staging:
+# Variables CI/CD requeridas en GitLab (Settings > CI/CD > Variables):
+#   VERCEL_TOKEN        — Vercel Dashboard > Account > Tokens
+#   VERCEL_ORG_ID       — de .vercel/project.json (tras primer `vercel link`)
+#   VERCEL_PROJECT_ID   — de .vercel/project.json
+#   VERCEL_DEPLOY_URL   — URL del deployment (ej. https://afiladocs.vercel.app)
+deploy_vercel:
   stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache openssh-client rsync curl
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY_STAGING" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    # Prevención Man-in-the-Middle verificando Host Keys
-    - echo "$SSH_KNOWN_HOSTS_STAGING" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+  image: node:22-alpine
   script:
-    # Copiar release artifacts con rsync usando Rsync over SSH de manera segura
-    - rsync -avz --delete --exclude='.git' .next/standalone/ $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING:$DEPLOY_PATH_STAGING/
-    - rsync -avz .next/static/ $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING:$DEPLOY_PATH_STAGING/.next/standalone/.next/static/
-    - rsync -avz public/ $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING:$DEPLOY_PATH_STAGING/.next/standalone/public/
-    
-    # Reload sin downtime usando PM2 cluster (Deployment Blue/Green minimal)
-    - ssh $DEPLOY_USER_STAGING@$DEPLOY_HOST_STAGING "cd $DEPLOY_PATH_STAGING/.next/standalone && pm2 reload afiladocs-staging || pm2 start server.js --name afiladocs-staging"
-    
-    # Feedback / Smoke tests contra API local
-    - sleep 5
-    - curl -f http://$DEPLOY_HOST_STAGING:3000/api/health || exit 1
+    - npm install -g vercel
+    # Descarga configuración del proyecto Vercel (vercel.json, env vars)
+    - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+    # Build en el entorno Vercel (genera .vercel/output/)
+    - vercel build --prod --token=$VERCEL_TOKEN
+    # Deploy del artifact prebuilt — no re-ejecuta el build en Vercel
+    - DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)
+    # Smoke test post-deploy: verifica que el health endpoint responde
+    - apk add --no-cache curl
+    - 'curl -f --retry 5 --retry-delay 10 "${DEPLOY_URL}/api/health" || (echo "Health check failed after deploy" && exit 1)'
   environment:
-    name: staging
-    url: https://staging.afiladocs.com
+    name: production-vercel
+    url: $VERCEL_DEPLOY_URL
   needs:
     - job: "build_job"
     - job: "test_lint"
@@ -115,33 +121,6 @@ deploy_staging:
       optional: true
     - job: "secret_detection"
       optional: true
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: manual # Requires manual approval for audit logging
-
-# ---------------------------------------------------------------------------
-# DEPLOYMENT PRODUCTION 
-# ---------------------------------------------------------------------------
-deploy_production:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache openssh-client rsync
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY_PROD" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_KNOWN_HOSTS_PROD" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-  script:
-    - rsync -avz --delete --exclude='.git' .next/standalone/ $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD:$DEPLOY_PATH_PROD/
-    - rsync -avz .next/static/ $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD:$DEPLOY_PATH_PROD/.next/standalone/.next/static/
-    - rsync -avz public/ $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD:$DEPLOY_PATH_PROD/.next/standalone/public/
-    - ssh $DEPLOY_USER_PROD@$DEPLOY_HOST_PROD "cd $DEPLOY_PATH_PROD/.next/standalone && pm2 reload afiladocs-prod || pm2 start server.js --name afiladocs-prod"
-  environment:
-    name: production
-    url: https://afiladocs.com
-  needs: ["deploy_staging"]
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
