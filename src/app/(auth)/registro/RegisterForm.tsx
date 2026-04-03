@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 import Link from 'next/link'
 import { register } from '../actions'
 import { Button } from '@/components/ui/button'
@@ -12,7 +11,6 @@ import { Loader2, ArrowRight } from 'lucide-react'
 
 export function RegisterForm() {
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -124,11 +122,11 @@ export function RegisterForm() {
       
       <p className="text-center text-xs text-slate-400">
         Al registrarte, aceptas nuestros{' '}
-        <Link href="/condiciones-generales" className="underline hover:text-slate-600">
+        <Link href="/legal/condiciones-generales" className="underline hover:text-slate-600">
           Términos
         </Link>{' '}
         y la{' '}
-        <Link href="/privacidad" className="underline hover:text-slate-600">
+        <Link href="/legal/privacidad" className="underline hover:text-slate-600">
           Política de Privacidad
         </Link>.
       </p>

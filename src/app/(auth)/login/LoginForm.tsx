@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 import Link from 'next/link'
 import { login } from '../actions'
 import { Button } from '@/components/ui/button'
@@ -12,7 +11,6 @@ import { Loader2 } from 'lucide-react'
 
 export function LoginForm() {
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
