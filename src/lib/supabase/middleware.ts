@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { publicEnv } from '@/lib/env'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -7,8 +8,8 @@ export async function updateSession(request: NextRequest) {
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    publicEnv.supabaseUrl,
+    publicEnv.supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -30,9 +31,8 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Refresh session — this call is critical for keeping the auth
-  // session alive on every navigation.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: { user } } = await supabase.auth.getUser()
+  // session alive on every navigation. Return value intentionally unused.
+  await supabase.auth.getUser()
 
   return supabaseResponse
 }
