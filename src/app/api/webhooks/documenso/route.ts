@@ -1,33 +1,45 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma/client'
+import { serverEnv } from '@/lib/env'
 import crypto from 'crypto'
 
-// The secret provided by Documenso webhooks to verify payloads
-const DOCUMENSO_WEBHOOK_SECRET = process.env.DOCUMENSO_WEBHOOK_SECRET
-
 export async function POST(req: Request) {
+  // 1. Verificar que el secreto está configurado — sin él, rechazar siempre
+  const secret = serverEnv.documensoWebhookSecret
+  if (!secret) {
+    console.error(JSON.stringify({
+      event: 'documenso.webhook.not_configured',
+      ts: new Date().toISOString(),
+    }))
+    return new NextResponse('Webhook not configured', { status: 503 })
+  }
+
   try {
     const bodyText = await req.text()
-    
-    // 1. Verify Signature (if secret is configured)
-    if (DOCUMENSO_WEBHOOK_SECRET) {
-      const signature = req.headers.get('documenso-signature')
-      if (!signature) {
-        return new NextResponse('Missing signature', { status: 401 })
-      }
-      
-      const expectedSignature = crypto
-        .createHmac('sha256', DOCUMENSO_WEBHOOK_SECRET)
-        .update(bodyText)
-        .digest('hex')
-        
-      if (signature !== expectedSignature) {
-        return new NextResponse('Invalid signature', { status: 401 })
-      }
+
+    // 2. Verificar firma HMAC — siempre obligatorio
+    const signature = req.headers.get('documenso-signature')
+    if (!signature) {
+      return new NextResponse('Missing signature', { status: 401 })
     }
 
-    const payload = JSON.parse(bodyText)
-    const { event, documentId } = payload
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(bodyText)
+      .digest('hex')
+
+    if (signature !== expectedSignature) {
+      return new NextResponse('Invalid signature', { status: 401 })
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let payload: any
+    try {
+      payload = JSON.parse(bodyText)
+    } catch {
+      return new NextResponse('Invalid JSON payload', { status: 400 })
+    }
+    const { event, documentId } = payload as { event?: string; documentId?: string }
 
     // We only care when the document gets completed/signed by all parties
     if (event !== 'DOCUMENT_COMPLETED') {
@@ -74,7 +86,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Documenso Webhook Error:', error)
+    console.error(JSON.stringify({
+      event: 'documenso.webhook.error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      ts: new Date().toISOString(),
+    }))
     return new NextResponse('Webhook processing failed', { status: 500 })
   }
 }
