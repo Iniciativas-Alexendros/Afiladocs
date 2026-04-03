@@ -20,6 +20,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
+function getDisplayName(
+  profile: { full_name?: string | null; company_name?: string | null } | null,
+  email: string | undefined,
+) {
+  return profile?.full_name ?? profile?.company_name ?? email?.split('@')[0]
+}
+
+function isOpsUser(profile: { role?: string | null } | null) {
+  return profile?.role === 'admin' || profile?.role === 'ops'
+}
+
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const user = await requireAuth()
   const supabase = await createClient()
@@ -31,7 +42,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
     .eq('id', user.id)
     .single()
 
-  const displayName = profile?.full_name || profile?.company_name || user.email?.split('@')[0]
+  const displayName = getDisplayName(profile, user.email)
 
   const navItems = [
     { name: 'Dashboard', href: '/portal', icon: Home },
@@ -41,7 +52,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   ]
 
   // If user is admin/ops, show link to ops panel
-  const isOps = profile?.role === 'admin' || profile?.role === 'ops'
+  const isOps = isOpsUser(profile)
 
   const NavLinks = () => (
     <>

@@ -13,6 +13,16 @@ import { revalidatePath } from 'next/cache'
 const VALID_ORDER_STATUSES = ['intake_pending', 'processing', 'draft_ready', 'completed'] as const
 type OrderStatus = typeof VALID_ORDER_STATUSES[number]
 
+function buildDocumentFields(type: 'draft' | 'signed', storagePath: string) {
+  const isDraft = type === 'draft'
+  return {
+    status: isDraft ? 'draft' : 'final',
+    draft_pdf_path: isDraft ? storagePath : null,
+    signed_pdf_path: isDraft ? null : storagePath,
+    uploadStatus: isDraft ? 'draft_ready' : 'completed',
+  } as const
+}
+
 async function notifyDraftReady(orderId: string) {
   const order = await prisma.orders.findUnique({ where: { id: orderId } })
   if (!order) return
@@ -117,18 +127,20 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
   }
 
   try {
+    const { status, draft_pdf_path, signed_pdf_path, uploadStatus } =
+      buildDocumentFields(type, data.path)
+
     const documentRecord = await prisma.documents.create({
       data: {
         order_id: orderId,
         product_id: order.product_id,
         eideas_level: order.eideas_level,
-        status: type === 'draft' ? 'draft' : 'final',
-        draft_pdf_path: type === 'draft' ? data.path : null,
-        signed_pdf_path: type === 'signed' ? data.path : null,
+        status,
+        draft_pdf_path,
+        signed_pdf_path,
       },
     })
 
-    const uploadStatus = type === 'draft' ? 'draft_ready' : 'completed'
     await prisma.orders.update({ where: { id: orderId }, data: { status: uploadStatus } })
 
     await prisma.audit_log.create({
