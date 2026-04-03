@@ -1,6 +1,7 @@
 # CLAUDE.md — Afiladocs Project Context
 
 ## Identidad del proyecto
+
 Plataforma de servicios legales digitales B2C (Valencia, España).
 Stack: Next.js 15.3 + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/ui
        + Stripe SDK 21 (API `2026-03-25.dahlia`) + Prisma 7 + Supabase + Resend
@@ -9,6 +10,7 @@ Deploy: **Vercel** (región `mad1`). CI/CD: GitLab CI SLSA Level 3 (.gitlab-ci.y
 Dominio: pendiente de adquirir. URL actual: subdominio `.vercel.app`.
 
 ## Reglas absolutas
+
 - NUNCA expongas `STRIPE_SECRET_KEY` ni `STRIPE_WEBHOOK_SECRET` al cliente. Solo server-side.
 - NUNCA expongas claves privadas en variables `NEXT_PUBLIC_*`.
 - NUNCA elimines validación Zod de API routes.
@@ -33,12 +35,14 @@ git push github main     # GitHub  — https://github.com/alexendros/afiladocs
 
 Remotos configurados:
 
-- `official` → GitLab (CI/CD principal, SLSA pipeline)
-- `github`   → GitHub (mirror público, GitHub Apps access)
+- `official` → GitLab via HTTPS+token — `https://gitlab.com/Alexendros/afiladocs.git`
+- `github`   → GitHub via SSH         — `git@github.com:alexendros/afiladocs.git`
 
-Si algún push falla, reportarlo explícitamente antes de cerrar la tarea. Nunca asumir que el mirror está sincronizado sin confirmar el éxito de ambos pushes.
+Si algún push falla, reportarlo explícitamente antes de cerrar la tarea.
+Nunca asumir que el mirror está sincronizado sin confirmar el éxito de ambos pushes.
 
 ## Comandos del proyecto
+
 - `npm run dev` — Turbopack dev server en :3000
 - `npm run build` — Build de producción (sin `output: standalone` — Vercel lo gestiona)
 - `npm run typecheck` — tsc --noEmit (0 errores requeridos)
@@ -47,7 +51,8 @@ Si algún push falla, reportarlo explícitamente antes de cerrar la tarea. Nunca
 - `npx prisma migrate dev` — Aplicar migraciones en desarrollo
 
 ## Arquitectura de directorios
-```
+
+```text
 src/
 ├── app/
 │   ├── (auth)/           — Login, registro, recuperar password
@@ -81,7 +86,7 @@ src/
 │   ├── auth.ts           — requireAuth(), requireRole(['admin','ops']), getUser()
 │   ├── prisma/client.ts  — PrismaClient con @prisma/adapter-pg (serverless-safe)
 │   ├── supabase/         — server.ts, client.ts, middleware.ts, service.ts
-│   ├── stripe/client.ts  — stripe singleton + PRODUCT_PRICE_MAP + EIDAS_LEVEL_MAP
+│   ├── stripe/client.ts  — getProductPriceMap() + EIDAS_LEVEL_MAP
 │   ├── stripe/actions.ts — createCheckoutSession() server action
 │   ├── email/send.ts     — sendEmail() via Resend (lazy instantiation)
 │   ├── rate-limit.ts     — Upstash Redis rate limiting (fallback null en dev sin Redis)
@@ -94,6 +99,7 @@ src/
 ```
 
 ## Arquitectura de autenticación y roles
+
 - **Auth**: Supabase Auth + middleware de sesión (`src/lib/supabase/middleware.ts`)
 - **requireAuth()**: redirige a `/login` si no hay sesión
 - **requireRole(['admin','ops'])**: redirige a `/portal` si el rol no coincide
@@ -101,6 +107,7 @@ src/
 - **Roles**: `client` (default), `ops`, `admin`
 
 ## Base de datos (Prisma + Supabase PostgreSQL)
+
 - **Prisma 7** con `@prisma/adapter-pg` (engine "client" JS puro, sin binario nativo)
 - Supabase Supavisor pooler: `DATABASE_URL` con puerto 6543 para queries
 - `DIRECT_URL` (puerto 5432) para migraciones `prisma migrate`
@@ -108,14 +115,17 @@ src/
 - Regenerar cliente tras cambios en schema: `npx prisma generate`
 
 ## Flujo de pago (Stripe)
+
 1. Cliente añade producto → `useCart` → POST `/api/checkout` → `stripe.checkout.sessions.create`
 2. Stripe redirige a `success_url` → `/pago-exitoso`
 3. Stripe envía webhook → POST `/api/webhooks/stripe` → `constructEventAsync` (firma verificada)
 4. `checkout.session.completed` → `sendEmail` (Resend) con `PaymentConfirmation`
+
 - Rate limiting: Upstash Redis (10 req/min por IP en checkout, 5 req/10min en contact)
 - Sin Upstash configurado: sin rate limiting (fallback graceful para desarrollo)
 
 ## Variables de entorno clave
+
 | Variable | Scope | Descripción |
 |---|---|---|
 | `STRIPE_SECRET_KEY` | Server only | Clave secreta Stripe (no NEXT_PUBLIC_) |
@@ -132,6 +142,7 @@ src/
 **Cuando no hay `NEXT_PUBLIC_SITE_URL`**: `publicEnv.siteUrl` resuelve desde `VERCEL_URL` (subdominio .vercel.app). `robots.ts` pone `Disallow: /` y `metadata.robots` pone `noindex`. Al adquirir el dominio: añadir `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel Dashboard y hacer redeploy.
 
 ## Patrones establecidos
+
 - **Env vars**: importar `serverEnv` / `publicEnv` desde `@/lib/env` (nunca `process.env` directo en handlers)
 - **Lazy init**: SDKs de terceros (Stripe, Resend) se instancian dentro de funciones, no al nivel de módulo
 - **Context**: `CartProvider` en `(marketing)/layout.tsx`
@@ -144,6 +155,7 @@ src/
 - **Structured logging**: `console.log(JSON.stringify({event, ...data, ts}))` en API routes y webhooks
 
 ## Restricciones de seguridad
+
 - CSP headers en `next.config.ts` — incluye `*.supabase.co`, `js.stripe.com`, `fonts.gstatic.com`
 - Rate limiting via `src/lib/rate-limit.ts` con Upstash Redis (fallback graceful sin Redis)
 - Stripe webhooks: SIEMPRE `stripe.webhooks.constructEventAsync()` (async, serverless-safe)
@@ -152,6 +164,7 @@ src/
 - `output: 'standalone'` ELIMINADO — incompatible con Vercel
 
 ## Deploy Vercel
+
 - `vercel.json` en raíz: región `mad1`, `maxDuration` por función
 - Pipeline GitLab: stage `deploy_vercel` (manual, en `main`)
 - Variables CI necesarias: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_DEPLOY_URL`
