@@ -32,9 +32,15 @@ model orders {
   amount_cents          Int
   currency              String    @default("eur")
   status                String    @default("intake_pending")
-  eideas_level          String
+  eidas_level           String
   intake_data           Json?
   intake_completed_at   DateTime? @db.Timestamptz(6)
+  // Facturación electrónica (EasyVerifactu — RD 1007/2023)
+  invoice_id            String?
+  invoice_pdf           String?
+  invoiced_at           DateTime? @db.Timestamptz(6)
+  // Soft delete — preserva datos para auditoría
+  deleted_at            DateTime? @db.Timestamptz(6)
   created_at            DateTime  @default(now()) @db.Timestamptz(6)
   updated_at            DateTime  @default(now()) @db.Timestamptz(6)
 
@@ -53,9 +59,13 @@ model documents {
   order_id              String    @db.Uuid
   product_id            String
   version               String    @default("1.0")
-  eideas_level          String
+  eidas_level           String
   signature_provider    String?
+  // Legacy: Documenso document ID (kept for backward-compat while migrating to DocuSeal)
   documenso_document_id String?
+  // Generic signing document ID — used by DocuSeal and future providers
+  signing_document_id   String?
+  signing_provider      String?   @default("docuseal")
   status                String    @default("draft")
   draft_pdf_path        String?
   signed_pdf_path       String?
@@ -70,6 +80,8 @@ model documents {
 
   @@index([order_id])
   @@index([documenso_document_id])
+  @@index([signing_document_id])
+  @@index([status])
 }
 
 model audit_log {
@@ -109,6 +121,7 @@ model subscriptions {
   user_id                String   @db.Uuid
   product_id             String   @default("AFD-LTK-001")
   stripe_subscription_id String?  @unique
+  stripe_customer_id     String?
   status                 String   @default("active")
   normative_profile      Json?
   created_at             DateTime @default(now()) @db.Timestamptz(6)

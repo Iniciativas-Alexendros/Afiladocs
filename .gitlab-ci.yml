@@ -69,6 +69,26 @@ test_types:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+test_unit:
+  stage: test
+  script:
+    - npm ci --include=dev --prefer-offline --ignore-scripts
+    - npx prisma generate
+    - npm run test:coverage
+  needs: ["build_job"]
+  coverage: '/Statements\s*:\s*(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # Auditoría de dependencias — non-blocking hasta que el baseline esté limpio
 test_audit:
   stage: test
@@ -119,6 +139,7 @@ deploy_vercel:
     - job: "build_job"
     - job: "test_lint"
     - job: "test_types"
+    - job: "test_unit"
     - job: "sast"
       optional: true
     - job: "secret_detection"

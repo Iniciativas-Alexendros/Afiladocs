@@ -56,6 +56,19 @@ export const serverEnv = {
   // Redis — opcionales (rate limiting graceful fallback sin Redis)
   get upstashRedisUrl() { return getEnvVar('UPSTASH_REDIS_REST_URL', false) },
   get upstashRedisToken() { return getEnvVar('UPSTASH_REDIS_REST_TOKEN', false) },
+  // Firma electrónica — DocuSeal (default) o Documenso (legacy)
+  // SIGNING_PROVIDER: 'docuseal' | 'documenso' (default: 'docuseal')
+  get signingProvider() { return getEnvVar('SIGNING_PROVIDER', false) || 'docuseal' },
+  get docusealApiUrl() { return getEnvVar('DOCUSEAL_API_URL', false) || 'https://api.docuseal.com' },
+  get docusealApiKey() { return getEnvVar('DOCUSEAL_API_KEY', false) },
+  get docusealWebhookSecret() { return getEnvVar('DOCUSEAL_WEBHOOK_SECRET', false) },
+  get documensoApiUrl() { return getEnvVar('DOCUMENSO_API_URL', false) || 'https://app.documenso.com/api/v1' },
+  get documensoApiKey() { return getEnvVar('DOCUMENSO_API_KEY', false) },
+  // Facturación electrónica (EasyVerifactu — RD 1007/2023)
+  get easyVerifactuApiUrl() { return getEnvVar('EASYVERIFACTU_API_URL', false) },
+  get easyVerifactuApiKey() { return getEnvVar('EASYVERIFACTU_API_KEY', false) },
+  // Cron jobs — Vercel Cron
+  get cronSecret() { return getEnvVar('CRON_SECRET', false) },
 }
 
 // Variables públicas — seguro para usar en client y server.
@@ -64,6 +77,8 @@ export const serverEnv = {
 // supabaseUrl y supabaseAnonKey son seguras como variables públicas (RLS en Supabase).
 export const publicEnv = {
   siteUrl: resolveSiteUrl(),
+  // Sentry DSN — si no está configurado, Sentry no se inicializa (graceful)
+  get sentryDsn() { return process.env.NEXT_PUBLIC_SENTRY_DSN ?? '' },
   get supabaseUrl() { return process.env.NEXT_PUBLIC_SUPABASE_URL ?? '' },
   get supabaseAnonKey() { return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '' },
   // Vercel runtime env — inyectado automáticamente por Vercel en cada deployment.

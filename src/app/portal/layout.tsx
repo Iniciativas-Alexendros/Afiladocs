@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { requireAuth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { logout } from '@/app/(auth)/actions'
+import { PortalRealtimeSubscription } from '@/components/PortalRealtimeSubscription'
 import {
   Home,
   FileText,
@@ -154,6 +155,8 @@ export default async function PortalLayout({ children }: { children: ReactNode }
           </nav>
         </div>
       </div>
+
+      <PortalRealtimeSubscription userId={user.id} />
 
       <main className="lg:pl-72">
         <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-12 max-w-7xl mx-auto">

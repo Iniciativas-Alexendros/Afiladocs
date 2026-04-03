@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { serverEnv } from '@/lib/env'
 import { sendEmail } from '@/lib/email/send'
 import { PaymentConfirmation } from '@/emails/PaymentConfirmation'
+import { prisma } from '@/lib/prisma/client'
 import React from 'react'
 
 // Vercel Function: Node.js runtime requerido para crypto nativo (verificación HMAC-SHA256 Stripe)
@@ -54,6 +55,58 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       sessionId: session.id,
       ts: new Date().toISOString(),
     }))
+  }
+
+  // Trigger EasyVerifactu invoice generation — only if configured (non-blocking)
+  const verifactuUrl = serverEnv.easyVerifactuApiUrl
+  const verifactuKey = serverEnv.easyVerifactuApiKey
+  if (verifactuUrl && verifactuKey && session.metadata?.userId) {
+    try {
+      const { EasyVerifactuAdapter } = await import('@/lib/verifactu/easyverifactu')
+      const adapter = new EasyVerifactuAdapter()
+
+      // Fetch customer NIF from profile (needed for Spanish invoice compliance)
+      const profile = await prisma.profiles.findFirst({
+        where: { id: session.metadata.userId },
+        select: { nif: true },
+      })
+
+      const invoiceResult = await adapter.createInvoice({
+        orderId: session.metadata.orderId ?? session.id,
+        userId: session.metadata.userId,
+        productId: session.metadata.productId ?? 'unknown',
+        amountCents: session.amount_total ?? 0,
+        currency: session.currency ?? 'eur',
+        issuedAt: new Date(),
+        customerNif: profile?.nif ?? '',
+      })
+
+      // Persist invoice reference on the order record
+      if (session.metadata.orderId) {
+        await prisma.orders.update({
+          where: { stripe_session_id: session.id },
+          data: {
+            invoice_id: invoiceResult.invoiceId,
+            invoiced_at: new Date(),
+          },
+        })
+      }
+
+      console.log(JSON.stringify({
+        event: 'verifactu.invoice.created',
+        invoiceId: invoiceResult.invoiceId,
+        sessionId: session.id,
+        ts: new Date().toISOString(),
+      }))
+    } catch (verifactuErr) {
+      // Non-blocking — invoice generation failure should not block payment confirmation
+      console.error(JSON.stringify({
+        event: 'verifactu.invoice.failed',
+        message: verifactuErr instanceof Error ? verifactuErr.message : 'Unknown',
+        sessionId: session.id,
+        ts: new Date().toISOString(),
+      }))
+    }
   }
 }
 

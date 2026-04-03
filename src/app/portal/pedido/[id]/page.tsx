@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FileText, ArrowLeft, Download, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
+import { DownloadSignedButton } from './DownloadSignedButton'
 
 export const metadata = {
   title: 'Detalles del Pedido | Afiladocs',
@@ -125,12 +126,15 @@ export default async function OrderDetailPage({ params }: PageProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {doc.draft_pdf_path && (
+                        {doc.draft_pdf_path && doc.status !== 'final' && (
                           <Button variant="outline" size="sm" asChild>
                             <a href={doc.draft_pdf_path} target="_blank" rel="noopener noreferrer">
-                              <Download className="mr-2 h-4 w-4" /> PDF
+                              <Download className="mr-2 h-4 w-4" /> Borrador
                             </a>
                           </Button>
+                        )}
+                        {doc.status === 'final' && doc.signed_pdf_path && (
+                          <DownloadSignedButton documentId={doc.id} />
                         )}
                         {doc.status === 'pending_signature' && (
                           <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
@@ -166,8 +170,8 @@ export default async function OrderDetailPage({ params }: PageProps) {
                 <span>{(order.amount_cents / 100).toLocaleString('es-ES', { style: 'currency', currency: order.currency.toUpperCase() })}</span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="font-medium text-slate-900">Nivel EIDEAS</span>
-                <span className="uppercase">{order.eideas_level}</span>
+                <span className="font-medium text-slate-900">Nivel eIDAS</span>
+                <span className="uppercase">{order.eidas_level}</span>
               </div>
             </CardContent>
           </Card>

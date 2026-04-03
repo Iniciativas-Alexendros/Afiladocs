@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
@@ -26,10 +27,16 @@ function getStatusBadge(status: string) {
 export default async function PedidosPage() {
   const user = await requireAuth()
 
-  const orders = await prisma.orders.findMany({
-    where: { user_id: user.id },
-    orderBy: { created_at: 'desc' },
-  })
+  const getOrders = unstable_cache(
+    () => prisma.orders.findMany({
+      where: { user_id: user.id },
+      orderBy: { created_at: 'desc' },
+    }),
+    [`portal-orders-${user.id}`],
+    { tags: ['orders', `orders-${user.id}`], revalidate: 60 },
+  )
+
+  const orders = await getOrders()
 
   return (
     <div className="space-y-8">

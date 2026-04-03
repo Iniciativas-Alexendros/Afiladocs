@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { serverEnv } from '@/lib/env'
 import { checkoutRateLimit, getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { getProductPriceMap } from '@/lib/stripe/client'
+import { isAllowedOrigin } from '@/lib/csrf'
 
 // Vercel Function: Node.js runtime requerido por Stripe SDK (crypto nativo de Node)
 export const runtime = 'nodejs'
@@ -87,6 +88,10 @@ async function processCheckout(request: Request): Promise<NextResponse> {
 }
 
 export async function POST(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const ip = getClientIp(request)
   const { limited, retryAfter } = await applyRateLimit(checkoutRateLimit, ip)
   if (limited) {

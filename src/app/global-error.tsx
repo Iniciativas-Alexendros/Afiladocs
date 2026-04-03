@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import * as Sentry from '@sentry/nextjs'
 
 export default function GlobalError({
   error,
@@ -11,6 +12,9 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
+    Sentry.captureException(error, {
+      tags: { route: 'global.error', digest: error.digest },
+    })
     console.error(JSON.stringify({
       event: 'global.error',
       message: error.message,

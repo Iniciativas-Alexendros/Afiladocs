@@ -134,7 +134,7 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
       data: {
         order_id: orderId,
         product_id: order.product_id,
-        eideas_level: order.eideas_level,
+        eidas_level: order.eidas_level,
         status,
         draft_pdf_path,
         signed_pdf_path,

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { serverEnv } from '@/lib/env'
 import { contactRateLimit, getClientIp, applyRateLimit } from '@/lib/rate-limit'
+import { isAllowedOrigin } from '@/lib/csrf'
 
 // Vercel Function: Node.js runtime
 export const runtime = 'nodejs'
@@ -16,6 +17,10 @@ const ContactBodySchema = z.object({
 })
 
 export async function POST(request: Request) {
+  if (!isAllowedOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const ip = getClientIp(request)
   const { limited, retryAfter } = await applyRateLimit(contactRateLimit, ip)
   if (limited) {

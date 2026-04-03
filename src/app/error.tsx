@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import * as Sentry from '@sentry/nextjs'
 
 export default function ErrorPage({
   error,
@@ -11,7 +12,9 @@ export default function ErrorPage({
   reset: () => void
 }) {
   useEffect(() => {
-    // Structured error logging — replace with Sentry in production
+    Sentry.captureException(error, {
+      tags: { route: 'app.error', digest: error.digest },
+    })
     console.error(JSON.stringify({
       event: 'app.error',
       message: error.message,

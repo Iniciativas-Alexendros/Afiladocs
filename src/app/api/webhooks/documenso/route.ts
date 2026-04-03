@@ -1,35 +1,88 @@
 import { NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
 import { serverEnv } from '@/lib/env'
+import { createServiceRoleClient } from '@/lib/supabase/service'
+import { sendEmail } from '@/lib/email/send'
+import DocumentCompleted from '@/emails/document-completed'
 import crypto from 'crypto'
+import React from 'react'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 30
+
+function verifySignature(bodyText: string, secret: string, signature: string | null): boolean {
+  if (!signature) return false
+  const expected = crypto.createHmac('sha256', secret).update(bodyText).digest('hex')
+  return signature === expected
+}
+
+async function downloadAndStorePdf(documentId: string, orderId: string): Promise<{ storagePath: string | null; signedHash: string | null }> {
+  const apiKey = serverEnv.documensoApiKey
+  if (!apiKey) return { storagePath: null, signedHash: null }
+
+  try {
+    const pdfResponse = await fetch(
+      `${serverEnv.documensoApiUrl}/documents/${documentId}/download`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    )
+    if (!pdfResponse.ok) return { storagePath: null, signedHash: null }
+
+    const pdfBuffer = await pdfResponse.arrayBuffer()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', pdfBuffer)
+    const signedHash = Buffer.from(hashBuffer).toString('hex')
+    const storagePath = `orders/${orderId}/signed_${Date.now()}.pdf`
+
+    const supabase = createServiceRoleClient()
+    const { error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(storagePath, Buffer.from(pdfBuffer), { contentType: 'application/pdf', upsert: false })
+
+    if (uploadError) {
+      console.error(JSON.stringify({ event: 'documenso.webhook.upload_error', message: uploadError.message, order_id: orderId, ts: new Date().toISOString() }))
+      return { storagePath: null, signedHash: null }
+    }
+    return { storagePath, signedHash }
+  } catch (err) {
+    console.error(JSON.stringify({ event: 'documenso.webhook.download_error', message: err instanceof Error ? err.message : 'Unknown', document_id: documentId, ts: new Date().toISOString() }))
+    return { storagePath: null, signedHash: null }
+  }
+}
+
+async function notifyClient(orderId: string, userId: string, productId: string): Promise<void> {
+  try {
+    const supabaseAdmin = createServiceRoleClient()
+    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId)
+    const userEmail = userData?.user?.email
+    if (!userEmail) return
+    await sendEmail({
+      to: userEmail,
+      subject: 'Tu documento firmado está disponible — afiladocs',
+      react: React.createElement(DocumentCompleted, {
+        userName: userData.user?.user_metadata?.full_name ?? userEmail,
+        productName: productId,
+        portalUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/portal/pedido/${orderId}`,
+      }),
+    })
+  } catch (emailError) {
+    console.error(JSON.stringify({ event: 'documenso.webhook.email_error', message: emailError instanceof Error ? emailError.message : 'Unknown', order_id: orderId, ts: new Date().toISOString() }))
+  }
+}
 
 export async function POST(req: Request) {
-  // 1. Verificar que el secreto está configurado — sin él, rechazar siempre
   const secret = serverEnv.documensoWebhookSecret
   if (!secret) {
-    console.error(JSON.stringify({
-      event: 'documenso.webhook.not_configured',
-      ts: new Date().toISOString(),
-    }))
+    console.error(JSON.stringify({ event: 'documenso.webhook.not_configured', ts: new Date().toISOString() }))
     return new NextResponse('Webhook not configured', { status: 503 })
   }
 
   try {
     const bodyText = await req.text()
 
-    // 2. Verificar firma HMAC — siempre obligatorio
-    const signature = req.headers.get('documenso-signature')
-    if (!signature) {
-      return new NextResponse('Missing signature', { status: 401 })
-    }
-
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(bodyText)
-      .digest('hex')
-
-    if (signature !== expectedSignature) {
-      return new NextResponse('Invalid signature', { status: 401 })
+    if (!verifySignature(bodyText, secret, req.headers.get('documenso-signature'))) {
+      const missing = !req.headers.get('documenso-signature')
+      return new NextResponse(missing ? 'Missing signature' : 'Invalid signature', { status: 401 })
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,56 +94,44 @@ export async function POST(req: Request) {
     }
     const { event, documentId } = payload as { event?: string; documentId?: string }
 
-    // We only care when the document gets completed/signed by all parties
     if (event !== 'DOCUMENT_COMPLETED') {
-        return new NextResponse('Ignored event', { status: 200 })
+      return new NextResponse('Ignored event', { status: 200 })
     }
 
-    // 2. Find the corresponding document in our db
-    const doc = await prisma.documents.findFirst({
-        where: { documenso_document_id: documentId }
-    })
+    const doc = await prisma.documents.findFirst({ where: { documenso_document_id: documentId } })
+    if (!doc) return new NextResponse('Document not found in internal tracking', { status: 404 })
 
-    if (!doc) {
-        return new NextResponse('Document not found in internal tracking', { status: 404 })
-    }
+    const { storagePath, signedHash } = await downloadAndStorePdf(documentId ?? '', doc.order_id)
 
-    // 3. Update document status
     await prisma.documents.update({
-        where: { id: doc.id },
-        data: {
-            status: 'final',
-            signed_at: new Date(),
-            // Here we would ideally download the signed PDF from Documenso API and 
-            // upload it to our Supabase Storage `documents` bucket, then update `signed_pdf_path`.
-            // signed_pdf_path: ...
-        }
+      where: { id: doc.id },
+      data: {
+        status: 'final',
+        signed_at: new Date(),
+        ...(storagePath ? { signed_pdf_path: storagePath } : {}),
+        ...(signedHash ? { hash_sha256_signed: signedHash } : {}),
+      },
     })
 
-    // 4. Update order status if all documents are finished
-    // (In a real scenario, we check if all required docs for the order are signed)
-    const order = await prisma.orders.update({
-        where: { id: doc.order_id },
-        data: { status: 'completed' }
-    })
+    const order = await prisma.orders.update({ where: { id: doc.order_id }, data: { status: 'completed' } })
 
-    // 5. Audit log
+    revalidateTag('orders')
+    revalidateTag(`orders-${order.user_id}`)
+
     await prisma.audit_log.create({
-        data: {
-            event: 'document_signed_via_documenso',
-            order_id: doc.order_id,
-            user_id: order.user_id,
-            metadata: { documenso_id: documentId }
-        }
+      data: {
+        event: 'document.signed',
+        order_id: doc.order_id,
+        user_id: order.user_id,
+        metadata: { documenso_id: documentId, signed_pdf_stored: Boolean(storagePath) },
+      },
     })
+
+    await notifyClient(order.id, order.user_id, order.product_id)
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(JSON.stringify({
-      event: 'documenso.webhook.error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      ts: new Date().toISOString(),
-    }))
+    console.error(JSON.stringify({ event: 'documenso.webhook.error', message: error instanceof Error ? error.message : 'Unknown error', ts: new Date().toISOString() }))
     return new NextResponse('Webhook processing failed', { status: 500 })
   }
 }

@@ -2,6 +2,7 @@
 
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
+import { getSignedDownloadUrl } from '@/lib/supabase/storage'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -65,4 +66,50 @@ export async function submitIntake(orderId: string, formData: FormData) {
 
   revalidatePath(`/portal/pedido/${orderId}`, 'page')
   redirect(`/portal/pedido/${orderId}`)
+}
+
+/**
+ * Generates a signed 1-hour download URL for a final signed PDF.
+ * Verifies ownership of the document before generating the URL.
+ * Logs the download event to audit_log.
+ */
+export async function getSignedDocumentUrl(documentId: string): Promise<{ url?: string; error?: string }> {
+  const user = await requireAuth()
+
+  const doc = await prisma.documents.findFirst({
+    where: { id: documentId },
+    include: { order: true },
+  })
+
+  if (!doc || doc.order.user_id !== user.id) {
+    return { error: 'Documento no encontrado o no autorizado' }
+  }
+
+  if (doc.status !== 'final' || !doc.signed_pdf_path) {
+    return { error: 'El documento firmado aún no está disponible' }
+  }
+
+  try {
+    const url = await getSignedDownloadUrl('documents', doc.signed_pdf_path, 3600)
+
+    // Audit log — track document downloads
+    await prisma.audit_log.create({
+      data: {
+        event: 'document.downloaded',
+        order_id: doc.order_id,
+        user_id: user.id,
+        metadata: { document_id: documentId, signed_pdf_path: doc.signed_pdf_path },
+      },
+    })
+
+    return { url }
+  } catch (err) {
+    console.error(JSON.stringify({
+      event: 'portal.document.download_error',
+      message: err instanceof Error ? err.message : 'Unknown',
+      document_id: documentId,
+      ts: new Date().toISOString(),
+    }))
+    return { error: 'No se pudo generar el enlace de descarga' }
+  }
 }

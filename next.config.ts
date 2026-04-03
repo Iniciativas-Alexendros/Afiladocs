@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const nextConfig: NextConfig = {
   // CRÍTICO: Vercel gestiona el build output internamente.
@@ -67,7 +68,8 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               // unsafe-inline requerido por Tailwind v4 CSS-in-JS; unsafe-eval PROHIBIDO
-              "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+              // browser.sentry-cdn.com para Sentry browser SDK
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://browser.sentry-cdn.com",
               // unsafe-inline requerido por Tailwind v4; fonts.googleapis.com para DM Sans
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // fonts.gstatic.com para archivos de fuente de Google Fonts
@@ -76,7 +78,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https: https://*.supabase.co",
               // api.stripe.com para Stripe API; *.supabase.co para Supabase API y Storage
               // vitals.vercel-insights.com para Vercel Speed Insights / Analytics
-              "connect-src 'self' https://api.stripe.com https://*.supabase.co https://vitals.vercel-insights.com",
+              // *.sentry.io y o*.ingest.sentry.io para Sentry error tracking
+              "connect-src 'self' https://api.stripe.com https://*.supabase.co https://vitals.vercel-insights.com https://*.sentry.io https://o*.ingest.sentry.io",
               // js.stripe.com y hooks.stripe.com para Stripe Elements/Checkout
               "frame-src https://js.stripe.com https://hooks.stripe.com",
               "object-src 'none'",
@@ -98,4 +101,8 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+export default bundleAnalyzer(nextConfig)
