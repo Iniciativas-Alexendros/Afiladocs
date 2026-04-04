@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { serverEnv } from '@/lib/env'
+import { serverEnv, publicEnv } from '@/lib/env'
 import { prisma } from '@/lib/prisma/client'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
@@ -20,7 +20,10 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   const cronSecret = serverEnv.cronSecret
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 503 })
+  }
+  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -56,7 +59,7 @@ export async function GET(request: Request) {
             userName: sub.user.full_name ?? email,
             productName: sub.product_id,
             nextBillingDate: renewalDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
-            portalUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/portal/suscripciones`,
+            portalUrl: `${publicEnv.siteUrl}/portal/suscripciones`,
           }),
         })
         emailsSent++

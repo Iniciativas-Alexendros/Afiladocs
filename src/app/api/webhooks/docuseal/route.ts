@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import { serverEnv } from '@/lib/env'
+import { serverEnv, publicEnv } from '@/lib/env'
 import { getSigningAdapter } from '@/lib/signing'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
@@ -62,7 +62,7 @@ async function notifyClient(orderId: string, userId: string, productId: string):
       react: React.createElement(DocumentCompleted, {
         userName: userData.user?.user_metadata?.full_name ?? userEmail,
         productName: productId,
-        portalUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/portal/pedido/${orderId}`,
+        portalUrl: `${publicEnv.siteUrl}/portal/pedido/${orderId}`,
       }),
     })
   } catch (emailError) {

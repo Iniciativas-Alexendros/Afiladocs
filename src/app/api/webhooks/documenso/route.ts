@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { prisma } from '@/lib/prisma/client'
-import { serverEnv } from '@/lib/env'
+import { serverEnv, publicEnv } from '@/lib/env'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
 import DocumentCompleted from '@/emails/document-completed'
@@ -62,7 +62,7 @@ async function notifyClient(orderId: string, userId: string, productId: string):
       react: React.createElement(DocumentCompleted, {
         userName: userData.user?.user_metadata?.full_name ?? userEmail,
         productName: productId,
-        portalUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/portal/pedido/${orderId}`,
+        portalUrl: `${publicEnv.siteUrl}/portal/pedido/${orderId}`,
       }),
     })
   } catch (emailError) {
@@ -85,14 +85,13 @@ export async function POST(req: Request) {
       return new NextResponse(missing ? 'Missing signature' : 'Invalid signature', { status: 401 })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let payload: any
+    let payload: { event?: string; documentId?: string; [key: string]: unknown }
     try {
       payload = JSON.parse(bodyText)
     } catch {
       return new NextResponse('Invalid JSON payload', { status: 400 })
     }
-    const { event, documentId } = payload as { event?: string; documentId?: string }
+    const { event, documentId } = payload
 
     if (event !== 'DOCUMENT_COMPLETED') {
       return new NextResponse('Ignored event', { status: 200 })
