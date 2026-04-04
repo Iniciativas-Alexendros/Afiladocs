@@ -121,9 +121,5 @@ export default withSentryConfig(bundleAnalyzer(nextConfig), {
 
   // Enables automatic instrumentation of Vercel Cron Monitors.
   automaticVercelMonitors: true,
-
-  // Tree-shaking options for reducing bundle size
-  treeshake: {
-    removeDebugLogging: true,
-  },
 });
+
