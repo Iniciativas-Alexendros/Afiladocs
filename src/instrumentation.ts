@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 /**
  * Next.js Instrumentation
  * Se ejecuta una sola vez al iniciar el servidor (Cold Start)
@@ -32,5 +34,6 @@ export async function register() {
   }
 }
 
-// Re-exportar onRequestError desde Sentry para capturar excepciones automáticamente
-export { onRequestError } from '@sentry/nextjs';
+// Re-exportar captureRequestError como onRequestError para capturar excepciones automáticamente en Next.js 15
+export const onRequestError = Sentry.captureRequestError;
+
