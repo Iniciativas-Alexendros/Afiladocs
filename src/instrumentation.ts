@@ -1,29 +1,36 @@
+/**
+ * Next.js Instrumentation
+ * Se ejecuta una sola vez al iniciar el servidor (Cold Start)
+ * https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
+ */
 export async function register() {
-  // OpenTelemetry — solo en runtime Node.js (no en Edge runtime)
+  // Runtime Node.js
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { registerOTel } = await import('@vercel/otel')
-    registerOTel({ serviceName: 'afiladocs' })
+    // OpenTelemetry
+    try {
+      const { registerOTel } = await import('@vercel/otel');
+      registerOTel({ serviceName: 'afiladocs' });
+    } catch (err) {
+      console.error('[Instrumentation] Error initializing OpenTelemetry:', err);
+    }
+
+    // Sentry Server
+    try {
+      await import('./sentry.server.config');
+    } catch (err) {
+      console.error('[Instrumentation] Error initializing Sentry Server:', err);
+    }
   }
 
-  // Sentry — server-side initialization
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('../sentry.server.config')
-  }
-
+  // Runtime Edge
   if (process.env.NEXT_RUNTIME === 'edge') {
-    await import('../sentry.edge.config')
+    try {
+      await import('./sentry.edge.config');
+    } catch (err) {
+      console.error('[Instrumentation] Error initializing Sentry Edge:', err);
+    }
   }
 }
 
-export const onRequestError = async (
-  err: Error & { digest?: string },
-  request: { path: string; method: string; headers: Record<string, string | string[] | undefined> },
-  context: { routerKind: string; routePath: string; renderSource: string }
-) => {
-  // Forward unhandled request errors to Sentry
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { captureRequestError } = await import('@sentry/nextjs')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    captureRequestError(err, request as any, context as any)
-  }
-}
+// Re-exportar onRequestError desde Sentry para capturar excepciones automáticamente
+export { onRequestError } from '@sentry/nextjs';

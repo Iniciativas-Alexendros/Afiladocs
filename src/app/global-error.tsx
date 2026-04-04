@@ -12,17 +12,8 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { route: 'global.error', digest: error.digest },
-    })
-    console.error(JSON.stringify({
-      event: 'global.error',
-      message: error.message,
-      digest: error.digest ?? null,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      ts: new Date().toISOString(),
-    }))
-  }, [error])
+    Sentry.captureException(error);
+  }, [error]);
 
   return (
     <html lang="es">

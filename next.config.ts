@@ -1,3 +1,4 @@
+import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next'
 import withBundleAnalyzer from '@next/bundle-analyzer'
 
@@ -105,4 +106,24 @@ const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-export default bundleAnalyzer(nextConfig)
+export default withSentryConfig(bundleAnalyzer(nextConfig), {
+  org: "alexendros-2h",
+  project: "sentry-alexendros",
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+
+  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+  tunnelRoute: "/monitoring",
+
+  // Enables automatic instrumentation of Vercel Cron Monitors.
+  automaticVercelMonitors: true,
+
+  // Tree-shaking options for reducing bundle size
+  treeshake: {
+    removeDebugLogging: true,
+  },
+});
