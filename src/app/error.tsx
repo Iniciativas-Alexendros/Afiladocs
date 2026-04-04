@@ -5,24 +5,24 @@ import Link from 'next/link'
 import * as Sentry from '@sentry/nextjs'
 
 export default function ErrorPage({
-  error,
+  error: err,
   reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
   useEffect(() => {
-    Sentry.captureException(error, {
-      tags: { route: 'app.error', digest: error.digest },
+    Sentry.captureException(err, {
+      tags: { route: 'app.error', digest: err.digest },
     })
     console.error(JSON.stringify({
       event: 'app.error',
-      message: error.message,
-      digest: error.digest ?? null,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      message: err.message,
+      digest: err.digest ?? null,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
       ts: new Date().toISOString(),
     }))
-  }, [error])
+  }, [err])
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4 text-center">

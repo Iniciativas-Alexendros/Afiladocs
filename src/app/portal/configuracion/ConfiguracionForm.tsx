@@ -50,7 +50,7 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="flex flex-col gap-6 max-w-2xl">
       {/* Perfil */}
       <Card>
         <CardHeader>
@@ -58,13 +58,13 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
           <CardDescription>Actualiza tu información de contacto y empresa.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleProfileSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} disabled className="bg-slate-50" />
-              <p className="text-xs text-slate-500">El email no se puede cambiar desde aquí.</p>
+              <Input id="email" type="email" value={email} disabled className="bg-muted" />
+              <p className="text-xs text-muted-foreground">El email no se puede cambiar desde aquí.</p>
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="full_name">Nombre completo</Label>
               <Input
                 id="full_name"
@@ -74,7 +74,7 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
                 className="h-10"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="company_name">Empresa</Label>
               <Input
                 id="company_name"
@@ -84,7 +84,7 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
                 className="h-10"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
@@ -95,9 +95,9 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
                 className="h-10"
               />
             </div>
-            <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={isPending}>
               {isPending ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>
+                <><Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> Guardando...</>
               ) : (
                 'Guardar cambios'
               )}
@@ -107,14 +107,14 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
       </Card>
 
       {/* Zona de peligro — RGPD Art. 17 */}
-      <Card className="border-red-200">
+      <Card className="border-destructive/30">
         <CardHeader>
-          <CardTitle className="text-red-700">Zona de peligro</CardTitle>
+          <CardTitle className="text-destructive">Zona de peligro</CardTitle>
           <CardDescription>Acciones irreversibles relacionadas con tu cuenta.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div>
-            <p className="text-sm text-slate-600 mb-3">
+            <p className="text-sm text-muted-foreground mb-3">
               Puedes solicitar la eliminación permanente de tu cuenta y todos tus datos personales
               de acuerdo con el Art. 17 del RGPD. Esta acción requiere verificación manual y se
               procesará en un plazo máximo de 30 días.
@@ -123,15 +123,15 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
               <Button
                 variant="outline"
                 size="sm"
-                className="border-red-300 text-red-700 hover:bg-red-50"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10"
                 onClick={() => setShowDeletionConfirm(true)}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2 className="mr-2 size-4" aria-hidden="true" />
                 Solicitar eliminación de cuenta
               </Button>
             ) : (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-3">
-                <p className="text-sm font-medium text-red-800">
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 flex flex-col gap-3">
+                <p className="text-sm font-medium text-destructive">
                   ¿Confirmas que deseas solicitar la eliminación de tu cuenta?
                 </p>
                 <div className="flex gap-2">
@@ -142,7 +142,7 @@ export function ConfiguracionForm({ email, initialData }: ConfiguracionFormProps
                     disabled={isDeletionPending}
                   >
                     {isDeletionPending ? (
-                      <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Enviando...</>
+                      <><Loader2 className="mr-2 size-3 animate-spin" aria-hidden="true" /> Enviando...</>
                     ) : (
                       'Sí, solicitar eliminación'
                     )}

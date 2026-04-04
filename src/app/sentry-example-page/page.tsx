@@ -11,6 +11,26 @@ class SentryExampleFrontendError extends Error {
   }
 }
 
+function SentryStatus({ hasSentError, isConnected }: { hasSentError: boolean; isConnected: boolean }) {
+  if (hasSentError) {
+    return <p className="success">Error sent to Sentry.</p>
+  }
+
+  if (!isConnected) {
+    return (
+      <div className="connectivity-error">
+        <p>
+          It looks like network requests to Sentry are being blocked, which
+          will prevent errors from being captured. Try disabling your
+          ad-blocker to complete the test.
+        </p>
+      </div>
+    )
+  }
+
+  return <div className="success_placeholder" />
+}
+
 export default function Page() {
   const [hasSentError, setHasSentError] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
@@ -93,19 +113,7 @@ export default function Page() {
           <span>Throw Sample Error</span>
         </button>
 
-        {hasSentError ? (
-          <p className="success">Error sent to Sentry.</p>
-        ) : !isConnected ? (
-          <div className="connectivity-error">
-            <p>
-              It looks like network requests to Sentry are being blocked, which
-              will prevent errors from being captured. Try disabling your
-              ad-blocker to complete the test.
-            </p>
-          </div>
-        ) : (
-          <div className="success_placeholder" />
-        )}
+        <SentryStatus hasSentError={hasSentError} isConnected={isConnected} />
 
         <div className="flex-spacer" />
       </main>

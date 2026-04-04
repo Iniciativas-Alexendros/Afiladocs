@@ -1,25 +1,13 @@
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
-import { FileText, ShieldCheck, ArrowRight, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
+import { FileText, ShieldCheck, ArrowRight } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { OrderStatusBadge } from '@/components/OrderStatusBadge'
 
 export const metadata = {
   title: 'Dashboard | Afiladocs',
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'intake_pending':
-      return <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20"><AlertCircle className="mr-1 h-3 w-3" /> Formulario pendiente</span>
-    case 'processing':
-      return <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"><Clock className="mr-1 h-3 w-3" /> En proceso</span>
-    case 'completed':
-      return <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><CheckCircle2 className="mr-1 h-3 w-3" /> Completado</span>
-    default:
-      return <span className="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">{status}</span>
-  }
 }
 
 export default async function DashboardPage() {
@@ -38,65 +26,65 @@ export default async function DashboardPage() {
   })
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Bienvenido a tu panel</h1>
-        <p className="text-slate-500 mt-2">Aquí puedes gestionar tus informes jurídicos, suscripciones y documentos legales.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Bienvenido a tu panel</h1>
+        <p className="text-muted-foreground mt-2">Aquí puedes gestionar tus informes jurídicos, suscripciones y documentos legales.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Suscripciones activas</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-slate-500" />
+            <ShieldCheck className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeSubscriptions.length}</div>
-            <p className="text-xs text-slate-500">Plan de actualización continua</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pedidos totales</CardTitle>
-            <FileText className="h-4 w-4 text-slate-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{recentOrders.length}</div>
-            <p className="text-xs text-slate-500">Informes y análisis adquiridos</p>
+            <p className="text-xs text-muted-foreground">Plan de actualización continua</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-600 text-white border-none shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold text-white">¿Necesitas un nuevo informe?</CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pedidos totales</CardTitle>
+            <FileText className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-blue-100 mb-4">
+            <div className="text-2xl font-bold">{recentOrders.length}</div>
+            <p className="text-xs text-muted-foreground">Informes y análisis adquiridos</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-accent text-accent-foreground border-none shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-bold">¿Necesitas un nuevo informe?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm opacity-80 mb-4">
               Impulsa tu compliance legal con nuestros análisis e informes basados en IA.
             </p>
-            <Button asChild variant="secondary" className="w-full font-semibold text-blue-700">
+            <Button asChild variant="secondary" className="w-full font-semibold">
               <Link href="/servicios">Ver catálogo</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight">Actividad reciente</h2>
-          <Link href="/portal/pedidos" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
-            Ver todos <ArrowRight className="ml-1 h-4 w-4" />
+          <Link href="/portal/pedidos" className="text-sm font-medium text-primary hover:text-primary/80 flex items-center transition-colors">
+            Ver todos <ArrowRight className="ml-1 size-4" />
           </Link>
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-              <FileText className="h-6 w-6 text-slate-400" />
+          <div className="rounded-xl border border-dashed border-border bg-muted/50 p-8 text-center">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
+              <FileText className="size-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 font-semibold text-slate-900">Aún no hay pedidos</h3>
-            <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
+            <h3 className="mt-4 font-semibold text-foreground">Aún no hay pedidos</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">
               Tus documentos e informes legales aparecerán aquí una vez que realices una solicitud.
             </p>
             <div className="mt-6">
@@ -106,31 +94,34 @@ export default async function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <ul role="list" className="divide-y divide-slate-100">
+          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+            <ul role="list" className="divide-y divide-border">
               {recentOrders.map((order) => (
-                <li key={order.id} className="relative flex items-center justify-between gap-x-6 px-4 py-5 hover:bg-slate-50 sm:px-6 transition-colors">
+                <li key={order.id} className="relative flex items-center justify-between gap-x-6 px-4 py-5 hover:bg-muted/50 sm:px-6 transition-colors">
                   <div className="flex min-w-0 gap-x-4 items-center">
-                    <div className="h-10 w-10 flex-shrink-0 rounded-full bg-blue-50 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-blue-600" />
+                    <div className="size-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                      <FileText className="size-5 text-primary" />
                     </div>
                     <div className="min-w-0 flex-auto">
-                      <p className="text-sm font-semibold leading-6 text-slate-900">
+                      <p className="text-sm font-semibold leading-6 text-foreground">
                         <Link href={`/portal/pedido/${order.id}`}>
                           <span className="absolute inset-x-0 -top-px bottom-0" />
                           Pedido {order.product_id}
                         </Link>
                       </p>
-                      <p className="mt-1 flex text-xs leading-5 text-slate-500">
+                      <p className="mt-1 flex text-xs leading-5 text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-x-4">
                     <div className="hidden sm:flex sm:flex-col sm:items-end">
-                      {getStatusBadge(order.status)}
+                      <OrderStatusBadge status={order.status} />
                     </div>
-                    <ArrowRight className="h-5 w-5 flex-none text-slate-400" aria-hidden="true" />
+                    <div className="flex sm:hidden">
+                      <OrderStatusBadge status={order.status} compact />
+                    </div>
+                    <ArrowRight className="size-5 flex-none text-muted-foreground" aria-hidden="true" />
                   </div>
                 </li>
               ))}

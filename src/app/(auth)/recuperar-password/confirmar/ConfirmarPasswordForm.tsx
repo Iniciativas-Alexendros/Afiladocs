@@ -4,39 +4,43 @@ import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
+import { PasswordInput } from '@/components/ui/password-input'
+import { PasswordStrength } from '@/components/ui/password-strength'
+import { Loader2, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function ConfirmarPasswordForm() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
+  const [password, setPassword] = useState('')
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
+    setFormError(null)
+    setConfirmError(null)
     const formData = new FormData(event.currentTarget)
-    const password = formData.get('password')?.toString()
+    const pwd = formData.get('password')?.toString()
     const confirm = formData.get('confirm')?.toString()
 
-    if (!password || password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+    if (!pwd || pwd.length < 8) {
+      setFormError('La contraseña debe tener al menos 8 caracteres')
       return
     }
 
-    if (password !== confirm) {
-      setError('Las contraseñas no coinciden')
+    if (pwd !== confirm) {
+      setConfirmError('Las contraseñas no coinciden')
       return
     }
 
     startTransition(async () => {
       const supabase = createClient()
-      const { error: updateError } = await supabase.auth.updateUser({ password })
+      const { error: updateError } = await supabase.auth.updateUser({ password: pwd })
 
       if (updateError) {
-        setError('No se pudo actualizar la contraseña. El enlace puede haber expirado.')
+        setFormError('No se pudo actualizar la contraseña. El enlace puede haber expirado.')
         toast.error('Error al actualizar la contraseña')
       } else {
         toast.success('Contraseña actualizada correctamente')
@@ -46,54 +50,74 @@ export function ConfirmarPasswordForm() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl ring-1 ring-gray-900/5">
-      <div className="space-y-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Nueva contraseña</h1>
-        <p className="text-sm text-gray-500">
+    <div className="w-full max-w-md flex flex-col gap-8 rounded-2xl bg-card p-8 shadow-xl ring-1 ring-border">
+      <div className="flex flex-col gap-4 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Nueva contraseña</h1>
+        <p className="text-sm text-muted-foreground">
           Introduce tu nueva contraseña para completar la recuperación de acceso.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-6"
+        aria-describedby={formError ? 'form-error' : undefined}
+      >
+        {formError && (
+          <div
+            id="form-error"
+            role="alert"
+            aria-live="assertive"
+            className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+            {formError}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="password">Nueva contraseña</Label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete="new-password"
               required
               minLength={8}
               placeholder="Mínimo 8 caracteres"
               className="h-11"
+              onChange={(e) => setPassword(e.target.value)}
             />
+            <PasswordStrength password={password} />
           </div>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="confirm">Confirmar contraseña</Label>
-            <Input
+            <PasswordInput
               id="confirm"
               name="confirm"
-              type="password"
               autoComplete="new-password"
               required
               minLength={8}
               className="h-11"
+              aria-describedby={confirmError ? 'confirm-error' : undefined}
             />
+            {confirmError && (
+              <p id="confirm-error" role="alert" className="text-sm text-destructive">
+                {confirmError}
+              </p>
+            )}
           </div>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 rounded-md px-3 py-2">{error}</p>
-        )}
-
         <Button
           type="submit"
-          className="h-11 w-full bg-blue-600 text-base font-semibold hover:bg-blue-700"
+          className="h-11 w-full text-base font-semibold"
           disabled={isPending}
         >
           {isPending ? (
-            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Actualizando...</>
+            <>
+              <Loader2 className="mr-2 size-5 animate-spin" aria-hidden="true" /> Actualizando...
+            </>
           ) : (
             'Actualizar contraseña'
           )}

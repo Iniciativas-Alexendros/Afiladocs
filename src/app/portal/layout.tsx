@@ -20,6 +20,14 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Separator } from '@/components/ui/separator'
 
 function getDisplayName(
   profile: { full_name?: string | null; company_name?: string | null } | null,
@@ -57,16 +65,16 @@ export default async function PortalLayout({ children }: { children: ReactNode }
 
   const NavLinks = () => (
     <>
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="group flex items-center rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+              className="group flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
             >
-              <Icon className="mr-3 h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-blue-600" aria-hidden="true" />
+              <Icon className="mr-3 size-5 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
               <span className="truncate">{item.name}</span>
             </Link>
           )
@@ -76,7 +84,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
             href="/ops"
             className="group flex items-center rounded-md px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 hover:text-amber-800 mt-4 border border-amber-200"
           >
-            <Building2 className="mr-3 h-5 w-5 flex-shrink-0 text-amber-500 group-hover:text-amber-600" />
+            <Building2 className="mr-3 size-5 shrink-0 text-amber-500 group-hover:text-amber-600" />
             <span className="truncate">Panel de Operaciones</span>
           </Link>
         )}
@@ -85,84 +93,94 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   )
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Mobile nav */}
-      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-slate-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 lg:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="-m-2.5 p-2.5 text-slate-700 lg:hidden">
-              <span className="sr-only">Open sidebar</span>
-              <Menu className="h-6 w-6" aria-hidden="true" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 bg-white flex flex-col pt-5 pb-4">
-            <div className="flex shrink-0 items-center px-4 mb-6">
-              <span className="text-xl font-bold text-slate-900 tracking-tight">Afiladocs<span className="text-blue-600">Portal</span></span>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        {/* Mobile nav */}
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-card px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 lg:hidden">
+          <Sheet>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="-m-2.5 size-11 text-muted-foreground lg:hidden">
+                    <span className="sr-only">Abrir menú</span>
+                    <Menu className="size-6" aria-hidden="true" />
+                  </Button>
+                </SheetTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Abrir menú de navegación</TooltipContent>
+            </Tooltip>
+            <SheetContent side="left" className="w-72 bg-card flex flex-col pt-5 pb-4">
+              <div className="flex shrink-0 items-center px-4 mb-6">
+                <span className="text-xl font-bold text-foreground tracking-tight">Afiladocs<span className="text-primary">Portal</span></span>
+              </div>
+              <div className="mt-5 h-0 flex-1 overflow-y-auto px-2">
+                <nav className="flex flex-1 flex-col">
+                  <NavLinks />
+                </nav>
+              </div>
+              <div className="flex shrink-0 p-4">
+                <Separator className="mb-4" />
+                <form action={logout} className="w-full">
+                  <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                    <LogOut className="mr-3 size-5" aria-hidden="true" />
+                    Cerrar sesión
+                  </Button>
+                </form>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1"></div>
+            <div className="flex items-center gap-x-4 lg:gap-x-6">
+              <span className="text-sm font-medium text-foreground">{displayName}</span>
             </div>
-            <div className="mt-5 h-0 flex-1 overflow-y-auto px-2">
-              <nav className="flex flex-1 flex-col">
-                <NavLinks />
-              </nav>
-            </div>
-            <div className="flex shrink-0 border-t border-slate-200 p-4">
-              <form action={logout} className="w-full">
-                <Button variant="ghost" className="w-full justify-start text-slate-700 hover:text-red-600 hover:bg-red-50">
-                  <LogOut className="mr-3 h-5 w-5 text-slate-400" />
-                  Cerrar sesión
-                </Button>
-              </form>
-            </div>
-          </SheetContent>
-        </Sheet>
-        
-        <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-          <div className="flex flex-1"></div>
-          <div className="flex items-center gap-x-4 lg:gap-x-6">
-            <span className="text-sm font-medium text-slate-700">{displayName}</span>
           </div>
         </div>
-      </div>
 
-      {/* Static sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-slate-200 bg-white px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center">
-            <span className="text-xl font-bold text-slate-900 tracking-tight">Afiladocs<span className="text-blue-600">Portal</span></span>
-          </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <NavLinks />
-              </li>
-              <li className="mt-auto">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-x-4 px-3 py-3 text-sm font-semibold leading-6 text-slate-900 rounded-lg bg-slate-50">
-                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-                      {displayName?.charAt(0).toUpperCase() || 'U'}
+        {/* Static sidebar for desktop */}
+        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+          <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-card px-6 pb-4">
+            <div className="flex h-16 shrink-0 items-center">
+              <span className="text-xl font-bold text-foreground tracking-tight">Afiladocs<span className="text-primary">Portal</span></span>
+            </div>
+            <nav className="flex flex-1 flex-col">
+              <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                <li>
+                  <NavLinks />
+                </li>
+                <li className="mt-auto">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-x-4 px-3 py-3 text-sm font-semibold leading-6 text-foreground rounded-lg bg-muted">
+                      <Avatar>
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                          {displayName?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="sr-only">Your profile</span>
+                      <span aria-hidden="true" className="truncate">{displayName}</span>
                     </div>
-                    <span className="sr-only">Your profile</span>
-                    <span aria-hidden="true" className="truncate">{displayName}</span>
+                    <form action={logout}>
+                      <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                        <LogOut className="mr-3 size-5" aria-hidden="true" />
+                        Cerrar sesión
+                      </Button>
+                    </form>
                   </div>
-                  <form action={logout}>
-                    <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-red-600 hover:bg-red-50">
-                      <LogOut className="mr-3 h-5 w-5" />
-                      Cerrar sesión
-                    </Button>
-                  </form>
-                </div>
-              </li>
-            </ul>
-          </nav>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
+
+        <PortalRealtimeSubscription userId={user.id} />
+
+        <main className="lg:pl-72">
+          <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-12 max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
       </div>
-
-      <PortalRealtimeSubscription userId={user.id} />
-
-      <main className="lg:pl-72">
-        <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-12 max-w-7xl mx-auto">
-          {children}
-        </div>
-      </main>
-    </div>
+    </TooltipProvider>
   )
 }
