@@ -1,5 +1,6 @@
 'use client'
 
+import { useTransition } from 'react'
 import { logout } from '@/app/(auth)/actions'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,12 @@ interface LogoutButtonProps {
 }
 
 export function LogoutButton({ className }: LogoutButtonProps) {
+  const [isPending, startTransition] = useTransition()
+
+  const handleLogout = () => {
+    startTransition(() => logout())
+  }
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -37,11 +44,9 @@ export function LogoutButton({ className }: LogoutButtonProps) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <form action={logout}>
-            <AlertDialogAction type="submit" variant="destructive">
-              Cerrar sesión
-            </AlertDialogAction>
-          </form>
+          <AlertDialogAction variant="destructive" onClick={handleLogout} disabled={isPending}>
+            {isPending ? 'Cerrando...' : 'Cerrar sesión'}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

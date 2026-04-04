@@ -13,8 +13,14 @@ const BOT_UA_RE = /bot|crawl|spider|scan|masscan|zgrab|nuclei|sqlmap|nikto/i
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 1. Suspicious path detection — block globally
-  if (SUSPICIOUS_PATH_RE.test(pathname)) {
+  // 1. Suspicious path detection — block globally (decode to catch encoded traversals)
+  let decodedPathname: string
+  try {
+    decodedPathname = decodeURIComponent(pathname)
+  } catch {
+    return new NextResponse('Bad Request', { status: 400 })
+  }
+  if (SUSPICIOUS_PATH_RE.test(decodedPathname)) {
     console.warn(JSON.stringify({
       event: 'security.suspicious_path',
       path: pathname,
