@@ -4,6 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma/client'
+import { sendEmail } from '@/lib/email/send'
+import { WelcomeEmail } from '@/emails/welcome'
+import { publicEnv } from '@/lib/env'
+import React from 'react'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -78,6 +82,20 @@ export async function register(formData: FormData) {
   // Si requiere confirmación por email, redirigimos a una página de aviso
   if (data.user?.identities?.length === 0) {
     return { error: 'El email ya está registrado' }
+  }
+
+  // Non-blocking welcome email
+  try {
+    await sendEmail({
+      to: email,
+      subject: 'Bienvenido a Afiladocs',
+      react: React.createElement(WelcomeEmail, {
+        userName: fullName ?? email,
+        loginUrl: `${publicEnv.siteUrl}/login`,
+      }),
+    })
+  } catch {
+    // Non-blocking — registration still succeeds if email fails
   }
 
   revalidatePath('/', 'layout')

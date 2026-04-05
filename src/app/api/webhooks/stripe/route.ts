@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { serverEnv } from '@/lib/env'
+import { serverEnv, publicEnv } from '@/lib/env'
 import { sendEmail } from '@/lib/email/send'
 import { PaymentConfirmation } from '@/emails/PaymentConfirmation'
+import { OrderConfirmationEmail } from '@/emails/order-confirmation'
+import { IntakeRequiredEmail } from '@/emails/intake-required'
+import { PaymentFailedEmail } from '@/emails/payment-failed'
 import { prisma } from '@/lib/prisma/client'
+import { notifyOpsError } from '@/lib/alerts/notify-ops'
 import React from 'react'
 
 // Vercel Function: Node.js runtime requerido para crypto nativo (verificación HMAC-SHA256 Stripe)
@@ -86,6 +90,73 @@ async function generateVerifactuInvoice(session: Stripe.Checkout.Session): Promi
   }
 }
 
+type OrderWithUser = Awaited<ReturnType<typeof prisma.orders.findFirst<{ include: { user: true } }>>>
+
+async function sendOrderConfirmationEmail(order: NonNullable<OrderWithUser>, customerEmail: string, amount: string): Promise<void> {
+  try {
+    await sendEmail({
+      to: customerEmail,
+      subject: 'Comprobante de tu pedido — Afiladocs',
+      react: React.createElement(OrderConfirmationEmail, {
+        userName: order.user.full_name ?? 'Cliente',
+        orderId: order.id,
+        productName: order.product_id,
+        amount,
+        portalUrl: `${publicEnv.siteUrl}/portal/pedido/${order.id}`,
+      }),
+    })
+  } catch (emailErr) {
+    console.error(JSON.stringify({
+      event: 'email.order_confirmation.failed',
+      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
+      orderId: order.id,
+      ts: new Date().toISOString(),
+    }))
+  }
+}
+
+async function sendIntakeRequiredEmail(order: NonNullable<OrderWithUser>, customerEmail: string): Promise<void> {
+  try {
+    await sendEmail({
+      to: customerEmail,
+      subject: 'Acción requerida: completa los datos de tu pedido — Afiladocs',
+      react: React.createElement(IntakeRequiredEmail, {
+        userName: order.user.full_name ?? 'Cliente',
+        productName: order.product_id,
+        intakeUrl: `${publicEnv.siteUrl}/portal/pedido/${order.id}`,
+      }),
+    })
+  } catch (emailErr) {
+    console.error(JSON.stringify({
+      event: 'email.intake_required.failed',
+      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
+      orderId: order.id,
+      ts: new Date().toISOString(),
+    }))
+  }
+}
+
+async function sendPaymentFailedEmail(customerEmail: string, intent: Stripe.PaymentIntent): Promise<void> {
+  try {
+    await sendEmail({
+      to: customerEmail,
+      subject: 'Problema con tu pago — Afiladocs',
+      react: React.createElement(PaymentFailedEmail, {
+        customerEmail,
+        errorMessage: intent.last_payment_error?.message ?? 'Error desconocido en el procesamiento del pago',
+        retryUrl: `${publicEnv.siteUrl}/tienda`,
+      }),
+    })
+  } catch (emailErr) {
+    console.error(JSON.stringify({
+      event: 'email.payment_failed.failed',
+      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
+      intentId: intent.id,
+      ts: new Date().toISOString(),
+    }))
+  }
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const customerEmail = session.customer_details?.email
   const amount = new Intl.NumberFormat('es-ES', {
@@ -105,16 +176,37 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await sendConfirmationEmail(session, customerEmail, amount)
   }
 
+  // Order confirmation + intake required emails
+  const order = await prisma.orders.findFirst({
+    where: { stripe_session_id: session.id },
+    include: { user: true },
+  })
+
+  if (order && customerEmail) {
+    await sendOrderConfirmationEmail(order, customerEmail, amount)
+    if (order.status === 'intake_pending') {
+      await sendIntakeRequiredEmail(order, customerEmail)
+    }
+  }
+
   await generateVerifactuInvoice(session)
 }
 
-function handlePaymentFailed(intent: Stripe.PaymentIntent) {
+async function handlePaymentFailed(intent: Stripe.PaymentIntent) {
+  const customerEmail = typeof intent.receipt_email === 'string'
+    ? intent.receipt_email
+    : (intent.last_payment_error?.payment_method as Stripe.PaymentMethod | undefined)?.billing_details?.email ?? null
+
   console.error(JSON.stringify({
     event: 'payment.failed',
     intentId: intent.id,
     lastError: intent.last_payment_error?.message,
     ts: new Date().toISOString(),
   }))
+
+  if (customerEmail) {
+    await sendPaymentFailedEmail(customerEmail, intent)
+  }
 }
 
 export async function POST(req: Request) {
@@ -148,6 +240,7 @@ export async function POST(req: Request) {
       message,
       ts: new Date().toISOString(),
     }))
+    void notifyOpsError({ event: 'stripe.webhook.signature_failed', message, severity: 'critical' })
     return new NextResponse(`Webhook signature invalid: ${message}`, { status: 400 })
   }
 
@@ -157,7 +250,7 @@ export async function POST(req: Request) {
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
         break
       case 'payment_intent.payment_failed':
-        handlePaymentFailed(event.data.object as Stripe.PaymentIntent)
+        await handlePaymentFailed(event.data.object as Stripe.PaymentIntent)
         break
       default:
         console.log(JSON.stringify({ event: 'stripe.unhandled', type: event.type }))
@@ -165,12 +258,14 @@ export async function POST(req: Request) {
   } catch (err) {
     // No devolver 500 a Stripe — reintentaría el evento indefinidamente.
     // Loguear el error y responder 200 para confirmar recepción.
+    const errMsg = err instanceof Error ? err.message : 'Unknown error'
     console.error(JSON.stringify({
       event: 'stripe.handler.error',
       type: event.type,
-      message: err instanceof Error ? err.message : 'Unknown error',
+      message: errMsg,
       ts: new Date().toISOString(),
     }))
+    void notifyOpsError({ event: 'stripe.handler.error', message: errMsg, severity: 'critical', metadata: { type: event.type } })
   }
 
   return NextResponse.json({ received: true })

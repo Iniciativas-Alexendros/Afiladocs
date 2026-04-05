@@ -1,52 +1,43 @@
 import { NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { serverEnv, publicEnv } from '@/lib/env'
 import { prisma } from '@/lib/prisma/client'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
 import { cronRateLimit, getClientIp, applyRateLimit } from '@/lib/rate-limit'
-import SubscriptionActive from '@/emails/subscription-active'
+import { IntakeRequiredEmail } from '@/emails/intake-required'
 import { notifyOpsError } from '@/lib/alerts/notify-ops'
 import React from 'react'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-interface SubscriptionWithUser {
-  id: string
-  user_id: string
-  product_id: string
-  updated_at: Date
-  user: { full_name: string | null }
-}
+type OrderWithUser = Prisma.ordersGetPayload<{ include: { user: true } }>
 
-/** Send a single renewal reminder email. Returns true on success. */
-async function sendReminderEmail(
-  sub: SubscriptionWithUser,
+/** Send a single intake reminder email. Returns true on success. */
+async function sendIntakeReminderEmail(
+  order: OrderWithUser,
   supabase: ReturnType<typeof createServiceRoleClient>,
 ): Promise<boolean> {
   try {
-    const { data: userData } = await supabase.auth.admin.getUserById(sub.user_id)
+    const { data: userData } = await supabase.auth.admin.getUserById(order.user_id)
     const email = userData?.user?.email
     if (!email) return false
 
-    const renewalDate = new Date(sub.updated_at)
-    renewalDate.setDate(renewalDate.getDate() + 30)
-
     await sendEmail({
       to: email,
-      subject: 'Recordatorio de renovación — afiladocs',
-      react: React.createElement(SubscriptionActive, {
-        userName: sub.user.full_name ?? email,
-        productName: sub.product_id,
-        nextBillingDate: renewalDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
-        portalUrl: `${publicEnv.siteUrl}/portal/suscripciones`,
+      subject: 'Recordatorio: completa los datos de tu pedido — Afiladocs',
+      react: React.createElement(IntakeRequiredEmail, {
+        userName: order.user.full_name ?? email,
+        productName: order.product_id,
+        intakeUrl: `${publicEnv.siteUrl}/portal/pedido/${order.id}`,
       }),
     })
     return true
   } catch (emailErr) {
     console.error(JSON.stringify({
-      event: 'cron.subscription_reminders.email_error',
-      subscription_id: sub.id,
+      event: 'cron.intake_reminders.email_error',
+      order_id: order.id,
       message: emailErr instanceof Error ? emailErr.message : 'Unknown',
       ts: new Date().toISOString(),
     }))
@@ -55,10 +46,11 @@ async function sendReminderEmail(
 }
 
 /**
- * Cron: runs every Monday at 09:00 UTC (vercel.json schedule: "0 9 * * 1")
+ * Cron: runs daily at 10:00 UTC (vercel.json schedule: "0 10 * * *")
  *
- * Sends renewal reminder emails to clients with active subscriptions.
- * Only sends to subscriptions updated more than 25 days ago (approaching monthly renewal).
+ * Sends intake reminder emails to clients whose orders have been in
+ * intake_pending for more than 3 days without submitting intake data.
+ * Excludes orders older than 90 days (likely abandoned).
  * Verified via CRON_SECRET header (set by Vercel Cron).
  */
 export async function GET(request: Request) {
@@ -82,26 +74,33 @@ export async function GET(request: Request) {
   }
 
   try {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 25)
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+    const ninetyDaysAgo = new Date()
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
 
-    const subscriptions = await prisma.subscriptions.findMany({
-      where: { status: 'active', updated_at: { lt: cutoff } },
+    const orders = await prisma.orders.findMany({
+      where: {
+        status: 'intake_pending',
+        intake_data: { equals: Prisma.DbNull },
+        deleted_at: null,
+        created_at: { lt: threeDaysAgo, gt: ninetyDaysAgo },
+      },
       include: { user: true },
-      take: 100,
+      take: 50,
     })
 
     const supabase = createServiceRoleClient()
     let emailsSent = 0
 
-    for (const sub of subscriptions) {
-      const sent = await sendReminderEmail(sub as SubscriptionWithUser, supabase)
+    for (const order of orders) {
+      const sent = await sendIntakeReminderEmail(order, supabase)
       if (sent) emailsSent++
     }
 
     console.log(JSON.stringify({
-      event: 'cron.subscription_reminders.completed',
-      subscriptions_processed: subscriptions.length,
+      event: 'cron.intake_reminders.completed',
+      orders_processed: orders.length,
       emails_sent: emailsSent,
       ts: new Date().toISOString(),
     }))
@@ -110,11 +109,11 @@ export async function GET(request: Request) {
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : 'Unknown'
     console.error(JSON.stringify({
-      event: 'cron.subscription_reminders.error',
+      event: 'cron.intake_reminders.error',
       message: errMsg,
       ts: new Date().toISOString(),
     }))
-    void notifyOpsError({ event: 'cron.subscription_reminders.error', message: errMsg, severity: 'warning' })
+    void notifyOpsError({ event: 'cron.intake_reminders.error', message: errMsg, severity: 'warning' })
     return NextResponse.json({ error: 'Cron failed' }, { status: 500 })
   }
 }

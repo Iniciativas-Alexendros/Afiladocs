@@ -5,6 +5,7 @@ import { serverEnv, publicEnv } from '@/lib/env'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
 import DocumentCompleted from '@/emails/document-completed'
+import { notifyOpsError } from '@/lib/alerts/notify-ops'
 import crypto from 'crypto'
 import React from 'react'
 
@@ -136,7 +137,9 @@ export async function POST(req: Request) {
 
     return await processDocumentCompletion(result.documentId ?? '')
   } catch (error) {
-    console.error(JSON.stringify({ event: 'documenso.webhook.error', message: error instanceof Error ? error.message : 'Unknown error', ts: new Date().toISOString() }))
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
+    console.error(JSON.stringify({ event: 'documenso.webhook.error', message: errMsg, ts: new Date().toISOString() }))
+    void notifyOpsError({ event: 'documenso.webhook.error', message: errMsg, severity: 'critical' })
     return new NextResponse('Webhook processing failed', { status: 500 })
   }
 }

@@ -12,7 +12,10 @@
     "src/app/api/webhooks/n8n-alerts/route.ts": { "maxDuration": 15 },
     "src/app/api/contact/route.ts": { "maxDuration": 10 },
     "src/app/api/cron/cleanup-expired-sessions/route.ts": { "maxDuration": 60 },
-    "src/app/api/cron/subscription-reminders/route.ts": { "maxDuration": 60 }
+    "src/app/api/cron/subscription-reminders/route.ts": { "maxDuration": 60 },
+    "src/app/api/cron/intake-reminders/route.ts": { "maxDuration": 60 },
+    "src/app/api/cron/sla-monitor/route.ts": { "maxDuration": 60 },
+    "src/app/api/cron/daily-report/route.ts": { "maxDuration": 60 }
   },
 
   "git": {
@@ -31,6 +34,18 @@
     {
       "path": "/api/cron/subscription-reminders",
       "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/intake-reminders",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/sla-monitor",
+      "schedule": "0 8 * * 1-5"
+    },
+    {
+      "path": "/api/cron/daily-report",
+      "schedule": "0 7 * * 1-5"
     }
   ]
 }
