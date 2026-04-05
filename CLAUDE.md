@@ -60,9 +60,13 @@ src/
 │   ├── api/
 │   │   ├── checkout/     — POST: crea Stripe Checkout session
 │   │   ├── contact/      — POST: relay a n8n webhook
+│   │   ├── cron/
+│   │   │   ├── cleanup-expired-sessions/ — GET: soft-delete pedidos abandonados (>90d)
+│   │   │   └── subscription-reminders/   — GET: emails de renovación (suscripciones >25d)
 │   │   └── webhooks/
 │   │       ├── stripe/   — POST: verifica firma + envía email de confirmación (Resend)
-│   │       └── documenso/— POST: webhooks de firma electrónica (Documenso)
+│   │       ├── documenso/— POST: webhooks de firma electrónica (Documenso, legacy)
+│   │       └── docuseal/ — POST: webhooks de firma electrónica (DocuSeal, activo)
 │   ├── ops/              — Panel de operaciones (roles: admin, ops)
 │   │   └── pedido/[id]/  — Gestión de pedido individual + subida de documentos
 │   ├── portal/           — Portal cliente autenticado
@@ -90,6 +94,7 @@ src/
 │   ├── stripe/actions.ts — createCheckoutSession() server action
 │   ├── email/send.ts     — sendEmail() via Resend (lazy instantiation)
 │   ├── rate-limit.ts     — Upstash Redis rate limiting (fallback null en dev sin Redis)
+│   ├── signing/          — Adapter de firma electrónica (DocuSeal activo, Documenso legacy)
 │   ├── verifactu/        — Integración EasyVerifactu (facturación)
 │   └── utils.ts          — cn() helper (clsx + tailwind-merge)
 ├── emails/
@@ -121,8 +126,23 @@ src/
 3. Stripe envía webhook → POST `/api/webhooks/stripe` → `constructEventAsync` (firma verificada)
 4. `checkout.session.completed` → `sendEmail` (Resend) con `PaymentConfirmation`
 
-- Rate limiting: Upstash Redis (10 req/min por IP en checkout, 5 req/10min en contact)
+- Rate limiting: Upstash Redis (10 req/min por IP en checkout, 5 req/10min en contact, 5 req/min en crons)
 - Sin Upstash configurado: sin rate limiting (fallback graceful para desarrollo)
+
+## Firma electrónica (DocuSeal / Documenso)
+
+- **DocuSeal** es el proveedor activo de firma electrónica (self-hosted). Webhook → `POST /api/webhooks/docuseal`
+- **Documenso** es el proveedor legacy (mantenido por compatibilidad). Webhook → `POST /api/webhooks/documenso`
+- Ambos webhooks: verificación HMAC-SHA256, descarga PDF firmado → Supabase Storage, `revalidateTag('orders')`, email de notificación al cliente
+- Adapter pattern en `src/lib/signing/` — `getSigningAdapter()` devuelve la implementación activa
+- Env vars de signing en `serverEnv`: `docusealWebhookSecret`, `documensoWebhookSecret`, `documensoApiKey`, `documensoApiUrl`
+
+## Cron jobs
+
+- **Vercel Cron** (configurado en `vercel.json`): schedules ejecutan GET en rutas `/api/cron/*`
+- Auth: `Bearer ${CRON_SECRET}` en header `Authorization`. Rate limited (5 req/min por IP)
+- `cleanup-expired-sessions`: soft-delete pedidos con `intake_pending` > 90 días sin completar
+- `subscription-reminders`: envía emails de renovación para suscripciones activas > 25 días desde última actualización
 
 ## Variables de entorno clave
 
@@ -138,6 +158,9 @@ src/
 | `UPSTASH_REDIS_REST_TOKEN` | Server only | Token Upstash Redis (opcional) |
 | `NEXT_PUBLIC_SITE_URL` | Build+Client | Dominio propio (NO definir hasta tener dominio) |
 | `N8N_CONTACT_WEBHOOK_URL` | Server only | Webhook n8n para formulario de contacto (opcional) |
+| `CRON_SECRET` | Server only | Bearer token para autenticar cron jobs de Vercel |
+| `DOCUSEAL_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks DocuSeal |
+| `DOCUMENSO_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks Documenso (legacy) |
 
 **Cuando no hay `NEXT_PUBLIC_SITE_URL`**: `publicEnv.siteUrl` resuelve desde `VERCEL_URL` (subdominio .vercel.app). `robots.ts` pone `Disallow: /` y `metadata.robots` pone `noindex`. Al adquirir el dominio: añadir `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel Dashboard y hacer redeploy.
 

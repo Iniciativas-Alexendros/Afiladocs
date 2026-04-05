@@ -3,6 +3,7 @@ import { serverEnv, publicEnv } from '@/lib/env'
 import { prisma } from '@/lib/prisma/client'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
+import { cronRateLimit, getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import SubscriptionActive from '@/emails/subscription-active'
 import React from 'react'
 
@@ -17,6 +18,15 @@ export const dynamic = 'force-dynamic'
  * Verified via CRON_SECRET header (set by Vercel Cron).
  */
 export async function GET(request: Request) {
+  const ip = getClientIp(request)
+  const { limited, retryAfter } = await applyRateLimit(cronRateLimit, ip)
+  if (limited) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter ?? 60) } }
+    )
+  }
+
   const authHeader = request.headers.get('authorization')
   const cronSecret = serverEnv.cronSecret
 

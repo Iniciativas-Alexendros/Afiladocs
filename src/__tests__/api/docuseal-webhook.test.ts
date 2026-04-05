@@ -11,6 +11,10 @@ const mockUpload = vi.fn()
 const mockGetDocumentPdf = vi.fn()
 const mockGetUserById = vi.fn()
 
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(),
+}))
+
 vi.mock('@/lib/env', () => ({
   serverEnv: {
     docusealWebhookSecret: WEBHOOK_SECRET,

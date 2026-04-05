@@ -28,4 +28,12 @@ describe('applyRateLimit', () => {
     expect(result.limited).toBe(false)
     vi.unstubAllEnvs()
   })
+
+  it('cronRateLimit is null when Redis is not configured', async () => {
+    vi.stubEnv('UPSTASH_REDIS_REST_URL', '')
+    vi.stubEnv('UPSTASH_REDIS_REST_TOKEN', '')
+    const { cronRateLimit } = await import('@/lib/rate-limit')
+    expect(cronRateLimit).toBeNull()
+    vi.unstubAllEnvs()
+  })
 })

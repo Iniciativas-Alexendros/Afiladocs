@@ -8,9 +8,15 @@ const mockDocUpdate = vi.fn()
 const mockOrderUpdate = vi.fn()
 const mockAuditCreate = vi.fn()
 
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(),
+}))
+
 vi.mock('@/lib/env', () => ({
   serverEnv: {
     documensoWebhookSecret: WEBHOOK_SECRET,
+    documensoApiKey: undefined,
+    documensoApiUrl: undefined,
   },
   publicEnv: { siteUrl: 'http://localhost:3000' },
 }))
@@ -21,6 +27,21 @@ vi.mock('@/lib/prisma/client', () => ({
     orders: { update: mockOrderUpdate },
     audit_log: { create: mockAuditCreate },
   },
+}))
+
+vi.mock('@/lib/supabase/service', () => ({
+  createServiceRoleClient: vi.fn().mockReturnValue({
+    storage: { from: () => ({ upload: vi.fn().mockResolvedValue({ error: null }) }) },
+    auth: { admin: { getUserById: vi.fn().mockResolvedValue({ data: { user: { email: 'user@test.com', user_metadata: { full_name: 'Test' } } } }) } },
+  }),
+}))
+
+vi.mock('@/lib/email/send', () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/emails/document-completed', () => ({
+  default: vi.fn(),
 }))
 
 function makeSignedRequest(body: string, secret: string) {

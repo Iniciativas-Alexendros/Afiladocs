@@ -28,6 +28,16 @@ export const contactRateLimit: Ratelimit | null = hasUpstash
     })
   : null
 
+// Rate limiter para /api/cron/*: 5 requests por minuto por IP (sliding window)
+export const cronRateLimit: Ratelimit | null = hasUpstash
+  ? new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(5, '1 m'),
+      analytics: false,
+      prefix: 'rl:cron',
+    })
+  : null
+
 // Extrae IP del request con soporte para Cloudflare, Vercel y Nginx proxy
 export function getClientIp(request: Request): string {
   return (
