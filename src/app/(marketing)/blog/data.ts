@@ -5,7 +5,7 @@ export const posts = [
     slug: 'que-es-el-lenguaje-claro-juridico',
     title: '¿Qué es el lenguaje claro jurídico?',
     excerpt: 'El lenguaje claro jurídico es una forma de redactar documentos legales para que cualquier persona pueda entenderlos sin necesidad de un abogado.',
-    date: '15 marzo 2025',
+    date: '15 marzo 2026',
     readTime: '5 min lectura',
     category: 'Lenguaje claro',
     content: `
@@ -32,7 +32,7 @@ Cada documento que entregamos pasa por un doble filtro: primero, revisión jurí
     slug: 'como-recurrir-una-multa-de-trafico',
     title: 'Cómo recurrir una multa de tráfico paso a paso',
     excerpt: 'Guía práctica para impugnar sanciones de tráfico: plazos, motivos y documentación necesaria.',
-    date: '8 marzo 2025',
+    date: '8 marzo 2026',
     readTime: '7 min lectura',
     category: 'Recursos',
     content: `
@@ -67,7 +67,7 @@ Si la multa supera los 300€ o implica pérdida de puntos, consulta a un profes
     slug: 'ia-y-derecho-como-cambia-la-profesion',
     title: 'IA y Derecho: cómo está cambiando la profesión',
     excerpt: 'La inteligencia artificial está transformando la práctica jurídica. Te cuento cómo la uso en mi día a día.',
-    date: '1 marzo 2025',
+    date: '1 marzo 2026',
     readTime: '6 min lectura',
     category: 'LegalTech',
     content: `
@@ -98,7 +98,7 @@ El riesgo no es que la IA nos sustituya: es que los abogados que sepan usarla bi
     slug: 'clausulas-abusivas-contratos-alquiler',
     title: 'Las 5 cláusulas abusivas más comunes en contratos de alquiler',
     excerpt: 'Aprende a detectar las cláusulas ilegales más frecuentes en tu contrato de arrendamiento.',
-    date: '22 febrero 2025',
+    date: '22 febrero 2026',
     readTime: '8 min lectura',
     category: 'Contratos',
     content: `
@@ -127,6 +127,50 @@ El inquilino puede desistir del contrato tras los primeros 6 meses, con preaviso
 ---
 
 Si tienes dudas sobre tu contrato, en afiladocs ofrecemos revisión jurídica de contratos de arrendamiento con entrega en 48 horas.
+    `.trim(),
+  },
+  {
+    slug: 'rgpd-derechos-digitales-guia-practica',
+    title: 'RGPD y derechos digitales: guía práctica para ciudadanos',
+    excerpt: 'Tus datos personales tienen derechos. Aprende a ejercerlos y a exigir que empresas y administraciones los respeten.',
+    date: '5 abril 2026',
+    readTime: '7 min lectura',
+    category: 'Protección de datos',
+    content: `
+El Reglamento General de Protección de Datos (RGPD) lleva en vigor desde 2018, pero la mayoría de ciudadanos sigue sin saber exactamente qué derechos tiene sobre sus datos personales ni cómo ejercerlos.
+
+## Tus derechos en resumen
+
+El RGPD reconoce un catálogo de derechos que puedes ejercer ante cualquier empresa u organismo que trate tus datos:
+
+1. **Acceso**: saber qué datos tienen sobre ti, de dónde los obtuvieron y con quién los comparten.
+2. **Rectificación**: corregir datos incorrectos o incompletos.
+3. **Supresión** (derecho al olvido): solicitar que eliminen tus datos cuando ya no sean necesarios para la finalidad original.
+4. **Oposición**: negarte a que traten tus datos para determinados fines, como marketing directo.
+5. **Portabilidad**: recibir tus datos en un formato estructurado y legible por máquina.
+6. **Limitación**: restringir temporalmente el tratamiento mientras se resuelve una reclamación.
+
+## Cómo ejercer tus derechos
+
+El proceso es más sencillo de lo que parece:
+
+1. **Identifica al responsable**: busca la política de privacidad del servicio. Ahí aparece el nombre del responsable del tratamiento y un canal de contacto (normalmente un email del DPO).
+2. **Envía una solicitud escrita**: por email o por escrito, indicando tu identidad, el derecho que ejerces y, si es necesario, los datos concretos afectados.
+3. **Plazo de respuesta**: la empresa tiene **1 mes** para contestar. Si no responde o la respuesta es insatisfactoria, puedes reclamar ante la **AEPD** (Agencia Española de Protección de Datos).
+
+## Casos frecuentes
+
+- **Inclusión en ficheros de morosidad (ASNEF)**: si ya has pagado la deuda o nunca existió, tienes derecho a la supresión inmediata. La entidad acreedora tiene 10 días para comunicar la cancelación a Equifax.
+- **Marketing no solicitado**: puedes ejercer tu derecho de oposición en cualquier momento. Si persisten, es una infracción sancionable.
+- **Cámaras de videovigilancia**: los vecinos no pueden grabar zonas comunes sin acuerdo de la comunidad ni espacio público sin autorización.
+
+## LOPDGDD: la adaptación española
+
+España complementa el RGPD con la Ley Orgánica 3/2018 (LOPDGDD), que añade derechos digitales como el derecho a la desconexión laboral, la protección del menor en internet y el testamento digital.
+
+---
+
+En afiladocs redactamos solicitudes de ejercicio de derechos RGPD y reclamaciones ante la AEPD. Si necesitas hacer valer tus derechos digitales, podemos ayudarte.
     `.trim(),
   },
 ]

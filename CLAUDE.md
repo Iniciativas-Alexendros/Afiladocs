@@ -66,7 +66,8 @@ src/
 │   │   └── webhooks/
 │   │       ├── stripe/   — POST: verifica firma + envía email de confirmación (Resend)
 │   │       ├── documenso/— POST: webhooks de firma electrónica (Documenso, legacy)
-│   │       └── docuseal/ — POST: webhooks de firma electrónica (DocuSeal, activo)
+│   │       ├── docuseal/ — POST: webhooks de firma electrónica (DocuSeal, activo)
+│   │       └── n8n-alerts/— POST: ingesta de alertas normativas desde n8n (Bearer token)
 │   ├── ops/              — Panel de operaciones (roles: admin, ops)
 │   │   └── pedido/[id]/  — Gestión de pedido individual + subida de documentos
 │   ├── portal/           — Portal cliente autenticado
@@ -158,6 +159,7 @@ src/
 | `UPSTASH_REDIS_REST_TOKEN` | Server only | Token Upstash Redis (opcional) |
 | `NEXT_PUBLIC_SITE_URL` | Build+Client | Dominio propio (NO definir hasta tener dominio) |
 | `N8N_CONTACT_WEBHOOK_URL` | Server only | Webhook n8n para formulario de contacto (opcional) |
+| `N8N_ALERTS_WEBHOOK_SECRET` | Server only | Bearer token compartido con n8n para ingestar alertas normativas |
 | `CRON_SECRET` | Server only | Bearer token para autenticar cron jobs de Vercel |
 | `DOCUSEAL_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks DocuSeal |
 | `DOCUMENSO_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks Documenso (legacy) |

@@ -52,6 +52,7 @@ export const serverEnv = {
   // Webhooks externos — opcionales
   get documensoWebhookSecret() { return getEnvVar('DOCUMENSO_WEBHOOK_SECRET', false) },
   get n8nContactWebhook() { return getEnvVar('N8N_CONTACT_WEBHOOK_URL', false) },
+  get n8nAlertsWebhookSecret() { return getEnvVar('N8N_ALERTS_WEBHOOK_SECRET', false) },
   // Redis — opcionales (rate limiting graceful fallback sin Redis)
   get upstashRedisUrl() { return getEnvVar('UPSTASH_REDIS_REST_URL', false) },
   get upstashRedisToken() { return getEnvVar('UPSTASH_REDIS_REST_TOKEN', false) },
