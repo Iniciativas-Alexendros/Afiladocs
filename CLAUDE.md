@@ -7,7 +7,7 @@ Stack: Next.js 15.3 + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/
        + Stripe SDK 21 (API `2026-03-25.dahlia`) + Prisma 7 + Supabase + Resend
        + Framer Motion + react-hook-form + Zod + Sonner + Lucide React + n8n webhooks.
 Deploy: **Vercel** (región `mad1`). CI/CD: GitLab CI SLSA Level 3 (.gitlab-ci.yml).
-Dominio: pendiente de adquirir. URL actual: subdominio `.vercel.app`.
+Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel.
 
 ## Reglas absolutas
 
@@ -163,7 +163,7 @@ src/
 | `DOCUMENSO_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks Documenso (legacy) |
 | `SENTRY_AUTH_TOKEN` | Build only | Token para subir source maps (en `.env.sentry-build-plugin`) |
 
-**Cuando no hay `NEXT_PUBLIC_SITE_URL`**: `publicEnv.siteUrl` resuelve desde `VERCEL_URL` (subdominio .vercel.app). `robots.ts` pone `Disallow: /` y `metadata.robots` pone `noindex`. Al adquirir el dominio: añadir `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel Dashboard y hacer redeploy.
+**Dominio activo**: `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` configurado en Vercel. SEO activo (`index: true`), sitemap apunta a afiladocs.com, redirect www→non-www habilitado. En preview deployments sin `NEXT_PUBLIC_SITE_URL`, el fallback mantiene `noindex` y `Disallow: /`.
 
 ## Patrones establecidos
 

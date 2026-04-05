@@ -4,13 +4,8 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
-// ⚠️ SEO CRÍTICO — MIENTRAS NO HAYA DOMINIO PROPIO:
-// El subdominio .vercel.app NO debe ser indexado por Google.
-// Si lo fuera, al migrar al dominio real habría contenido duplicado indexado en dos URLs.
-//
-// CUANDO SE ADQUIERA EL DOMINIO:
-//   1. Añadir NEXT_PUBLIC_SITE_URL=https://afiladocs.com en Vercel Dashboard > Env Vars
-//   2. Redeploy → isVercelPreviewDomain pasa a false → Allow: '/' activado automáticamente
+// SEO: dominio propio afiladocs.com configurado via NEXT_PUBLIC_SITE_URL.
+// Preview deployments (.vercel.app) sin NEXT_PUBLIC_SITE_URL → Disallow: / (evita contenido duplicado).
 const isVercelPreviewDomain = !process.env.NEXT_PUBLIC_SITE_URL
 
 export default function robots(): MetadataRoute.Robots {

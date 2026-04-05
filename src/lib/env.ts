@@ -44,7 +44,7 @@ export const serverEnv = {
   get stripePricePwl001() { return getEnvVar('STRIPE_PRICE_PWL_001', false) },
   // Email
   get resendApiKey() { return getEnvVar('RESEND_API_KEY') },
-  get resendFromEmail() { return getEnvVar('RESEND_FROM_EMAIL', false) || 'noreply@afiladocs.es' },
+  get resendFromEmail() { return getEnvVar('RESEND_FROM_EMAIL', false) || 'noreply@afiladocs.com' },
   // Base de datos
   get databaseUrl() { return getEnvVar('DATABASE_URL') },
   // Supabase server-only

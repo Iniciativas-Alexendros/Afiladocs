@@ -80,7 +80,7 @@ const nextConfig: NextConfig = {
               // api.stripe.com para Stripe API; *.supabase.co para Supabase API y Storage
               // vitals.vercel-insights.com para Vercel Speed Insights / Analytics
               // *.sentry.io y o*.ingest.sentry.io para Sentry error tracking
-              "connect-src 'self' https://api.stripe.com https://*.supabase.co https://vitals.vercel-insights.com https://*.sentry.io https://o*.ingest.sentry.io",
+              "connect-src 'self' https://api.stripe.com https://*.supabase.co https://vitals.vercel-insights.com https://*.sentry.io https://o*.ingest.de.sentry.io",
               // js.stripe.com y hooks.stripe.com para Stripe Elements/Checkout
               "frame-src https://js.stripe.com https://hooks.stripe.com",
               "object-src 'none'",
@@ -93,12 +93,16 @@ const nextConfig: NextConfig = {
     ]
   },
 
-  // Redirects — sin dominio propio todavía, lista vacía.
-  // Cuando se adquiera el dominio, añadir redirect www → non-www aquí:
-  // { source: '/(.*)', has: [{ type: 'host', value: 'www.afiladocs.com' }],
-  //   destination: 'https://afiladocs.com/:path*', permanent: true }
+  // Redirect www → non-www (canonical domain: afiladocs.com)
   async redirects() {
-    return []
+    return [
+      {
+        source: '/(.*)',
+        has: [{ type: 'host', value: 'www.afiladocs.com' }],
+        destination: 'https://afiladocs.com/:path*',
+        permanent: true,
+      },
+    ]
   },
 }
 

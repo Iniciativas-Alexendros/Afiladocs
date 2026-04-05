@@ -45,7 +45,7 @@ export function PaymentConfirmation({
           <Hr style={hr} />
           <Text style={footer}>
             Si tienes alguna duda, escríbenos a{' '}
-            <a href="mailto:hola@afiladocs.es">hola@afiladocs.es</a>
+            <a href="mailto:hola@afiladocs.com">hola@afiladocs.com</a>
           </Text>
           <Text style={footer}>
             afiladocs · Valencia, España

@@ -10,7 +10,7 @@ vi.mock('@/lib/rate-limit', () => ({
 vi.mock('@/lib/env', () => ({
   serverEnv: {
     n8nContactWebhook: '',
-    resendFromEmail: 'noreply@afiladocs.es',
+    resendFromEmail: 'noreply@afiladocs.com',
   },
   publicEnv: { siteUrl: 'http://localhost:3000' },
 }))

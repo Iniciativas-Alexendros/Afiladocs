@@ -15,16 +15,15 @@ const dmSans = DM_Sans({
 })
 
 // Resolución dinámica de metadataBase:
-//   1. NEXT_PUBLIC_SITE_URL — dominio propio (configurar en Vercel cuando se adquiera)
-//   2. VERCEL_URL — subdominio gratuito inyectado por Vercel en build time
+//   1. NEXT_PUBLIC_SITE_URL=https://afiladocs.com — dominio propio (producción)
+//   2. VERCEL_URL — subdominio preview inyectado por Vercel en build time
 //   3. localhost:3000 — desarrollo local
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
-// FASE ACTUAL: dominio no adquirido → noindex para evitar indexación del subdominio .vercel.app.
-// Cuando se defina NEXT_PUBLIC_SITE_URL con el dominio real:
-//   robots pasa a { index: true, follow: true } automáticamente.
+// Dominio propio: NEXT_PUBLIC_SITE_URL=https://afiladocs.com → index: true.
+// Preview deployments sin NEXT_PUBLIC_SITE_URL → noindex (evita contenido duplicado).
 const hasDomain = Boolean(process.env.NEXT_PUBLIC_SITE_URL)
 
 export const metadata: Metadata = {

@@ -5,7 +5,7 @@ vi.mock('@/lib/env', () => ({
     stripeSecretKey: 'sk_test_123',
     stripeWebhookSecret: 'whsec_test',
     resendApiKey: 'resend_test',
-    resendFromEmail: 'noreply@afiladocs.es',
+    resendFromEmail: 'noreply@afiladocs.com',
     easyVerifactuApiUrl: '',
     easyVerifactuApiKey: '',
   },

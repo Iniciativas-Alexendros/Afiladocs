@@ -56,7 +56,7 @@ export async function requestAccountDeletion(): Promise<{ success?: true; error?
 
     // Notificar al equipo legal
     await sendEmail({
-      to: 'legal@afiladocs.es',
+      to: 'legal@afiladocs.com',
       subject: `Solicitud de eliminación de cuenta — ${user.email}`,
       react: React.createElement('div', null,
         React.createElement('p', null, `El usuario ${user.email} (ID: ${user.id}) ha solicitado la eliminación de su cuenta.`),

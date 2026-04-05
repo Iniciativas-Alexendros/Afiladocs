@@ -19,7 +19,7 @@ vi.mock('@/lib/env', () => ({
   serverEnv: {
     docusealWebhookSecret: WEBHOOK_SECRET,
     resendApiKey: 'resend_test',
-    resendFromEmail: 'noreply@afiladocs.es',
+    resendFromEmail: 'noreply@afiladocs.com',
   },
   publicEnv: { siteUrl: 'http://localhost:3000' },
 }))

@@ -15,7 +15,8 @@ export function isAllowedOrigin(request: Request): boolean {
   const siteUrl = publicEnv.siteUrl
   const allowedOrigins = new Set([
     siteUrl,
-    // Always allow the .vercel.app preview domain as fallback
+    'https://afiladocs.com',
+    // Allow the .vercel.app preview domain as fallback for preview deployments
     'https://afiladocs.vercel.app',
   ])
 
