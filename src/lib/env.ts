@@ -38,11 +38,10 @@ export const serverEnv = {
   get stripeSecretKey() { return getEnvVar('STRIPE_SECRET_KEY') },
   get stripeWebhookSecret() { return getEnvVar('STRIPE_WEBHOOK_SECRET') },
   // Stripe Price IDs — opcionales en dev, requeridos en producción
-  get stripePriceLtk001() { return getEnvVar('STRIPE_PRICE_LTK_001', false) },
-  get stripePricePck001() { return getEnvVar('STRIPE_PRICE_PCK_001', false) },
-  get stripePriceRev001() { return getEnvVar('STRIPE_PRICE_REV_001', false) },
-  get stripePriceInf001() { return getEnvVar('STRIPE_PRICE_INF_001', false) },
-  get stripePriceCon001() { return getEnvVar('STRIPE_PRICE_CON_001', false) },
+  get stripePricePak001() { return getEnvVar('STRIPE_PRICE_PAK_001', false) },
+  get stripePriceCps001() { return getEnvVar('STRIPE_PRICE_CPS_001', false) },
+  get stripePriceNda001() { return getEnvVar('STRIPE_PRICE_NDA_001', false) },
+  get stripePricePwl001() { return getEnvVar('STRIPE_PRICE_PWL_001', false) },
   // Email
   get resendApiKey() { return getEnvVar('RESEND_API_KEY') },
   get resendFromEmail() { return getEnvVar('RESEND_FROM_EMAIL', false) || 'noreply@afiladocs.es' },

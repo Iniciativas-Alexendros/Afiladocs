@@ -9,8 +9,8 @@ vi.mock('@/lib/rate-limit', () => ({
 
 vi.mock('@/lib/stripe/client', () => ({
   getProductPriceMap: vi.fn().mockReturnValue({
-    'AFD-LTK-001': 'price_test_ltk',
-    'AFD-PCK-001': 'price_test_pck',
+    'AFD-PAK-001': 'price_test_pak',
+    'AFD-CPS-001': 'price_test_cps',
   }),
 }))
 

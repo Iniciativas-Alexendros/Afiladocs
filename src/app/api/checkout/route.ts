@@ -30,20 +30,21 @@ async function buildStripeSession(
 ) {
   if (!serverEnv.stripeSecretKey) return null
 
+  const priceMap = getProductPriceMap()
+
   const Stripe = (await import('stripe')).default
-  // Instancia creada por invocación para aprovechar dynamic import.
-  // La instancia de módulo es cacheada por Vercel en warm starts.
   const stripe = new Stripe(serverEnv.stripeSecretKey, {
     apiVersion: '2026-03-25.dahlia',
-    timeout: 8000, // Vercel mata funciones a los maxDuration s — timeout explícito
+    timeout: 8000,
   })
 
   return stripe.checkout.sessions.create({
     mode: 'payment',
-    line_items: items.map((item) => ({
-      price: item.priceId ?? item.variantId,
-      quantity: item.quantity,
-    })),
+    line_items: items.map((item) => {
+      // Resolver: priceId directo > variantId mapeado a Stripe Price via getProductPriceMap
+      const resolvedPrice = item.priceId ?? priceMap[item.variantId ?? ''] ?? item.variantId
+      return { price: resolvedPrice, quantity: item.quantity }
+    }),
     success_url: successUrl,
     cancel_url: cancelUrl,
   })
@@ -62,14 +63,16 @@ async function processCheckout(request: Request): Promise<NextResponse> {
 
   const { items, successUrl, cancelUrl } = parsed.data
 
-  // Whitelist de priceIds válidos — previene que se pasen IDs arbitrarios de Stripe
+  // Whitelist: acepta IDs internos (AFD-*) o Stripe Price IDs directos
+  const priceMap = getProductPriceMap()
+  const allowedInternalIds = new Set(Object.keys(priceMap))
   const allowedPriceIds = new Set(
-    Object.values(getProductPriceMap()).filter((v): v is string => Boolean(v))
+    Object.values(priceMap).filter((v): v is string => Boolean(v))
   )
   if (allowedPriceIds.size > 0) {
     for (const item of items) {
       const id = item.priceId ?? item.variantId
-      if (id && !allowedPriceIds.has(id)) {
+      if (id && !allowedInternalIds.has(id) && !allowedPriceIds.has(id)) {
         return NextResponse.json({ error: 'Producto no reconocido' }, { status: 400 })
       }
     }

@@ -16,11 +16,10 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET:          z.string().startsWith('whsec_'),
 
   // ─── Stripe Price IDs ──────────────────────────────────
-  STRIPE_PRICE_LTK_001:          z.string().startsWith('price_').optional(),
-  STRIPE_PRICE_PCK_001:          z.string().startsWith('price_').optional(),
-  STRIPE_PRICE_REV_001:          z.string().startsWith('price_').optional(),
-  STRIPE_PRICE_INF_001:          z.string().startsWith('price_').optional(),
-  STRIPE_PRICE_CON_001:          z.string().startsWith('price_').optional(),
+  STRIPE_PRICE_PAK_001:          z.string().startsWith('price_').optional(),
+  STRIPE_PRICE_CPS_001:          z.string().startsWith('price_').optional(),
+  STRIPE_PRICE_NDA_001:          z.string().startsWith('price_').optional(),
+  STRIPE_PRICE_PWL_001:          z.string().startsWith('price_').optional(),
 
   // ─── Documenso (activar cuando self-hosted esté listo) ─
   DOCUMENSO_API_URL:              z.string().url().optional(),

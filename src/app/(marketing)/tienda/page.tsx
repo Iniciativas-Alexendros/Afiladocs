@@ -8,40 +8,36 @@ import { toast } from "sonner";
 
 const products = [
   {
-    id: "pack-autonomos",
+    id: "AFD-PAK-001",
     title: "Pack Autónomos",
     description:
       "Todo lo que necesitas para cumplir con la normativa: aviso legal, política de privacidad, política de cookies y condiciones generales.",
     price: 14900,
     salePrice: 9900,
-    variant: "pack-autonomos-v1",
   },
   {
-    id: "contrato-prestacion-servicios",
+    id: "AFD-CPS-001",
     title: "Contrato de prestación de servicios",
     description:
       "Contrato estándar para profesionales y autónomos. Personalizable y en lenguaje claro.",
     price: 4900,
     salePrice: null,
-    variant: "contrato-prestacion-v1",
   },
   {
-    id: "contrato-confidencialidad",
+    id: "AFD-NDA-001",
     title: "Contrato de confidencialidad (NDA)",
     description:
       "Protege tu información sensible con un NDA redactado en lenguaje claro y legalmente válido.",
     price: 3900,
     salePrice: null,
-    variant: "nda-v1",
   },
   {
-    id: "pack-web-legal",
+    id: "AFD-PWL-001",
     title: "Pack Web Legal",
     description:
       "Textos legales imprescindibles para tu web: aviso legal, política de privacidad y política de cookies.",
     price: 9900,
     salePrice: 6900,
-    variant: "pack-web-v1",
   },
 ];
 
@@ -53,7 +49,7 @@ export default function TiendaPage() {
       await addToCart(
         { id: product.id, title: product.title },
         {
-          id: product.variant,
+          id: product.id,
           title: product.title,
           price_in_cents: product.price,
           sale_price_in_cents: product.salePrice,
