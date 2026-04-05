@@ -77,8 +77,6 @@ export const serverEnv = {
 // supabaseUrl y supabaseAnonKey son seguras como variables públicas (RLS en Supabase).
 export const publicEnv = {
   siteUrl: resolveSiteUrl(),
-  // Sentry DSN — si no está configurado, Sentry no se inicializa (graceful)
-  get sentryDsn() { return process.env.NEXT_PUBLIC_SENTRY_DSN ?? '' },
   get supabaseUrl() { return process.env.NEXT_PUBLIC_SUPABASE_URL ?? '' },
   get supabaseAnonKey() { return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '' },
   // Vercel runtime env — inyectado automáticamente por Vercel en cada deployment.

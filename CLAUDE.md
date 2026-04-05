@@ -161,6 +161,7 @@ src/
 | `CRON_SECRET` | Server only | Bearer token para autenticar cron jobs de Vercel |
 | `DOCUSEAL_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks DocuSeal |
 | `DOCUMENSO_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks Documenso (legacy) |
+| `SENTRY_AUTH_TOKEN` | Build only | Token para subir source maps (en `.env.sentry-build-plugin`) |
 
 **Cuando no hay `NEXT_PUBLIC_SITE_URL`**: `publicEnv.siteUrl` resuelve desde `VERCEL_URL` (subdominio .vercel.app). `robots.ts` pone `Disallow: /` y `metadata.robots` pone `noindex`. Al adquirir el dominio: añadir `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel Dashboard y hacer redeploy.
 

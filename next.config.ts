@@ -108,7 +108,8 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 export default withSentryConfig(bundleAnalyzer(nextConfig), {
   org: "alexendros-2h",
-  project: "sentry-alexendros",
+  project: "sentry-afiladocs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -119,10 +120,13 @@ export default withSentryConfig(bundleAnalyzer(nextConfig), {
   // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   tunnelRoute: "/monitoring",
 
-  // Enables automatic instrumentation of Vercel Cron Monitors.
-  // Moved under `webpack` per Sentry deprecation notice.
   webpack: {
+    // Automatic instrumentation of Vercel Cron Monitors
     automaticVercelMonitors: true,
+    // Remove Sentry debug logging from production bundle
+    treeshake: {
+      removeDebugLogging: true,
+    },
   },
 });
 
