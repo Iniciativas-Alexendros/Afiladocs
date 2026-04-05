@@ -111,9 +111,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 })
 
 export default withSentryConfig(bundleAnalyzer(nextConfig), {
-  org: "alexendros-2h",
-  project: "sentry-afiladocs",
-  authToken: process.env.SENTRY_AUTH_TOKEN,
+  org: process.env.OBSERVABILITY_SENTRY_ORG ?? "alexendros-2h",
+  project: process.env.OBSERVABILITY_SENTRY_PROJECT ?? "sentry-afiladocs",
+  authToken: process.env.OBSERVABILITY_SENTRY_AUTH_TOKEN ?? process.env.SENTRY_AUTH_TOKEN,
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
