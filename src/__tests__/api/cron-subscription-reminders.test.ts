@@ -120,15 +120,6 @@ function doMockDefaultTemplate() {
   }))
 }
 
-function doMockAllDefaults() {
-  doMockDefaultRateLimit()
-  doMockDefaultEnv()
-  doMockDefaultPrisma()
-  doMockDefaultSupabase()
-  doMockDefaultEmail()
-  doMockDefaultTemplate()
-}
-
 describe('GET /api/cron/subscription-reminders', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -165,7 +156,11 @@ describe('GET /api/cron/subscription-reminders', () => {
   })
 
   it('returns 503 when CRON_SECRET is not configured', async () => {
-    doMockAllDefaults()
+    doMockDefaultRateLimit()
+    doMockDefaultPrisma()
+    doMockDefaultSupabase()
+    doMockDefaultEmail()
+    doMockDefaultTemplate()
     vi.doMock('@/lib/env', () => ({
       serverEnv: { cronSecret: undefined },
       publicEnv: { siteUrl: 'http://localhost:3000' },
@@ -207,7 +202,11 @@ describe('GET /api/cron/subscription-reminders', () => {
   })
 
   it('skips subscription when Supabase returns no email', async () => {
-    doMockAllDefaults()
+    doMockDefaultRateLimit()
+    doMockDefaultEnv()
+    doMockDefaultPrisma()
+    doMockDefaultEmail()
+    doMockDefaultTemplate()
     vi.doMock('@/lib/supabase/service', () => ({
       createServiceRoleClient: vi.fn().mockReturnValue({
         auth: {
@@ -227,7 +226,11 @@ describe('GET /api/cron/subscription-reminders', () => {
   })
 
   it('returns 500 when database query fails', async () => {
-    doMockAllDefaults()
+    doMockDefaultRateLimit()
+    doMockDefaultEnv()
+    doMockDefaultSupabase()
+    doMockDefaultEmail()
+    doMockDefaultTemplate()
     vi.doMock('@/lib/prisma/client', () => ({
       prisma: {
         subscriptions: {
@@ -243,7 +246,11 @@ describe('GET /api/cron/subscription-reminders', () => {
   })
 
   it('returns 429 when rate limited', async () => {
-    doMockAllDefaults()
+    doMockDefaultEnv()
+    doMockDefaultPrisma()
+    doMockDefaultSupabase()
+    doMockDefaultEmail()
+    doMockDefaultTemplate()
     vi.doMock('@/lib/rate-limit', () => ({
       cronRateLimit: {},
       checkoutRateLimit: null,

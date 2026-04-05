@@ -19,13 +19,79 @@ function getStripe() {
   return new Stripe(key, { apiVersion: '2026-03-25.dahlia' })
 }
 
+async function sendConfirmationEmail(session: Stripe.Checkout.Session, customerEmail: string, amount: string): Promise<void> {
+  try {
+    await sendEmail({
+      to: customerEmail,
+      subject: 'Confirmación de pago — afiladocs',
+      react: React.createElement(PaymentConfirmation, { customerEmail, amount, sessionId: session.id }),
+    })
+  } catch (emailErr) {
+    console.error(JSON.stringify({
+      event: 'email.confirmation.failed',
+      message: emailErr instanceof Error ? emailErr.message : 'Unknown error',
+      sessionId: session.id,
+      ts: new Date().toISOString(),
+    }))
+  }
+}
+
+async function createAndPersistInvoice(session: Stripe.Checkout.Session): Promise<void> {
+  const { EasyVerifactuAdapter } = await import('@/lib/verifactu/easyverifactu')
+  const adapter = new EasyVerifactuAdapter()
+  const metadata = session.metadata!
+
+  const profile = await prisma.profiles.findFirst({
+    where: { id: metadata.userId },
+    select: { nif: true },
+  })
+
+  const invoiceResult = await adapter.createInvoice({
+    orderId: metadata.orderId ?? session.id,
+    userId: metadata.userId!,
+    productId: metadata.productId ?? 'unknown',
+    amountCents: session.amount_total ?? 0,
+    currency: session.currency ?? 'eur',
+    issuedAt: new Date(),
+    customerNif: profile?.nif ?? '',
+  })
+
+  if (metadata.orderId) {
+    await prisma.orders.update({
+      where: { stripe_session_id: session.id },
+      data: { invoice_id: invoiceResult.invoiceId, invoiced_at: new Date() },
+    })
+  }
+
+  console.log(JSON.stringify({
+    event: 'verifactu.invoice.created',
+    invoiceId: invoiceResult.invoiceId,
+    sessionId: session.id,
+    ts: new Date().toISOString(),
+  }))
+}
+
+async function generateVerifactuInvoice(session: Stripe.Checkout.Session): Promise<void> {
+  if (!serverEnv.easyVerifactuApiUrl || !serverEnv.easyVerifactuApiKey || !session.metadata?.userId) return
+
+  try {
+    await createAndPersistInvoice(session)
+  } catch (verifactuErr) {
+    console.error(JSON.stringify({
+      event: 'verifactu.invoice.failed',
+      message: verifactuErr instanceof Error ? verifactuErr.message : 'Unknown',
+      sessionId: session.id,
+      ts: new Date().toISOString(),
+    }))
+  }
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const customerEmail = session.customer_details?.email
-  const amountTotal = session.amount_total ?? 0
   const amount = new Intl.NumberFormat('es-ES', {
     style: 'currency',
     currency: session.currency?.toUpperCase() ?? 'EUR',
-  }).format(amountTotal / 100)
+  }).format((session.amount_total ?? 0) / 100)
 
   console.log(JSON.stringify({
     event: 'checkout.completed',
@@ -35,79 +101,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ts: new Date().toISOString(),
   }))
 
-  if (!customerEmail) return
-
-  try {
-    await sendEmail({
-      to: customerEmail,
-      subject: 'Confirmación de pago — afiladocs',
-      react: React.createElement(PaymentConfirmation, {
-        customerEmail,
-        amount,
-        sessionId: session.id,
-      }),
-    })
-  } catch (emailErr) {
-    // El email de confirmación es no crítico — log interno, no propagar
-    console.error(JSON.stringify({
-      event: 'email.confirmation.failed',
-      message: emailErr instanceof Error ? emailErr.message : 'Unknown error',
-      sessionId: session.id,
-      ts: new Date().toISOString(),
-    }))
+  if (customerEmail) {
+    await sendConfirmationEmail(session, customerEmail, amount)
   }
 
-  // Trigger EasyVerifactu invoice generation — only if configured (non-blocking)
-  const verifactuUrl = serverEnv.easyVerifactuApiUrl
-  const verifactuKey = serverEnv.easyVerifactuApiKey
-  if (verifactuUrl && verifactuKey && session.metadata?.userId) {
-    try {
-      const { EasyVerifactuAdapter } = await import('@/lib/verifactu/easyverifactu')
-      const adapter = new EasyVerifactuAdapter()
-
-      // Fetch customer NIF from profile (needed for Spanish invoice compliance)
-      const profile = await prisma.profiles.findFirst({
-        where: { id: session.metadata.userId },
-        select: { nif: true },
-      })
-
-      const invoiceResult = await adapter.createInvoice({
-        orderId: session.metadata.orderId ?? session.id,
-        userId: session.metadata.userId,
-        productId: session.metadata.productId ?? 'unknown',
-        amountCents: session.amount_total ?? 0,
-        currency: session.currency ?? 'eur',
-        issuedAt: new Date(),
-        customerNif: profile?.nif ?? '',
-      })
-
-      // Persist invoice reference on the order record
-      if (session.metadata.orderId) {
-        await prisma.orders.update({
-          where: { stripe_session_id: session.id },
-          data: {
-            invoice_id: invoiceResult.invoiceId,
-            invoiced_at: new Date(),
-          },
-        })
-      }
-
-      console.log(JSON.stringify({
-        event: 'verifactu.invoice.created',
-        invoiceId: invoiceResult.invoiceId,
-        sessionId: session.id,
-        ts: new Date().toISOString(),
-      }))
-    } catch (verifactuErr) {
-      // Non-blocking — invoice generation failure should not block payment confirmation
-      console.error(JSON.stringify({
-        event: 'verifactu.invoice.failed',
-        message: verifactuErr instanceof Error ? verifactuErr.message : 'Unknown',
-        sessionId: session.id,
-        ts: new Date().toISOString(),
-      }))
-    }
-  }
+  await generateVerifactuInvoice(session)
 }
 
 function handlePaymentFailed(intent: Stripe.PaymentIntent) {

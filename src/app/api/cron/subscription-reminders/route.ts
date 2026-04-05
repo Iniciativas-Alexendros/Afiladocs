@@ -10,6 +10,49 @@ import React from 'react'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+interface SubscriptionWithUser {
+  id: string
+  user_id: string
+  product_id: string
+  updated_at: Date
+  user: { full_name: string | null }
+}
+
+/** Send a single renewal reminder email. Returns true on success. */
+async function sendReminderEmail(
+  sub: SubscriptionWithUser,
+  supabase: ReturnType<typeof createServiceRoleClient>,
+): Promise<boolean> {
+  try {
+    const { data: userData } = await supabase.auth.admin.getUserById(sub.user_id)
+    const email = userData?.user?.email
+    if (!email) return false
+
+    const renewalDate = new Date(sub.updated_at)
+    renewalDate.setDate(renewalDate.getDate() + 30)
+
+    await sendEmail({
+      to: email,
+      subject: 'Recordatorio de renovación — afiladocs',
+      react: React.createElement(SubscriptionActive, {
+        userName: sub.user.full_name ?? email,
+        productName: sub.product_id,
+        nextBillingDate: renewalDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
+        portalUrl: `${publicEnv.siteUrl}/portal/suscripciones`,
+      }),
+    })
+    return true
+  } catch (emailErr) {
+    console.error(JSON.stringify({
+      event: 'cron.subscription_reminders.email_error',
+      subscription_id: sub.id,
+      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
+      ts: new Date().toISOString(),
+    }))
+    return false
+  }
+}
+
 /**
  * Cron: runs every Monday at 09:00 UTC (vercel.json schedule: "0 9 * * 1")
  *
@@ -27,13 +70,13 @@ export async function GET(request: Request) {
     )
   }
 
-  const authHeader = request.headers.get('authorization')
   const cronSecret = serverEnv.cronSecret
-
   if (!cronSecret) {
     return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 503 })
   }
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -42,45 +85,17 @@ export async function GET(request: Request) {
     cutoff.setDate(cutoff.getDate() - 25)
 
     const subscriptions = await prisma.subscriptions.findMany({
-      where: {
-        status: 'active',
-        updated_at: { lt: cutoff },
-      },
+      where: { status: 'active', updated_at: { lt: cutoff } },
       include: { user: true },
-      take: 100, // Batch limit to avoid timeouts
+      take: 100,
     })
 
     const supabase = createServiceRoleClient()
     let emailsSent = 0
 
     for (const sub of subscriptions) {
-      try {
-        const { data: userData } = await supabase.auth.admin.getUserById(sub.user_id)
-        const email = userData?.user?.email
-        if (!email) continue
-
-        const renewalDate = new Date(sub.updated_at)
-        renewalDate.setDate(renewalDate.getDate() + 30)
-
-        await sendEmail({
-          to: email,
-          subject: 'Recordatorio de renovación — afiladocs',
-          react: React.createElement(SubscriptionActive, {
-            userName: sub.user.full_name ?? email,
-            productName: sub.product_id,
-            nextBillingDate: renewalDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
-            portalUrl: `${publicEnv.siteUrl}/portal/suscripciones`,
-          }),
-        })
-        emailsSent++
-      } catch (emailErr) {
-        console.error(JSON.stringify({
-          event: 'cron.subscription_reminders.email_error',
-          subscription_id: sub.id,
-          message: emailErr instanceof Error ? emailErr.message : 'Unknown',
-          ts: new Date().toISOString(),
-        }))
-      }
+      const sent = await sendReminderEmail(sub as SubscriptionWithUser, supabase)
+      if (sent) emailsSent++
     }
 
     console.log(JSON.stringify({

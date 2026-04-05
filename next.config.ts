@@ -120,6 +120,9 @@ export default withSentryConfig(bundleAnalyzer(nextConfig), {
   tunnelRoute: "/monitoring",
 
   // Enables automatic instrumentation of Vercel Cron Monitors.
-  automaticVercelMonitors: true,
+  // Moved under `webpack` per Sentry deprecation notice.
+  webpack: {
+    automaticVercelMonitors: true,
+  },
 });
 

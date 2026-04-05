@@ -70,6 +70,54 @@ async function notifyClient(orderId: string, userId: string, productId: string):
   }
 }
 
+function parseAndValidateRequest(bodyText: string, signatureHeader: string | null, secret: string):
+  | { ok: true; event: string | undefined; documentId: string | undefined }
+  | { ok: false; response: NextResponse } {
+  if (!verifySignature(bodyText, secret, signatureHeader)) {
+    return { ok: false, response: new NextResponse(signatureHeader ? 'Invalid signature' : 'Missing signature', { status: 401 }) }
+  }
+  try {
+    const payload = JSON.parse(bodyText) as { event?: string; documentId?: string }
+    return { ok: true, event: payload.event, documentId: payload.documentId }
+  } catch {
+    return { ok: false, response: new NextResponse('Invalid JSON payload', { status: 400 }) }
+  }
+}
+
+async function processDocumentCompletion(documentId: string): Promise<NextResponse> {
+  const doc = await prisma.documents.findFirst({ where: { documenso_document_id: documentId } })
+  if (!doc) return new NextResponse('Document not found in internal tracking', { status: 404 })
+
+  const { storagePath, signedHash } = await downloadAndStorePdf(documentId, doc.order_id)
+
+  await prisma.documents.update({
+    where: { id: doc.id },
+    data: {
+      status: 'final',
+      signed_at: new Date(),
+      ...(storagePath ? { signed_pdf_path: storagePath } : {}),
+      ...(signedHash ? { hash_sha256_signed: signedHash } : {}),
+    },
+  })
+
+  const order = await prisma.orders.update({ where: { id: doc.order_id }, data: { status: 'completed' } })
+
+  revalidateTag('orders')
+  revalidateTag(`orders-${order.user_id}`)
+
+  await prisma.audit_log.create({
+    data: {
+      event: 'document.signed',
+      order_id: doc.order_id,
+      user_id: order.user_id,
+      metadata: { documenso_id: documentId, signed_pdf_stored: Boolean(storagePath) },
+    },
+  })
+
+  await notifyClient(order.id, order.user_id, order.product_id)
+  return NextResponse.json({ success: true })
+}
+
 export async function POST(req: Request) {
   const secret = serverEnv.documensoWebhookSecret
   if (!secret) {
@@ -79,56 +127,14 @@ export async function POST(req: Request) {
 
   try {
     const bodyText = await req.text()
+    const result = parseAndValidateRequest(bodyText, req.headers.get('documenso-signature'), secret)
+    if (!result.ok) return result.response
 
-    if (!verifySignature(bodyText, secret, req.headers.get('documenso-signature'))) {
-      const missing = !req.headers.get('documenso-signature')
-      return new NextResponse(missing ? 'Missing signature' : 'Invalid signature', { status: 401 })
-    }
-
-    let payload: { event?: string; documentId?: string; [key: string]: unknown }
-    try {
-      payload = JSON.parse(bodyText)
-    } catch {
-      return new NextResponse('Invalid JSON payload', { status: 400 })
-    }
-    const { event, documentId } = payload
-
-    if (event !== 'DOCUMENT_COMPLETED') {
+    if (result.event !== 'DOCUMENT_COMPLETED') {
       return new NextResponse('Ignored event', { status: 200 })
     }
 
-    const doc = await prisma.documents.findFirst({ where: { documenso_document_id: documentId } })
-    if (!doc) return new NextResponse('Document not found in internal tracking', { status: 404 })
-
-    const { storagePath, signedHash } = await downloadAndStorePdf(documentId ?? '', doc.order_id)
-
-    await prisma.documents.update({
-      where: { id: doc.id },
-      data: {
-        status: 'final',
-        signed_at: new Date(),
-        ...(storagePath ? { signed_pdf_path: storagePath } : {}),
-        ...(signedHash ? { hash_sha256_signed: signedHash } : {}),
-      },
-    })
-
-    const order = await prisma.orders.update({ where: { id: doc.order_id }, data: { status: 'completed' } })
-
-    revalidateTag('orders')
-    revalidateTag(`orders-${order.user_id}`)
-
-    await prisma.audit_log.create({
-      data: {
-        event: 'document.signed',
-        order_id: doc.order_id,
-        user_id: order.user_id,
-        metadata: { documenso_id: documentId, signed_pdf_stored: Boolean(storagePath) },
-      },
-    })
-
-    await notifyClient(order.id, order.user_id, order.product_id)
-
-    return NextResponse.json({ success: true })
+    return await processDocumentCompletion(result.documentId ?? '')
   } catch (error) {
     console.error(JSON.stringify({ event: 'documenso.webhook.error', message: error instanceof Error ? error.message : 'Unknown error', ts: new Date().toISOString() }))
     return new NextResponse('Webhook processing failed', { status: 500 })
