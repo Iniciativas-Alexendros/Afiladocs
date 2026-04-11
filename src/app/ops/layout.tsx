@@ -1,11 +1,10 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
+import type { Route } from 'next'
 import { requireRole } from '@/lib/auth'
 import {
   BuildingIcon,
   Home,
-  ShieldAlert,
-  Users,
   Menu,
   Briefcase,
   FileText
@@ -41,11 +40,10 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
 
   const displayName = user.email?.split('@')[0]
 
-  const navItems = [
+  const navItems: { name: string; href: Route<string>; icon: typeof Home }[] = [
     { name: 'Ops Dashboard', href: '/ops', icon: Home },
     { name: 'Gestión Pedidos', href: '/ops/pedidos', icon: FileText },
-    { name: 'Gestión Clientes', href: '/ops/clientes', icon: Users },
-    { name: 'Monitor Normativo', href: '/ops/monitor', icon: ShieldAlert },
+    // '/ops/clientes' and '/ops/monitor' pages not yet implemented
   ]
 
   const NavLinks = () => (

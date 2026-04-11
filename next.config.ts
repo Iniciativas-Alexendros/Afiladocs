@@ -6,8 +6,6 @@ const nextConfig: NextConfig = {
   // CRÍTICO: Vercel gestiona el build output internamente.
   // `output: 'standalone'` rompe el deployment en Vercel — eliminado.
 
-  // typedRoutes desactivado: muchas rutas son dinámicas o aún en construcción.
-  // Reactivar con: experimental: { typedRoutes: true } cuando el router esté completo.
   compress: true,
   poweredByHeader: false,
 
@@ -17,6 +15,8 @@ const nextConfig: NextConfig = {
       fullUrl: true,
     },
   },
+
+  typedRoutes: true,
 
   experimental: {
     optimizePackageImports: [

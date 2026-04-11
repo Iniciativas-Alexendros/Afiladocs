@@ -209,6 +209,14 @@ async function handlePaymentFailed(intent: Stripe.PaymentIntent) {
   }
 }
 
+/** Returns true if this Stripe event ID was already processed (idempotency guard). */
+async function isAlreadyProcessed(eventId: string): Promise<boolean> {
+  const existing = await prisma.audit_log.findFirst({
+    where: { event: `stripe_event.${eventId}` },
+  }).catch(() => null)
+  return existing !== null
+}
+
 export async function POST(req: Request) {
   const stripe = getStripe()
   if (!stripe || !serverEnv.stripeWebhookSecret) {
@@ -244,6 +252,13 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook signature invalid: ${message}`, { status: 400 })
   }
 
+  // Idempotency check — Stripe retries events on non-2xx responses.
+  // Avoid duplicate emails and audit entries by tracking processed event IDs.
+  if (await isAlreadyProcessed(event.id)) {
+    console.log(JSON.stringify({ event: 'stripe.webhook.duplicate', stripeEventId: event.id, ts: new Date().toISOString() }))
+    return NextResponse.json({ received: true })
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed':
@@ -255,6 +270,13 @@ export async function POST(req: Request) {
       default:
         console.log(JSON.stringify({ event: 'stripe.unhandled', type: event.type }))
     }
+    // Record the processed event ID to prevent duplicate processing on retries.
+    await prisma.audit_log.create({
+      data: { event: `stripe_event.${event.id}`, metadata: { type: event.type } },
+    }).catch((err: unknown) => {
+      // Non-fatal: log but don't fail the webhook response.
+      console.error(JSON.stringify({ event: 'stripe.webhook.idempotency_log_failed', stripeEventId: event.id, message: err instanceof Error ? err.message : 'Unknown', ts: new Date().toISOString() }))
+    })
   } catch (err) {
     // No devolver 500 a Stripe — reintentaría el evento indefinidamente.
     // Loguear el error y responder 200 para confirmar recepción.

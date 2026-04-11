@@ -15,7 +15,8 @@
     "src/app/api/cron/subscription-reminders/route.ts": { "maxDuration": 60 },
     "src/app/api/cron/intake-reminders/route.ts": { "maxDuration": 60 },
     "src/app/api/cron/sla-monitor/route.ts": { "maxDuration": 60 },
-    "src/app/api/cron/daily-report/route.ts": { "maxDuration": 60 }
+    "src/app/api/cron/daily-report/route.ts": { "maxDuration": 60 },
+    "src/app/api/health/route.ts": { "maxDuration": 5 }
   },
 
   "git": {

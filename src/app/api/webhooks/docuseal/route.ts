@@ -109,19 +109,20 @@ export async function POST(req: Request) {
     const pdfBuffer = await adapter.getDocumentPdf(signingDocumentId)
     const { storagePath, hash } = await uploadPdfToStorage(pdfBuffer, doc.order_id)
 
-    await prisma.documents.update({
-      where: { id: doc.id },
-      data: { status: 'final', signed_at: new Date(), signed_pdf_path: storagePath, hash_sha256_signed: hash, signing_provider: 'docuseal' },
+    const order = await prisma.$transaction(async (tx) => {
+      await tx.documents.update({
+        where: { id: doc.id },
+        data: { status: 'final', signed_at: new Date(), signed_pdf_path: storagePath, hash_sha256_signed: hash, signing_provider: 'docuseal' },
+      })
+      const updated = await tx.orders.update({ where: { id: doc.order_id }, data: { status: 'completed' } })
+      await tx.audit_log.create({
+        data: { event: 'document.signed', order_id: doc.order_id, user_id: updated.user_id, metadata: { signing_document_id: signingDocumentId, provider: 'docuseal' } },
+      })
+      return updated
     })
-
-    const order = await prisma.orders.update({ where: { id: doc.order_id }, data: { status: 'completed' } })
 
     revalidateTag('orders')
     revalidateTag(`orders-${order.user_id}`)
-
-    await prisma.audit_log.create({
-      data: { event: 'document.signed', order_id: doc.order_id, user_id: order.user_id, metadata: { signing_document_id: signingDocumentId, provider: 'docuseal' } },
-    })
 
     await notifyClient(order.id, order.user_id, order.product_id)
 

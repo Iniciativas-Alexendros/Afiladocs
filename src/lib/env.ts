@@ -71,6 +71,8 @@ export const serverEnv = {
   get easyVerifactuApiKey() { return getEnvVar('EASYVERIFACTU_API_KEY', false) },
   // Cron jobs — Vercel Cron
   get cronSecret() { return getEnvVar('CRON_SECRET', false) },
+  // Ops email — destinatario de alertas y reportes internos
+  get opsEmail() { return getEnvVar('OPS_EMAIL', false) || 'ops@afiladocs.com' },
 }
 
 // Variables públicas — seguro para usar en client y server.

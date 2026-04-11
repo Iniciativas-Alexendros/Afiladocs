@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <FileText className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold">afilodocs</span>
+              <span className="text-xl font-bold">afiladocs</span>
             </div>
             <p className="text-sm leading-relaxed opacity-90">
               Documentos legales claros, sin tecnicismos vacíos. Trabajo 100%
@@ -65,10 +65,10 @@ export function Footer() {
               <li className="flex items-start gap-2">
                 <Mail className="w-4 h-4 mt-1 flex-shrink-0 text-primary" />
                 <a
-                  href="mailto:contacto@afilodocs.com"
+                  href="mailto:contacto@afiladocs.com"
                   className="opacity-90 hover:opacity-100 hover:text-primary transition-all duration-200"
                 >
-                  contacto@afilodocs.com
+                  contacto@afiladocs.com
                 </a>
               </li>
               <li className="flex items-start gap-2">
@@ -88,7 +88,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-white/10 text-center text-sm opacity-75">
           <p>
-            &copy; {new Date().getFullYear()} afilodocs. Todos los derechos
+            &copy; {new Date().getFullYear()} afiladocs. Todos los derechos
             reservados.
           </p>
         </div>

@@ -22,16 +22,16 @@ vi.mock('@/lib/env', () => ({
   publicEnv: { siteUrl: 'http://localhost:3000' },
 }))
 
-// Mock Stripe as a class constructor
+// Mock Stripe as a class so `new Stripe(...)` works correctly
 vi.mock('stripe', () => {
-  const mockStripe = vi.fn().mockImplementation(() => ({
-    checkout: {
+  class MockStripe {
+    checkout = {
       sessions: {
         create: vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/test' }),
       },
-    },
-  }))
-  return { default: mockStripe }
+    }
+  }
+  return { default: MockStripe }
 })
 
 function makeRequest(body: Record<string, unknown>) {
@@ -45,6 +45,34 @@ function makeRequest(body: Record<string, unknown>) {
 describe('POST /api/checkout', () => {
   beforeEach(() => {
     vi.resetModules()
+  })
+
+  // Success cases first — use top-level vi.mock defaults (no doMock contamination)
+
+  it('returns 200 with Stripe checkout URL on success', async () => {
+    const { POST } = await import('@/app/api/checkout/route')
+    const req = makeRequest({
+      items: [{ priceId: 'price_test_pak', quantity: 1 }],
+      successUrl: 'http://localhost/ok',
+      cancelUrl: 'http://localhost/cancel',
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.url).toBe('https://checkout.stripe.com/test')
+  })
+
+  it('accepts internal product ID (AFD-*) in addition to Stripe price ID', async () => {
+    const { POST } = await import('@/app/api/checkout/route')
+    const req = makeRequest({
+      items: [{ variantId: 'AFD-PAK-001', quantity: 2 }],
+      successUrl: 'http://localhost/ok',
+      cancelUrl: 'http://localhost/cancel',
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.url).toBe('https://checkout.stripe.com/test')
   })
 
   it('returns 400 when items array is empty', async () => {
@@ -65,6 +93,18 @@ describe('POST /api/checkout', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 500 when body is malformed JSON', async () => {
+    const { POST } = await import('@/app/api/checkout/route')
+    const req = new Request('http://localhost/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
+      body: '{invalid-json}',
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(500)
+  })
+
+  // Rate-limit test uses doMock — must come LAST to avoid contaminating earlier tests
   it('returns 429 when rate limited', async () => {
     vi.doMock('@/lib/rate-limit', () => ({
       checkoutRateLimit: {},

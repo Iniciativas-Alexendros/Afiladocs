@@ -10,8 +10,6 @@ import React from 'react'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const OPS_EMAIL = 'ops@afiladocs.com'
-
 interface DailyStats {
   newOrders: number
   signedDocuments: number
@@ -62,7 +60,7 @@ async function gatherStats(since: Date): Promise<DailyStats> {
 
 async function sendDailyReport(stats: DailyStats, dateStr: string): Promise<void> {
   await sendEmail({
-    to: OPS_EMAIL,
+    to: serverEnv.opsEmail,
     subject: `Informe diario ops — ${dateStr}`,
     react: React.createElement(DailyOpsReport, {
       date: dateStr,

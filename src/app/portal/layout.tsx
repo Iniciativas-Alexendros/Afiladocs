@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
+import type { Route } from 'next'
 
 import { requireAuth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -42,7 +43,7 @@ function isOpsUser(profile: { role?: string | null } | null) {
 
 interface NavItem {
   name: string
-  href: string
+  href: Route<string>
   icon: typeof Home
 }
 

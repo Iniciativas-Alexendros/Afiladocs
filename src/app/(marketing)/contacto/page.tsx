@@ -44,10 +44,10 @@ export default function ContactoPage() {
                 <li className="flex items-start gap-2">
                   <Mail className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
                   <a
-                    href="mailto:contacto@afilodocs.com"
+                    href="mailto:contacto@afiladocs.com"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    contacto@afilodocs.com
+                    contacto@afiladocs.com
                   </a>
                 </li>
                 <li className="flex items-start gap-2">
