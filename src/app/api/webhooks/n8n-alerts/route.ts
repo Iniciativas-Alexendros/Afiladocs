@@ -28,7 +28,8 @@ const RequestSchema = z.union([
 function verifyWebhookToken(request: Request): boolean {
   const authHeader = request.headers.get('authorization')
   if (!authHeader) return false
-  const token = authHeader.replace('Bearer ', '')
+  const [scheme, token] = authHeader.split(' ')
+  if (scheme !== 'Bearer' || !token) return false
   return token === serverEnv.n8nAlertsWebhookSecret
 }
 
@@ -91,7 +92,7 @@ export async function POST(req: Request) {
   if (highUrgency.length > 0) {
     try {
       await sendEmail({
-        to: serverEnv.resendFromEmail.replace('noreply@', 'ops@'),
+        to: serverEnv.opsEmail,
         subject: `[URGENTE] ${highUrgency.length} alerta(s) normativa(s) de urgencia alta`,
         react: React.createElement('div', null,
           React.createElement('h2', null, 'Nuevas alertas de urgencia alta'),

@@ -60,6 +60,7 @@ export async function POST(request: Request) {
             rgpd_accepted,
             submitted_at: new Date().toISOString(),
           }),
+          signal: AbortSignal.timeout(5000),
         })
       } catch (webhookErr) {
         // El webhook de n8n es opcional — log interno, no propagar al cliente

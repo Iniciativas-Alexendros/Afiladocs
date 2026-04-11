@@ -11,8 +11,6 @@ import React from 'react'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const OPS_EMAIL = 'ops@afiladocs.com'
-
 type OverdueDocument = Prisma.documentsGetPayload<{
   include: { order: { include: { user: true } } }
 }>
@@ -40,7 +38,7 @@ async function sendSlaAlertEmail(overdueCount: number, documents: DocumentSummar
   try {
     const plural = overdueCount > 1
     await sendEmail({
-      to: OPS_EMAIL,
+      to: serverEnv.opsEmail,
       subject: `Alerta SLA: ${overdueCount} documento${plural ? 's' : ''} pendiente${plural ? 's' : ''} de firma`,
       react: React.createElement(SlaAlertEmail, {
         overdueCount,
@@ -94,6 +92,7 @@ export async function GET(request: Request) {
         signed_at: null,
         status: 'draft',
         created_at: { lt: sevenDaysAgo },
+        order: { deleted_at: null },
       },
       include: {
         order: {

@@ -50,6 +50,13 @@ vi.mock('@/lib/prisma/client', () => ({
     documents: { findFirst: mockFindFirst, update: mockDocUpdate },
     orders: { update: mockOrderUpdate },
     audit_log: { create: mockAuditCreate },
+    $transaction: vi.fn().mockImplementation(async (cb: (tx: unknown) => unknown) =>
+      cb({
+        documents: { update: mockDocUpdate },
+        orders: { update: mockOrderUpdate },
+        audit_log: { create: mockAuditCreate },
+      })
+    ),
   },
 }))
 
