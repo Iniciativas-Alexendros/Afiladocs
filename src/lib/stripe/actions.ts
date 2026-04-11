@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import type { Route } from 'next'
 import { requireAuth } from '@/lib/auth'
 import { serverEnv, publicEnv } from '@/lib/env'
 
@@ -36,5 +37,5 @@ export async function createCheckoutSession(productId: string, returnUrl: string
     throw new Error('Could not create checkout session')
   }
 
-  redirect(stripeSession.url)
+  redirect(stripeSession.url as Route<string>)
 }

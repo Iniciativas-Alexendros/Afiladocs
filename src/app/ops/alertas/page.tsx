@@ -1,6 +1,7 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
+import type { Route } from 'next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, CheckCircle2, Clock, ArrowRight } from 'lucide-react'
 
@@ -80,7 +81,7 @@ export default async function AlertasPage({ searchParams }: PageProps) {
         ].map((f) => (
           <Link
             key={f.href}
-            href={f.href}
+            href={f.href as Route<string>}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               f.active
                 ? 'bg-slate-900 text-white'
