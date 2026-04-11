@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Route } from "next";
 import { Menu, X, FileText, ShoppingCart as CartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { ShoppingCart } from "@/components/ShoppingCart";
 
-const navLinks = [
+const navLinks: { name: string; path: Route<string> }[] = [
   { name: "Servicios", path: "/servicios" },
   { name: "Informes Jurídicos", path: "/informes-juridicos" },
   { name: "LegalTech & IA", path: "/legaltech-ia" },
