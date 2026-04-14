@@ -2,7 +2,7 @@
 
 **Última revisión:** 2026-04-14
 **Frecuencia obligatoria:** cada 180 días por defecto; inmediata ante sospecha de exposición.
-**Requiere:** acceso a Vercel dashboard, Supabase, Stripe, DocuSeal, Resend, GitLab y GitHub.
+**Requiere:** acceso a Vercel dashboard, Supabase, Stripe, DocuSeal, Resend y GitHub.
 
 ## Principio
 
@@ -77,12 +77,12 @@ Se rota con `supabase secrets rotate` o desde Supabase Dashboard → Project Set
 - **Webhook URL:** si n8n regenera la URL, actualizar en Vercel y en la config del workflow. Sin doble-token posible → redeploy inmediato.
 - **Alerts secret:** `openssl rand -hex 32` → pegar en n8n y en Vercel como `N8N_ALERTS_WEBHOOK_SECRET` simultáneamente → redeploy.
 
-## 7. GitLab PAT / GitHub deploy key / Vercel token (CI)
+## 7. GitHub PAT / Vercel token (CI)
 
 Rotar cada 90 días o ante sospecha:
 
 1. Generar nuevo en cada proveedor.
-2. Actualizar variables de CI en GitLab (Settings → CI/CD → Variables) y GitHub Actions secrets.
+2. Actualizar GitHub Actions secrets y las variables de integración en Vercel.
 3. Revocar los viejos.
 
 ## Checklist de cierre

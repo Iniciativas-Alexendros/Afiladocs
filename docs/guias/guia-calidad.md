@@ -92,7 +92,7 @@ Los docs operativos se crean en F2; hasta entonces, dejar nota en `docs/README.m
 
 ## 10. CI/CD
 
-- No relajar jobs de `.gitlab-ci.yml` para acelerar (SAST, Secret Detection, Dependency Scanning son no-negociables).
+- Pipeline CI pendiente de reconfigurar en `.github/workflows/` tras descatalogar GitLab (2026-04-14). Gates obligatorios al reintroducirlo: SAST, Secret Detection, Dependency Scanning.
 - Scripts nuevos de calidad (`depcheck`, `ts-prune`, bundle analyzer): integrar como job opcional primero, obligatorio tras 2 semanas sin falsos positivos.
 
 ## 11. Checklist de aceptación de PR

@@ -93,8 +93,7 @@ Detalles operativos y roles de revisor en [guias/guia-calidad.md](guias/guia-cal
 4. **Sincronizar tras merge.** Afiladocs mantiene dos remotos (regla en [CLAUDE.md](../CLAUDE.md) § "Repositorios remotos"):
 
    ```bash
-   git push official main   # GitLab (canonical)
-   git push github main     # GitHub (mirror)
+   git push github main   # GitHub (remoto único)
    ```
 
 5. **Actualizar docs.** Cualquier cambio que modifique rutas, crons, componentes UI base, variables de entorno o flujos de cliente/ops debe actualizar el doc operativo correspondiente en el mismo PR. Los docs sin código en 30 días de inactividad se revisan en la re-auditoría mensual.

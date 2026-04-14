@@ -6,7 +6,7 @@ Plataforma de servicios legales digitales B2C (Valencia, España).
 Stack: Next.js 15.3 + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/ui
        + Stripe SDK 21 (API `2026-03-25.dahlia`) + Prisma 7 + Supabase + Resend
        + Framer Motion + react-hook-form + Zod + Sonner + Lucide React + n8n webhooks.
-Deploy: **Vercel** (región `mad1`). CI/CD: GitLab CI SLSA Level 3 (.gitlab-ci.yml).
+Deploy: **Vercel** (región `mad1`). CI/CD: GitHub Actions (pendiente de configurar en `.github/workflows/`).
 Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel.
 
 ## Referencia al hub central (SIMBIOSIS)
@@ -47,22 +47,19 @@ Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com
 - Las variables de entorno se centralizan en `src/lib/env.ts` con lazy getters (evita errores en build time).
 - El SDK de Stripe y Resend se instancian de forma lazy (nunca al nivel de módulo).
 
-## Repositorios remotos — sincronización obligatoria
+## Repositorio remoto
 
-Al finalizar cada tarea que genere commits, SIEMPRE sincronizar con ambos remotos en este orden:
+Remoto único:
+
+- `github` → GitHub via SSH — `git@github.com:alexendros/afiladocs.git`
+
+Al finalizar cada tarea que genere commits en `main`:
 
 ```bash
-git push official main   # GitLab  — https://gitlab.com/Alexendros/afiladocs
-git push github main     # GitHub  — https://github.com/alexendros/afiladocs
+git push github main
 ```
 
-Remotos configurados:
-
-- `official` → GitLab via HTTPS+token — `https://gitlab.com/Alexendros/afiladocs.git`
-- `github`   → GitHub via SSH         — `git@github.com:alexendros/afiladocs.git`
-
-Si algún push falla, reportarlo explícitamente antes de cerrar la tarea.
-Nunca asumir que el mirror está sincronizado sin confirmar el éxito de ambos pushes.
+GitLab fue descatalogado el 2026-04-14. Las referencias a `official`/GitLab en historial previo son legacy.
 
 ## Comandos del proyecto
 
@@ -219,8 +216,8 @@ src/
 ## Deploy Vercel
 
 - `vercel.json` en raíz: región `mad1`, `maxDuration` por función
-- Pipeline GitLab: stage `deploy_vercel` (manual, en `main`)
-- Variables CI necesarias: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_DEPLOY_URL`
+- Deploy via Vercel Git integration (push a `main` → deploy automático).
+- Variables de integración: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (necesarias sólo si se re-añade CI con GitHub Actions).
 - Prisma en Vercel: `postinstall: "prisma generate"` en package.json (ya configurado)
 
 ## Integraciones con otras apps de Alexendros

@@ -62,7 +62,7 @@ Si el deploy fallido aplicó una migración Prisma:
 
 Tras cualquier rollback en producción:
 
-1. Crear issue `incident/<fecha>-<slug>` en GitLab.
+1. Crear issue `incident/<fecha>-<slug>` en GitHub.
 2. Incluir: timeline (detección, decisión, rollback, recuperación), causa raíz (hipótesis), impacto (usuarios afectados, pagos en cola), mitigaciones aplicadas, acciones de prevención.
 3. Si el incidente tocó datos personales → evaluar notificación AEPD (72h) con @Alexendros.
 4. Archivar la auditoría relacionada exportando CSV desde `/ops/auditoria` con filtro temporal del incidente.
