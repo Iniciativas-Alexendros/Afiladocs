@@ -21,20 +21,20 @@ export const getActiveProducts = cache(async () => {
   return prisma.products.findMany({
     where: { is_active: true },
     orderBy: [{ display_order: 'asc' }, { title: 'asc' }],
-  })
+  }).catch(() => [])
 })
 
 export const getProductsByCategory = cache(async (category: ProductCategory) => {
   return prisma.products.findMany({
     where: { is_active: true, category },
     orderBy: [{ display_order: 'asc' }, { title: 'asc' }],
-  })
+  }).catch(() => [])
 })
 
 export const getProductBySlug = cache(async (slug: string) => {
-  return prisma.products.findFirst({ where: { slug, is_active: true } })
+  return prisma.products.findFirst({ where: { slug, is_active: true } }).catch(() => null)
 })
 
 export const getProductBySku = cache(async (sku: string) => {
-  return prisma.products.findUnique({ where: { sku } })
+  return prisma.products.findUnique({ where: { sku } }).catch(() => null)
 })

@@ -4,6 +4,18 @@
 **Prioridad:** Alta (impacto directo en funnel de ventas)
 **Dependencias:** F2 UI_GUIDE (para garantizar coherencia con design system)
 
+## Estado de avance (2026-04-15)
+
+| Sub-fase | Estado | PR | Commit |
+|----------|--------|----|--------|
+| 3.1 — Limpieza de rutas | ✅ Cerrada | #10 | `d7aa94d` |
+| 3.2 — Home rediseñada | ✅ Cerrada | #12 | `3aa4afa` |
+| 3.3 — Schema.org enrichment | ✅ Cerrada | #12 | `3aa4afa` |
+| 3.4 — Tienda y landings | 🔲 Pendiente | — | — |
+| 3.5 — Intake form enterprise | 🔲 Pendiente | — | — |
+| 3.6 — Portal cliente rediseñado | 🔲 Pendiente | — | — |
+| 3.7 — Header / Footer | 🔲 Pendiente | — | — |
+
 ## Objetivo
 
 Subir la tasa de conversión del funnel `/` → `/tienda` → checkout → portal, dejar solo lo que vende o da credibilidad y mejorar la percepción enterprise. Las páginas ya tienen contenido real; esta fase añade CRO, SEO estructurado, pulido del panel cliente y limpieza de rutas placeholder.

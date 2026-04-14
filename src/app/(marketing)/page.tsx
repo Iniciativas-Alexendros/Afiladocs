@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { prisma } from '@/lib/prisma/client'
 
 export const dynamic = 'force-dynamic'
 import { HeroSection } from '@/components/marketing/HeroSection'
@@ -9,6 +8,7 @@ import { ReviewSection } from '@/components/marketing/ReviewSection'
 import { SocialProof } from '@/components/marketing/SocialProof'
 import { FaqAccordion } from '@/components/marketing/FaqAccordion'
 import { FinalCta } from '@/components/marketing/FinalCta'
+import { getActiveProducts } from '@/lib/catalog/query'
 
 export const metadata: Metadata = {
   title: 'Afiladocs — Documentos legales a precio cerrado',
@@ -17,22 +17,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const products = await prisma.products.findMany({
-    where: { is_active: true },
-    orderBy: { display_order: 'asc' },
-    take: 6,
-    select: {
-      sku: true,
-      slug: true,
-      title: true,
-      description_md: true,
-      category: true,
-      kind: true,
-      price_cents: true,
-      delivery_mode: true,
-      eidas_level: true,
-    },
-  })
+  const products = await getActiveProducts().catch(() => []).then(all => all.slice(0, 6))
 
   return (
     <>

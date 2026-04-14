@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { CheckCircle2, ClipboardList, Clock, UserCheck } from 'lucide-react'
+import { CheckCircle2, ClipboardList, Clock, UserCheck, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getProductsByCategory } from '@/lib/catalog/query'
 import { ProductCard } from '@/components/ProductCard'
@@ -78,10 +78,17 @@ export default async function RevisionesPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-5 tracking-tight">
             Un abogado revisa tu contrato en 72 horas
           </h1>
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
+            <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium">
+              <Clock className="w-4 h-4" /> 72h laborables
+            </span>
+            <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium">
+              <CreditCard className="w-4 h-4" /> Pago único
+            </span>
+          </div>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
             Envías el documento, un experto jurídico lo analiza y te devuelve informe con
-            observaciones, riesgos detectados y sugerencias de redacción. Pago único, sin
-            suscripciones.
+            observaciones, riesgos detectados y sugerencias de redacción. Sin suscripciones.
           </p>
           <Button asChild size="lg">
             <Link href="#producto">Contratar revisión</Link>
