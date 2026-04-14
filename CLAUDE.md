@@ -91,6 +91,10 @@ Si algún push falla, reportarlo explícitamente antes de cerrar la tarea. Nunca
 - `npx prisma generate` — Regenerar cliente Prisma tras cambios en schema
 - `npx prisma migrate dev` — Aplicar migraciones en desarrollo
 
+## Documentación operativa
+
+> **Índice único**: [docs/README.md](docs/README.md) reúne los docs operativos (UI_GUIDE, ROUTES_MAP, CRON_JOBS, PORTAL_CLIENTE, BACKOFFICE_OPS), los runbooks de incidentes (rollback, rotación de secretos, recovery DocuSeal, webhook Stripe, RLS) y el roadmap F1–F6. Es el primer sitio al que acudir antes de tocar código. Cualquier cambio de rutas, crons, componentes base o flujos de cliente/ops actualiza el doc correspondiente en el mismo PR.
+
 ## Arquitectura de directorios
 
 ```text
