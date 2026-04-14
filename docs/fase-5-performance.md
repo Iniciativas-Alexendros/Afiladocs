@@ -23,7 +23,7 @@ En los webhooks que mutan datos, llamar `revalidateTag('orders')` / `revalidateT
 ### 5.2 Bundle analyzer en CI
 
 - Integrar `@next/bundle-analyzer` con flag `ANALYZE=true`.
-- Job opcional en pipeline CI (GitLab + GitHub) que publique reporte como artefacto en PRs.
+- Job opcional en GitHub Actions que publique reporte como artefacto en PRs.
 - Umbrales declarados en `docs/README.md`: main bundle < 300kB gzip, página más pesada < 450kB gzip.
 - Convertir componentes no above-the-fold a `dynamic()`: ShoppingCart drawer, `BillingPortalButton`, modales pesados.
 
@@ -64,7 +64,7 @@ Extender el middleware de F1 para aprovechar `request.geo`:
 - `next.config.ts` — `bundleAnalyzer` + `images.formats`.
 - `src/middleware.ts` — extender con geo (convive con F1).
 - `package.json` — script `analyze: "ANALYZE=true next build"`.
-- `.gitlab-ci.yml` + GitHub Actions — job opcional de bundle.
+- `.github/workflows/` — job opcional de bundle (cuando se reintroduzca CI).
 - Componentes no críticos → `dynamic(() => import(...))`.
 
 ## Validación

@@ -239,6 +239,7 @@ export async function POST(req: Request) {
   }
 
   await dispatchEvent(event)
+
   return NextResponse.json({ received: true })
 }
 

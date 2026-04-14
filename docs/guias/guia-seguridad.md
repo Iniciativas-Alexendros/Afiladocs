@@ -77,7 +77,7 @@ export function fail(message: string, status = 400, meta?: Record<string, unknow
 
 ## 9. CI/CD security
 
-- No relajar SAST, Secret Detection ni Dependency Scanning en `.gitlab-ci.yml` sin justificativo en PR.
+- Pipeline CI actualmente sin configurar tras descatalogar GitLab (2026-04-14). Cuando se reintroduzca (GitHub Actions), preservar SAST, Secret Detection y Dependency Scanning como gates no negociables.
 - Nuevas dependencias: ejecutar `npm audit` y confirmar 0 vulnerabilidades *high*/*critical*.
 - Si aparecen CVE en deps existentes, priorizar bump antes que merge de features.
 

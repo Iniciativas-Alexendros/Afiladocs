@@ -1,52 +1,108 @@
-# Informes para Claude Code
+# Documentación Afiladocs
 
-Roadmap vivo de Afiladocs adaptado al estado real del repositorio (Vercel serverless · Next.js 15.3 · DocuSeal · Prisma 7 · Supabase). Sustituye a los informes generados entre 2026-04-01 y 2026-04-14 que quedaron desalineados tras la migración a Vercel y la retirada de Documenso.
+**Última revisión:** 2026-04-14
+**Próxima re-auditoría:** 2026-05-14 (o al cierre de la siguiente fase).
 
-## Propósito
+Hub único de la documentación técnica y operativa del proyecto. Sustituye al viejo `docs-INDEX.md`. Los docs viven organizados en 3 ejes: **operativos** (cómo funciona el sistema hoy), **runbooks** (qué hacer cuando algo va mal) y **roadmap** (qué falta por hacer).
 
-- Hoja de ruta **solo con trabajo pendiente**, organizada por fases con objetivos medibles.
-- Guías transversales que Claude Code debe consultar antes de tocar seguridad, calidad, UI/UX o workflows.
-- Fuente única para issues y PRs: los templates de `.github/` referencian explícitamente las fases.
+## Tabla de contenidos
 
-## Cómo usar esta carpeta
+- [Índice operativo](#índice-operativo)
+- [Runbooks de incidentes](#runbooks-de-incidentes)
+- [Roadmap y guías transversales](#roadmap-y-guías-transversales)
+- [Umbrales de calidad](#umbrales-de-calidad)
+- [Cómo contribuir](#cómo-contribuir)
+- [Fuentes de verdad](#fuentes-de-verdad)
 
-1. **Empezar por el estado real:** [00-ESTADO-ACTUAL.md](00-ESTADO-ACTUAL.md) confirma qué está implementado (no duplicar trabajo).
-2. **Elegir fase:** [01-ROADMAP-MAESTRO.md](01-ROADMAP-MAESTRO.md) propone la secuencia y dependencias.
-3. **Ejecutar:** cada `fase-N-*.md` tiene objetivo, entregables, criterios de aceptación y archivos a tocar.
-4. **Consultar guías transversales** ([guias/](guias/)) para reglas que aplican a todas las fases.
-5. **Abrir PR/issue:** usar plantillas de `.github/` — obligan a declarar qué fase cubre el cambio.
+## Índice operativo
 
-## Estructura
+Describen la arquitectura vigente. Primer sitio al que acudir antes de tocar código.
 
-```
-Informes para Claude Code/
-├── README.md                    ← estás aquí
-├── 00-ESTADO-ACTUAL.md          snapshot validado (próxima revisión: 2026-05-14)
-├── 01-ROADMAP-MAESTRO.md        visión de fases, dependencias, matriz de priorización
-├── fase-1-seguridad.md          CSP nonce · middleware bot/geo · audit log UI
-├── fase-2-documentacion.md      docs/ completo (UI_GUIDE, ROUTES_MAP, runbooks)
-├── fase-3-ux-conversion.md      CRO home · Schema.org · pulido tienda/intake
-├── fase-4-ops-avanzado.md       filtros · export CSV · KPIs SLA
-├── fase-5-performance.md        cache granular · bundle · edge geo
-├── fase-6-crecimiento.md        feature flags · MDX blog · i18n
-└── guias/
-    ├── guia-seguridad.md
-    ├── guia-calidad.md
-    ├── guia-ui-ux.md
-    └── guia-workflows.md
-```
+| Doc | Tema |
+|-----|------|
+| [UI_GUIDE.md](UI_GUIDE.md) | Design system: tokens, tipografía, componentes, patrones RHF+Zod, accesibilidad |
+| [ROUTES_MAP.md](ROUTES_MAP.md) | Mapa completo de rutas `src/app/` con auth y propósito |
+| [CRON_JOBS.md](CRON_JOBS.md) | Los 5 crons de Vercel: schedule, SLA, payload, alertas |
+| [PORTAL_CLIENTE.md](PORTAL_CLIENTE.md) | Journey del cliente en `/portal/*` (intake, documentos, suscripciones) |
+| [BACKOFFICE_OPS.md](BACKOFFICE_OPS.md) | Journey ops en `/ops/*` (KPIs, pedidos, productos, alertas, auditoría) |
+| [n8n-workflows.md](n8n-workflows.md) | IDs y URLs de los 5 workflows n8n |
 
-## Convenciones
+## Runbooks de incidentes
 
-- **Criterios de "Done":** cada entregable de una fase debe pasar `npm run typecheck && npm run lint && npm run test:coverage` (comando obligatorio antes de declarar tarea completa; ver [CLAUDE.md](../CLAUDE.md)).
-- **Nomenclatura de ramas:** `fase-N/<slug-corto>` (p.ej. `fase-1/csp-nonce`).
-- **Re-auditoría:** el snapshot de `00-ESTADO-ACTUAL.md` se revalida al cierre de cada fase o cada 30 días.
-- **No inventar docs cruzados:** si una fase depende de otra, se declara en la sección *Dependencias* del `.md` correspondiente.
+Recetas paso a paso para respuesta a incidencias. Un externo debe poder ejecutarlos sin contexto previo.
+
+| Runbook | Escenario |
+|---------|-----------|
+| [runbooks/rollback-vercel.md](runbooks/rollback-vercel.md) | Revertir un deploy fallido (CLI/dashboard) |
+| [runbooks/rotacion-secretos.md](runbooks/rotacion-secretos.md) | Rotar Stripe, Supabase, DocuSeal, Resend, CRON_SECRET sin downtime |
+| [runbooks/recovery-docuseal.md](runbooks/recovery-docuseal.md) | Recuperar un PDF firmado si falla el webhook DocuSeal |
+| [runbooks/stripe-webhook-fallido.md](runbooks/stripe-webhook-fallido.md) | Reconciliar un `checkout.session.completed` no procesado |
+| [runbooks/incidente-rls.md](runbooks/incidente-rls.md) | Cliente ve datos de otro cliente (violación RLS) |
+
+## Roadmap y guías transversales
+
+Estado del producto y hoja de ruta a 6 fases. Sólo contienen trabajo pendiente — lo ya entregado se confirma en `00-ESTADO-ACTUAL.md`.
+
+- [00-ESTADO-ACTUAL.md](00-ESTADO-ACTUAL.md) — snapshot validado por eje (hecho / parcial / pendiente).
+- [01-ROADMAP-MAESTRO.md](01-ROADMAP-MAESTRO.md) — secuencia y dependencias F1–F6.
+- [fase-1-seguridad.md](fase-1-seguridad.md) — ✅ cerrada 2026-04-14.
+- [fase-2-documentacion.md](fase-2-documentacion.md) — ← en curso, este README es uno de los entregables.
+- [fase-3-ux-conversion.md](fase-3-ux-conversion.md) — CRO home, Schema.org, pulido tienda/intake.
+- [fase-4-ops-avanzado.md](fase-4-ops-avanzado.md) — filtros, export CSV extendido, KPIs SLA.
+- [fase-5-performance.md](fase-5-performance.md) — cache granular, bundle analysis, edge.
+- [fase-6-crecimiento.md](fase-6-crecimiento.md) — feature flags, MDX blog, i18n.
+
+**Guías transversales** (reglas que aplican a todas las fases):
+
+- [guias/guia-seguridad.md](guias/guia-seguridad.md) — CSP nonce, Zod, RLS, RGPD.
+- [guias/guia-calidad.md](guias/guia-calidad.md) — linters, tests, cobertura, convenciones de commit.
+- [guias/guia-ui-ux.md](guias/guia-ui-ux.md) — checklist de diseño y accesibilidad.
+- [guias/guia-workflows.md](guias/guia-workflows.md) — ramas, PRs, CI/CD, deploy.
+
+## Umbrales de calidad
+
+**Cobertura mínima obligatoria** (`npm run test:coverage`, statements):
+
+| Ámbito | Umbral |
+|--------|--------|
+| `src/lib/stripe/**` | **≥ 70%** |
+| `src/lib/orders/**` | **≥ 70%** |
+| `src/lib/verifactu/**` | **≥ 70%** |
+| `src/app/api/**` | **≥ 70%** |
+
+Son áreas con lógica de negocio crítica (pagos, pedidos, facturación RD 1007/2023, API de frontera). El resto del código no tiene gate global — se prioriza calidad enfocada en dominios sensibles.
+
+**Gates obligatorios antes de declarar una tarea completa** (definidos en [CLAUDE.md](../CLAUDE.md)):
+
+1. `npm run typecheck` — 0 errores.
+2. `npm run lint` — 0 errores.
+3. `npm run build` — build limpio.
+4. `npm run test` — 100% verde.
+
+Detalles operativos y roles de revisor en [guias/guia-calidad.md](guias/guia-calidad.md).
+
+## Cómo contribuir
+
+1. **Crear rama** con nomenclatura `fase-N/<slug-corto>` (p.ej. `fase-2/docs-runbooks`). Si el cambio no encaja en una fase, usar `chore/<slug>` o `fix/<slug>`.
+2. **Leer las guías aplicables** antes de tocar código:
+   - Seguridad → [guias/guia-seguridad.md](guias/guia-seguridad.md).
+   - UI/UX → [guias/guia-ui-ux.md](guias/guia-ui-ux.md) + [UI_GUIDE.md](UI_GUIDE.md).
+   - Calidad y tests → [guias/guia-calidad.md](guias/guia-calidad.md).
+   - Workflow (ramas, PR, CI) → [guias/guia-workflows.md](guias/guia-workflows.md).
+3. **Abrir PR** con plantilla de `.github/` — obliga a declarar a qué fase contribuye y marcar los gates superados.
+4. **Sincronizar tras merge.** Afiladocs mantiene dos remotos (regla en [CLAUDE.md](../CLAUDE.md) § "Repositorios remotos"):
+
+   ```bash
+   git push github main   # GitHub (remoto único)
+   ```
+
+5. **Actualizar docs.** Cualquier cambio que modifique rutas, crons, componentes UI base, variables de entorno o flujos de cliente/ops debe actualizar el doc operativo correspondiente en el mismo PR. Los docs sin código en 30 días de inactividad se revisan en la re-auditoría mensual.
 
 ## Fuentes de verdad
 
-- [CLAUDE.md](../CLAUDE.md) — reglas absolutas del stack (lo que no se negocia)
-- [MEMORY.md](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/memory/MEMORY.md) — memoria persistente de Claude Code
-- `~/.claude/PROYECTOS.md` — contexto global SIMBIOSIS de las apps de Alexendros
+- [CLAUDE.md](../CLAUDE.md) — reglas absolutas del stack (lo que no se negocia).
+- [MEMORY.md](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/memory/MEMORY.md) — memoria persistente de Claude Code.
+- [reference/roadmap-enterprise/](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/reference/roadmap-enterprise/) — mirror protegido read-only de los docs de roadmap, por si `docs/` queda desalineado.
+- `~/.claude/PROYECTOS.md` — contexto SIMBIOSIS de las demás apps de Alexendros.
 
-Las referencias a stack antiguo (VPS/Nginx/PM2, Documenso) que puedan aparecer en commits viejos o comentarios son **legacy** y deben ignorarse: el stack activo es el descrito en `CLAUDE.md`.
+Legacy (VPS, Nginx, PM2, Documenso) archivado en [reference/legacy-stack/](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/reference/legacy-stack/). Si aparece en commits antiguos o comentarios, ignorar: el stack vigente es el descrito en [CLAUDE.md](../CLAUDE.md).

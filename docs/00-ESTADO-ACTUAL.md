@@ -20,7 +20,7 @@ Snapshot validado contra el repo en el mismo día. Sustituye a todos los anális
 | Testing unit + E2E | ✅ | 18 specs en [src/__tests__/](../src/__tests__/), 4 en [e2e/](../e2e/); configs en [vitest.config.ts](../vitest.config.ts) y [playwright.config.ts](../playwright.config.ts) | Cobertura mínima 70% en críticos → F2 (documenta umbral) |
 | Observabilidad | ✅ | Sentry v10 en [sentry.*.config.ts](../src/), hook [src/instrumentation.ts](../src/instrumentation.ts) | — |
 | Webhooks Stripe/DocuSeal/n8n | ✅ | HMAC SHA-256, descarga PDF firmado, upload a Supabase Storage: [src/app/api/webhooks/docuseal/route.ts](../src/app/api/webhooks/docuseal/route.ts) | — |
-| Documenso legacy | ✅ retirado | Commit `23858a3 chore: retire Documenso legacy adapter`; adapter único DocuSeal en [src/lib/signing/](../src/lib/signing/) | — |
+| Documenso legacy | 🟡 mantenido (compat) | Webhook `/api/webhooks/documenso` y adapter se conservan por compatibilidad; flujo activo es DocuSeal en [src/lib/signing/](../src/lib/signing/). Ningún desarrollo nuevo depende de Documenso | Retirada completa → backlog |
 | Schema Prisma | ✅ | `eidas_level` (no `eideas_level`), `invoice_id`, `invoice_pdf`, `invoiced_at`, `deleted_at`, `stripe_customer_id` en [prisma/schema.prisma](../prisma/schema.prisma) | — |
 | Marketing (blog, tienda, informes, sobre-mí, servicios, legaltech-ia) | ✅ contenido real | Artículos en [src/app/(marketing)/blog/](../src/app/(marketing)/blog/), 4 tipos en informes-jurídicos, categorías dinámicas en tienda | CRO Home (FAQ/HowTo, pulido tienda) → F3 |
 | Portal cliente | ✅ | KPIs en [src/app/portal/page.tsx](../src/app/portal/page.tsx), botón descarga firmado, timeline básico, Stripe Billing Portal | Autoguardado intake, timeline con audit_log → F3, F4 |

@@ -60,6 +60,8 @@ export const serverEnv = {
   get templatesBucket() { return getEnvVar('TEMPLATES_BUCKET', false) || 'templates' },
   // Revisiones expertas — SLA en horas (default 72h)
   get reviewSlaHours() { return Number(getEnvVar('REVIEW_SLA_HOURS', false) || '72') },
+  get documensoApiUrl() { return getEnvVar('DOCUMENSO_API_URL', false) || 'https://app.documenso.com/api/v1' },
+  get documensoApiKey() { return getEnvVar('DOCUMENSO_API_KEY', false) },
   // Facturación electrónica (EasyVerifactu — RD 1007/2023)
   get easyVerifactuApiUrl() { return getEnvVar('EASYVERIFACTU_API_URL', false) },
   get easyVerifactuApiKey() { return getEnvVar('EASYVERIFACTU_API_KEY', false) },
