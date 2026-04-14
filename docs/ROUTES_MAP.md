@@ -77,8 +77,7 @@ Gate: `requireRole(['admin','ops'])` en [ops/layout.tsx](../src/app/ops/layout.t
 | `/ops/productos/[sku]` | [ops/productos/[sku]/page.tsx](../src/app/ops/productos/[sku]/page.tsx) | Editar producto |
 | `/ops/alertas` | [ops/alertas/page.tsx](../src/app/ops/alertas/page.tsx) | Alertas normativas n8n |
 | `/ops/alertas/[id]` | [ops/alertas/[id]/page.tsx](../src/app/ops/alertas/[id]/page.tsx) | Detalle + marcar revisada |
-
-> Próxima entrega operativa: `/ops/auditoria` (UI sobre `audit_log` con filtros y export CSV) — diseñada en la rama F1 pero aún no desplegada en `main`. Mientras tanto, consultar `audit_log` directamente en Supabase.
+| `/ops/auditoria` | [ops/auditoria/page.tsx](../src/app/ops/auditoria/page.tsx) | Audit log con filtros y export CSV |
 
 ## /api/\* — backend
 
