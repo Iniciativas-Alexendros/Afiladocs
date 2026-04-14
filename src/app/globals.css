@@ -31,12 +31,31 @@
   --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
+  /* Paleta amber semántica */
+  --color-amber-50: hsl(var(--amber-50));
+  --color-amber-100: hsl(var(--amber-100));
+  --color-amber-200: hsl(var(--amber-200));
+  --color-amber-400: hsl(var(--amber-400));
+  --color-amber-500: hsl(var(--amber-500));
+  --color-amber-600: hsl(var(--amber-600));
+  --color-amber-900: hsl(var(--amber-900));
+  --color-amber-950: hsl(var(--amber-950));
+  /* Paleta stone (neutros cálidos) */
+  --color-stone-50: hsl(var(--stone-50));
+  --color-stone-100: hsl(var(--stone-100));
+  --color-stone-200: hsl(var(--stone-200));
+  --color-stone-600: hsl(var(--stone-600));
+  --color-stone-900: hsl(var(--stone-900));
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* Sombras */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  /* Focus ring */
+  --ring-offset-width: 2px;
 }
 
 :root {
@@ -46,20 +65,35 @@
   --card-foreground: 0 0% 10%;
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 10%;
-  --primary: 42 52% 48%;
+  --primary: 38 92% 46%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 35%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 35%;
-  --muted-foreground: 0 0% 35%;
+  --muted: 36 15% 93%;
+  --muted-foreground: 25 10% 42%;
   --accent: 214 67% 13%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --border: 36 14% 87%;
   --input: 0 0% 100%;
-  --ring: 42 52% 48%;
-  --radius: 0.5rem;
+  --ring: 38 92% 46%;
+  --radius: 0.75rem;
+  /* Escala amber */
+  --amber-50: 48 100% 96%;
+  --amber-100: 48 96% 89%;
+  --amber-200: 48 97% 77%;
+  --amber-400: 43 96% 56%;
+  --amber-500: 38 92% 50%;
+  --amber-600: 32 95% 44%;
+  --amber-900: 22 78% 26%;
+  --amber-950: 21 92% 14%;
+  /* Escala stone */
+  --stone-50: 60 9% 98%;
+  --stone-100: 60 4% 95%;
+  --stone-200: 20 6% 90%;
+  --stone-600: 25 5% 45%;
+  --stone-900: 20 14% 12%;
   --sidebar-background: 0 0% 98%;
   --sidebar-foreground: 240 5.3% 26.1%;
   --sidebar-primary: 240 5.9% 10%;
@@ -77,11 +111,11 @@
   --card-foreground: 0 0% 95%;
   --popover: 0 0% 15%;
   --popover-foreground: 0 0% 95%;
-  --primary: 42 52% 48%;
+  --primary: 38 92% 50%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 25%;
   --secondary-foreground: 0 0% 95%;
-  --muted: 0 0% 25%;
+  --muted: 0 0% 20%;
   --muted-foreground: 0 0% 65%;
   --accent: 214 67% 13%;
   --accent-foreground: 0 0% 100%;
@@ -89,7 +123,22 @@
   --destructive-foreground: 0 0% 100%;
   --border: 0 0% 25%;
   --input: 0 0% 20%;
-  --ring: 42 52% 48%;
+  --ring: 38 92% 50%;
+  /* Escala amber (dark mode mismo valor — se usa vía utility classes) */
+  --amber-50: 48 100% 96%;
+  --amber-100: 48 96% 89%;
+  --amber-200: 48 97% 77%;
+  --amber-400: 43 96% 56%;
+  --amber-500: 38 92% 50%;
+  --amber-600: 32 95% 44%;
+  --amber-900: 22 78% 26%;
+  --amber-950: 21 92% 14%;
+  /* Escala stone */
+  --stone-50: 60 9% 98%;
+  --stone-100: 60 4% 95%;
+  --stone-200: 20 6% 90%;
+  --stone-600: 25 5% 45%;
+  --stone-900: 20 14% 12%;
   --sidebar-background: 240 5.9% 10%;
   --sidebar-foreground: 240 4.8% 95.9%;
   --sidebar-primary: 224.3 76.3% 48%;
