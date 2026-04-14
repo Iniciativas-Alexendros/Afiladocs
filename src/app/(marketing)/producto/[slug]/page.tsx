@@ -6,7 +6,7 @@ import { getProductBySlug } from '@/lib/catalog/query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DeliveryBadge } from '@/components/DeliveryBadge'
-import { BuyButton } from '@/components/BuyButton'
+import { PreCheckoutModal } from '@/components/PreCheckoutModal'
 import { formatCurrency } from '@/lib/format'
 import { publicEnv } from '@/lib/env'
 
@@ -114,7 +114,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               {canBuy ? (
-                <BuyButton sku={product.sku} />
+                <PreCheckoutModal
+                  sku={product.sku}
+                  title={product.title}
+                  price_cents={product.price_cents}
+                  delivery_mode={product.delivery_mode}
+                  sla_label={product.delivery_mode === 'human_review' ? '72h laborables' : 'Entrega inmediata'}
+                />
               ) : (
                 <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-800 py-2 px-3">Próximamente</Badge>
               )}

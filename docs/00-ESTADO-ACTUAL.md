@@ -1,9 +1,9 @@
 # 00 — Estado actual del repositorio
 
-**Fecha de validación:** 2026-04-14
-**Próxima re-auditoría:** 2026-05-14 (o al cierre de la Fase 2)
-**Rama de referencia:** `chore/lint-and-uiux-brief`
-**Última fase cerrada:** F1 Seguridad (2026-04-14)
+**Fecha de validación:** 2026-04-15
+**Próxima re-auditoría:** 2026-05-15 (o al cierre de la Fase 3)
+**Rama de referencia:** `main` (commit `3aa4afa`)
+**Última fase cerrada:** F3/B+C — Home rediseñada + Schema.org enrichment (PR #12, 2026-04-14)
 
 Snapshot validado contra el repo en el mismo día. Sustituye a todos los análisis previos (que describían un stack ya retirado). Este documento es el insumo que justifica que el **trabajo pendiente es el listado en las fases F1–F6** y no todo lo que aparecía en los informes antiguos.
 

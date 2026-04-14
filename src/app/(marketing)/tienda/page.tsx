@@ -2,11 +2,16 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ShoppingBag } from 'lucide-react'
 import { getActiveProducts } from '@/lib/catalog/query'
+import type { ProductCategory } from '@/lib/catalog/query'
 import { ProductCard } from '@/components/ProductCard'
 import { CategoryFilter } from '@/components/CategoryFilter'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
+
+const VALID_CATS: readonly string[] = [
+  'rgpd', 'arrendamiento', 'civil', 'mercantil', 'pack', 'reclamacion', 'review',
+]
 
 export const metadata: Metadata = {
   title: 'Tienda de documentos legales | Afiladocs',
@@ -18,9 +23,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function TiendaPage() {
-  const products = await getActiveProducts()
-  const categories = Array.from(new Set(products.map(p => p.category))).sort((a, b) => a.localeCompare(b))
+export default async function TiendaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string }>
+}) {
+  const { cat } = await searchParams
+  const activeCategory = cat && VALID_CATS.includes(cat) ? (cat as ProductCategory) : null
+
+  const allProducts = await getActiveProducts()
+  const products = activeCategory
+    ? allProducts.filter(p => p.category === activeCategory)
+    : allProducts
+  const categories = Array.from(new Set(allProducts.map(p => p.category))).sort((a, b) => a.localeCompare(b))
 
   return (
     <section className="py-16 md:py-20">
@@ -39,7 +54,7 @@ export default async function TiendaPage() {
         </header>
 
         <div className="flex justify-center mb-10">
-          <CategoryFilter active="all" categories={categories} />
+          <CategoryFilter active={activeCategory ?? 'all'} categories={categories} variant="query" />
         </div>
 
         {products.length === 0 ? (
@@ -47,7 +62,7 @@ export default async function TiendaPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(p => (
-              <ProductCard key={p.sku} product={p} />
+              <ProductCard key={p.sku} product={p} isPopular={p.sku === 'AFD-PCK-001'} />
             ))}
           </div>
         )}
