@@ -44,6 +44,10 @@ export const metadata: Metadata = {
   },
 }
 
+// Nonce para CSP: middleware.ts inyecta `x-nonce` y `Content-Security-Policy`
+// en los request headers. Next.js los lee y propaga automáticamente el nonce
+// a sus <script> internos (next/script, next/font, Analytics, SpeedInsights).
+// No es necesario leer headers() aquí salvo para componentes custom con inline JS.
 export default function RootLayout({
   children,
 }: {

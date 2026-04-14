@@ -67,6 +67,13 @@ export const serverEnv = {
   get cronSecret() { return getEnvVar('CRON_SECRET', false) },
   // Ops email — destinatario de alertas y reportes internos
   get opsEmail() { return getEnvVar('OPS_EMAIL', false) || 'ops@afiladocs.com' },
+  // Geo-blocking — lista ISO-3166 alpha-2 separada por comas. Vacío por defecto (RGPD).
+  get geoBlockedCountries() {
+    return (getEnvVar('GEO_BLOCKED_COUNTRIES', false) || '')
+      .split(',')
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean)
+  },
 }
 
 // Variables públicas — seguro para usar en client y server.

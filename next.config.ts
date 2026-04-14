@@ -64,30 +64,8 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              // unsafe-inline requerido por Tailwind v4 CSS-in-JS; unsafe-eval PROHIBIDO
-              // browser.sentry-cdn.com para Sentry browser SDK
-              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://browser.sentry-cdn.com",
-              // unsafe-inline requerido por Tailwind v4; fonts.googleapis.com para DM Sans
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              // fonts.gstatic.com para archivos de fuente de Google Fonts
-              "font-src 'self' https://fonts.gstatic.com",
-              // *.supabase.co cubre tanto imágenes como documentos almacenados en Supabase Storage
-              "img-src 'self' data: blob: https: https://*.supabase.co",
-              // api.stripe.com para Stripe API; *.supabase.co para Supabase API y Storage
-              // vitals.vercel-insights.com para Vercel Speed Insights / Analytics
-              // *.sentry.io y o*.ingest.sentry.io para Sentry error tracking
-              "connect-src 'self' https://api.stripe.com https://*.supabase.co https://vitals.vercel-insights.com https://*.sentry.io https://o*.ingest.de.sentry.io",
-              // js.stripe.com y hooks.stripe.com para Stripe Elements/Checkout
-              "frame-src https://js.stripe.com https://hooks.stripe.com",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join('; '),
-          },
+          // NOTA: Content-Security-Policy se emite desde middleware.ts con nonce por request.
+          // Aquí solo quedan headers estáticos que no dependen del nonce.
         ],
       },
     ]
