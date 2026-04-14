@@ -17,8 +17,59 @@ export const metadata: Metadata = {
 export default async function RevisionesPage() {
   const reviewProducts = await getProductsByCategory('review')
 
+  const howToSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'Cómo funciona la revisión de contratos en afiladocs',
+    totalTime: 'PT72H',
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Pagas y subes tu documento',
+        text: 'Un pago único. Tras el cobro, recibes acceso a un portal donde subes el contrato (PDF o DOCX).',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Un abogado lo revisa',
+        text: 'Un profesional con experiencia en la materia analiza el documento y anota observaciones cláusula por cláusula.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: 'Recibes el informe en 72h',
+        text: 'Descargas el contrato anotado y una nota legal con riesgos identificados y propuestas de redacción.',
+      },
+    ],
+  }
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: '¿Qué incluye la revisión de documentos?',
+        acceptedAnswer: { '@type': 'Answer', text: 'La revisión cubre la validez jurídica, cláusulas abusivas o perjudiciales, errores formales y recomendaciones de mejora. Recibes un informe detallado en menos de 72 horas.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Cuánto tarda la revisión?',
+        acceptedAnswer: { '@type': 'Answer', text: 'El plazo habitual es de 72 horas laborables desde que subes el documento.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Puedo solicitar una consulta antes de comprar?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Sí. Ofrecemos una primera valoración gratuita a través de nuestro formulario de contacto.' },
+      },
+    ],
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <section className="py-20 md:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">

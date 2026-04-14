@@ -1,4 +1,5 @@
 import { publicEnv } from '@/lib/env'
+import { FAQ_ITEMS } from '@/lib/faq-data'
 
 // Structured data JSON-LD — componente server-side (RSC por defecto, sin 'use client')
 // Mejora el rich snippets en Google Search para servicios legales.
@@ -54,21 +55,21 @@ const howToSchema = {
     {
       '@type': 'HowToStep',
       position: 1,
-      name: 'Selecciona tu documento',
-      text: 'Elige el documento que necesitas en nuestra tienda: contratos, recursos, informes y más.',
+      name: 'Elige tu documento',
+      text: 'Selecciona el documento que necesitas en nuestra tienda: contratos, recursos, informes y más. El precio es cerrado y visible antes de pagar.',
       url: `${siteUrl}/tienda`,
     },
     {
       '@type': 'HowToStep',
       position: 2,
-      name: 'Completa el formulario de datos',
-      text: 'Rellena el formulario con la información necesaria para personalizar tu documento. Todo online, sin visitas.',
+      name: 'Personaliza los datos',
+      text: 'Rellena el formulario online con tu información. Nuestro equipo lo personaliza para tu caso concreto.',
     },
     {
       '@type': 'HowToStep',
       position: 3,
-      name: 'Recibe tu documento',
-      text: 'Tu abogado redacta y revisa el documento. Lo recibes en tu portal en un plazo de 24–48 horas.',
+      name: 'Firma y descarga',
+      text: 'Recibe tu documento firmado digitalmente (eIDAS AES) en tu portal en menos de 48 horas hábiles.',
     },
   ],
 }
@@ -76,40 +77,14 @@ const howToSchema = {
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Cuánto tarda la entrega del documento?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'El plazo habitual es de 24 a 48 horas hábiles desde que nos envías los datos necesarios.',
-      },
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.a,
     },
-    {
-      '@type': 'Question',
-      name: '¿Los documentos son legalmente válidos?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Sí. Todos los documentos son redactados y revisados por abogados colegiados y tienen plena validez jurídica en España.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Qué pasa si necesito modificaciones?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Incluimos una ronda de ajustes sin coste adicional. Si necesitas cambios sustanciales, te lo indicamos antes de proceder.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: '¿Puedo solicitar una consulta antes de comprar?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Sí. Ofrecemos una primera valoración gratuita a través de nuestro formulario de contacto.',
-      },
-    },
-  ],
+  })),
 }
 
 export function JsonLd() {
