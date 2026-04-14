@@ -101,7 +101,7 @@ export default function HomePage() {
               title="Informes jurídicos"
               description="Análisis jurídicos claros sobre cualquier cuestión legal que necesites resolver."
               price="Desde 120 €"
-              link="/informes-juridicos"
+              link="/tienda"
             />
             <ServiceCard
               icon={Scale}
@@ -122,7 +122,7 @@ export default function HomePage() {
               title="LegalTech & IA"
               description="Herramientas de IA aplicadas a la revisión y análisis de documentos legales."
               price="Consultar"
-              link="/legaltech-ia"
+              link="/contacto"
             />
           </div>
         </div>

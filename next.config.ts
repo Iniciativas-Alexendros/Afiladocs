@@ -71,15 +71,22 @@ const nextConfig: NextConfig = {
     ]
   },
 
-  // Redirect www → non-www (canonical domain: afiladocs.com)
+  // Redirects: www → non-www + rutas placeholder eliminadas en F3 (Sub-fase A)
   async redirects() {
     return [
+      // www → non-www (canonical domain: afiladocs.com)
       {
         source: '/(.*)',
         has: [{ type: 'host', value: 'www.afiladocs.com' }],
         destination: 'https://afiladocs.com/:path*',
         permanent: true,
       },
+      // Rutas placeholder eliminadas → destinos relevantes (301 SEO-safe)
+      { source: '/blog', destination: '/contacto', permanent: true },
+      { source: '/blog/:slug*', destination: '/contacto', permanent: true },
+      { source: '/sobre-mi', destination: '/contacto', permanent: true },
+      { source: '/informes-juridicos', destination: '/', permanent: true },
+      { source: '/legaltech-ia', destination: '/', permanent: true },
     ]
   },
 }

@@ -11,11 +11,9 @@ import { ShoppingCart } from "@/components/ShoppingCart";
 
 const navLinks: { name: string; path: Route<string> }[] = [
   { name: "Servicios", path: "/servicios" },
-  { name: "Informes Jurídicos", path: "/informes-juridicos" },
-  { name: "LegalTech & IA", path: "/legaltech-ia" },
   { name: "Tienda", path: "/tienda" },
-  { name: "Blog", path: "/blog" },
-  { name: "Sobre mí", path: "/sobre-mi" },
+  { name: "Revisiones", path: "/revisiones" },
+  { name: "Suscripciones", path: "/suscripciones" },
   { name: "Contacto", path: "/contacto" },
 ];
 
