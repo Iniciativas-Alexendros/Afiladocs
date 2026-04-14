@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { getActiveProducts, getProductsByCategory, type ProductCategory } from '@/lib/catalog/query'
 import { ProductCard } from '@/components/ProductCard'
 import { CategoryFilter } from '@/components/CategoryFilter'
+import { publicEnv } from '@/lib/env'
 
 const VALID: readonly ProductCategory[] = ['rgpd', 'arrendamiento', 'civil', 'mercantil', 'pack', 'reclamacion', 'review']
 
@@ -72,6 +73,21 @@ export default async function CategoriaPage({ params }: { params: Promise<{ cate
             ))}
           </div>
         )}
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Inicio', item: publicEnv.siteUrl },
+                { '@type': 'ListItem', position: 2, name: 'Tienda', item: `${publicEnv.siteUrl}/tienda` },
+                { '@type': 'ListItem', position: 3, name: cfg.title, item: `${publicEnv.siteUrl}/tienda/${categoria}` },
+              ],
+            }),
+          }}
+        />
       </div>
     </section>
   )

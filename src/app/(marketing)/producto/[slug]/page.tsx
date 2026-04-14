@@ -42,12 +42,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const deliveryDescription = DELIVERY_DESCRIPTION[product.delivery_mode] ?? ''
   const canBuy = Boolean(product.stripe_price_id)
 
+  const CATEGORY_LABELS: Record<string, string> = {
+    rgpd: 'Documentos RGPD',
+    arrendamiento: 'Arrendamientos',
+    civil: 'Derecho civil',
+    mercantil: 'Derecho mercantil',
+    pack: 'Packs',
+    reclamacion: 'Reclamaciones',
+    review: 'Revisiones expertas',
+  }
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     sku: product.sku,
     name: product.title,
     description: product.description_md.split('\n\n')[0].replace(/[*_#]/g, '').slice(0, 400),
+    image: `${publicEnv.siteUrl}/og.png`,
     url: `${publicEnv.siteUrl}/producto/${product.slug}`,
     brand: { '@type': 'Brand', name: 'Afiladocs' },
     offers: {
@@ -55,8 +66,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       priceCurrency: 'EUR',
       price: (product.price_cents / 100).toFixed(2),
       availability: canBuy ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@type': 'Organization', name: 'afiladocs' },
       url: `${publicEnv.siteUrl}/producto/${product.slug}`,
     },
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: publicEnv.siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Tienda', item: `${publicEnv.siteUrl}/tienda` },
+      { '@type': 'ListItem', position: 3, name: CATEGORY_LABELS[product.category] ?? product.category, item: `${publicEnv.siteUrl}/tienda/${product.category}` },
+      { '@type': 'ListItem', position: 4, name: product.title, item: `${publicEnv.siteUrl}/producto/${product.slug}` },
+    ],
   }
 
   return (
@@ -112,6 +136,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       </div>
     </section>
   )
