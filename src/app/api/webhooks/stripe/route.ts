@@ -238,31 +238,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true })
   }
 
+  await dispatchEvent(event)
+  return NextResponse.json({ received: true })
+}
+
+async function dispatchEvent(event: Stripe.Event): Promise<void> {
   try {
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
-        break
-      case 'payment_intent.payment_failed':
-        await handlePaymentFailed(event.data.object as Stripe.PaymentIntent)
-        break
-      default:
-        logEvent.info('stripe.unhandled', { type: event.type })
-    }
-    // Record the processed event ID to prevent duplicate processing on retries.
-    await prisma.audit_log.create({
-      data: { event: `stripe_event.${event.id}`, metadata: { type: event.type } },
-    }).catch((err: unknown) => {
-      // Non-fatal: log but don't fail the webhook response.
-      console.error(JSON.stringify({ event: 'stripe.webhook.idempotency_log_failed', stripeEventId: event.id, message: err instanceof Error ? err.message : 'Unknown', ts: new Date().toISOString() }))
-    })
+    await routeEvent(event)
+    await recordProcessedEvent(event)
   } catch (err) {
-    // No devolver 500 a Stripe — reintentaría el evento indefinidamente.
-    // Loguear el error y responder 200 para confirmar recepción.
     const errMsg = err instanceof Error ? err.message : 'Unknown error'
     logEvent.error('stripe.handler.error', { type: event.type, message: errMsg })
     void notifyOpsError({ event: 'stripe.handler.error', message: errMsg, severity: 'critical', metadata: { type: event.type } })
   }
+}
 
-  return NextResponse.json({ received: true })
+async function routeEvent(event: Stripe.Event): Promise<void> {
+  switch (event.type) {
+    case 'checkout.session.completed':
+      await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+      return
+    case 'payment_intent.payment_failed':
+      await handlePaymentFailed(event.data.object as Stripe.PaymentIntent)
+      return
+    default:
+      logEvent.info('stripe.unhandled', { type: event.type })
+  }
+}
+
+async function recordProcessedEvent(event: Stripe.Event): Promise<void> {
+  await prisma.audit_log.create({
+    data: { event: `stripe_event.${event.id}`, metadata: { type: event.type } },
+  }).catch((err: unknown) => {
+    logEvent.error('stripe.webhook.idempotency_log_failed', {
+      stripeEventId: event.id,
+      message: err instanceof Error ? err.message : 'Unknown',
+    })
+  })
 }

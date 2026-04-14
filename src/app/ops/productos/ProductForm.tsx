@@ -44,6 +44,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="text-xs text-red-600 mt-1">{errors.join(' · ')}</p>
 }
 
+// eslint-disable-next-line complexity -- form UI with many optional defaults + field errors; splitting hurts readability
 export function ProductForm({ product }: { product?: Product }) {
   const mode = product ? 'edit' : 'new'
   const initial: ProductFormState = { ok: false }
