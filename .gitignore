@@ -33,3 +33,14 @@ ENTERPRISE_ROADMAP.md
 # Sentry Config File
 .env.sentry-build-plugin
 *.log
+
+# Build/lint/audit artifacts committeados accidentalmente en la raíz
+audit_report.json
+eslint_report.json
+ts_errors.log
+build.log
+
+# Claude Code local state (NUNCA commitear — puede contener secretos)
+.claude/settings.local.json
+.claude/cache/
+.claude/history/

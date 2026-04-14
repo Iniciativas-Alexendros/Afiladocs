@@ -1,8 +1,0 @@
-
-> afiladocs-website@1.0.0 build /var/home/soyalexendros/Apps/afiladocs-website
-> next build
-
-
-> Build error occurred
-[Error: The experimental feature "experimental.ppr" can only be enabled when using the latest canary version of Next.js.]
- ELIFECYCLE  Command failed with exit code 1.

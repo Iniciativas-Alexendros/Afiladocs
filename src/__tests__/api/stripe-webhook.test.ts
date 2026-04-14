@@ -18,6 +18,7 @@ vi.mock('@/lib/env', () => ({
 
 vi.mock('@/lib/email/send', () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
+  safeSendEmail: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/prisma/client', () => ({
@@ -111,8 +112,8 @@ describe('POST /api/webhooks/stripe', () => {
     const body = await res.json()
     expect(body.received).toBe(true)
     // Email should NOT have been sent for duplicate event
-    const { sendEmail } = await import('@/lib/email/send')
-    expect(sendEmail).not.toHaveBeenCalled()
+    const { safeSendEmail } = await import('@/lib/email/send')
+    expect(safeSendEmail).not.toHaveBeenCalled()
   })
 
   it('returns 200 and processes checkout.session.completed', async () => {
@@ -160,8 +161,8 @@ describe('POST /api/webhooks/stripe', () => {
     const body = await res.json()
     expect(body.received).toBe(true)
 
-    const { sendEmail } = await import('@/lib/email/send')
-    expect(sendEmail).toHaveBeenCalled()
+    const { safeSendEmail } = await import('@/lib/email/send')
+    expect(safeSendEmail).toHaveBeenCalled()
     // Idempotency record should be created
     expect(mockAuditCreate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ event: 'stripe_event.evt_new' }) })

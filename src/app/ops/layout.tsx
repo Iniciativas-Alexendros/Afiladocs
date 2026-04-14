@@ -7,7 +7,8 @@ import {
   Home,
   Menu,
   Briefcase,
-  FileText
+  FileText,
+  Package,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,6 +44,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
   const navItems: { name: string; href: Route<string>; icon: typeof Home }[] = [
     { name: 'Ops Dashboard', href: '/ops', icon: Home },
     { name: 'Gestión Pedidos', href: '/ops/pedidos', icon: FileText },
+    { name: 'Catálogo', href: '/ops/productos', icon: Package },
     // '/ops/clientes' and '/ops/monitor' pages not yet implemented
   ]
 

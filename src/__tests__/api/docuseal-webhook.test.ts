@@ -43,6 +43,7 @@ vi.mock('@/lib/supabase/service', () => ({
 
 vi.mock('@/lib/email/send', () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
+  safeSendEmail: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/prisma/client', () => ({

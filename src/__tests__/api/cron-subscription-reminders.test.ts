@@ -192,7 +192,7 @@ describe('GET /api/cron/subscription-reminders', () => {
 
   it('continues processing when individual email fails', async () => {
     const { GET } = await import('@/app/api/cron/subscription-reminders/route')
-    const { sendEmail } = await import('@/lib/email/send') as { sendEmail: ReturnType<typeof vi.fn> }
+    const { sendEmail } = (await import('@/lib/email/send')) as unknown as { sendEmail: ReturnType<typeof vi.fn> }
     sendEmail.mockRejectedValue(new Error('Email service down'))
     const res = await GET(makeRequest({ authorization: 'Bearer test-cron-secret' }))
     expect(res.status).toBe(200)

@@ -7,12 +7,16 @@ vi.mock('@/lib/rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue({ limited: false }),
 }))
 
-vi.mock('@/lib/stripe/client', () => ({
-  getProductPriceMap: vi.fn().mockReturnValue({
-    'AFD-PAK-001': 'price_test_pak',
-    'AFD-CPS-001': 'price_test_cps',
-  }),
-}))
+vi.mock('@/lib/stripe/client', () => {
+  const catalog = new Map<string, { sku: string; stripe_price_id: string; eidas_level: 'SES' | 'AES'; kind: string; delivery_mode: string }>([
+    ['AFD-PAK-001', { sku: 'AFD-PAK-001', stripe_price_id: 'price_test_pak', eidas_level: 'AES', kind: 'template', delivery_mode: 'docuseal_fill_and_sign' }],
+    ['AFD-CPS-001', { sku: 'AFD-CPS-001', stripe_price_id: 'price_test_cps', eidas_level: 'AES', kind: 'template', delivery_mode: 'docuseal_fill_and_sign' }],
+  ])
+  return {
+    getActiveCatalog: vi.fn().mockResolvedValue(catalog),
+    getProductPriceMap: vi.fn().mockResolvedValue({ 'AFD-PAK-001': 'price_test_pak', 'AFD-CPS-001': 'price_test_cps' }),
+  }
+})
 
 vi.mock('@/lib/env', () => ({
   serverEnv: {

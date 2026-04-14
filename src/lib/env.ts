@@ -37,11 +37,6 @@ export const serverEnv = {
   // Stripe
   get stripeSecretKey() { return getEnvVar('STRIPE_SECRET_KEY') },
   get stripeWebhookSecret() { return getEnvVar('STRIPE_WEBHOOK_SECRET') },
-  // Stripe Price IDs — opcionales en dev, requeridos en producción
-  get stripePricePak001() { return getEnvVar('STRIPE_PRICE_PAK_001', false) },
-  get stripePriceCps001() { return getEnvVar('STRIPE_PRICE_CPS_001', false) },
-  get stripePriceNda001() { return getEnvVar('STRIPE_PRICE_NDA_001', false) },
-  get stripePricePwl001() { return getEnvVar('STRIPE_PRICE_PWL_001', false) },
   // Email
   get resendApiKey() { return getEnvVar('RESEND_API_KEY') },
   get resendFromEmail() { return getEnvVar('RESEND_FROM_EMAIL', false) || 'noreply@afiladocs.com' },
@@ -50,7 +45,6 @@ export const serverEnv = {
   // Supabase server-only
   get supabaseServiceRoleKey() { return getEnvVar('SUPABASE_SERVICE_ROLE_KEY') },
   // Webhooks externos — opcionales
-  get documensoWebhookSecret() { return getEnvVar('DOCUMENSO_WEBHOOK_SECRET', false) },
   get n8nContactWebhook() { return getEnvVar('N8N_CONTACT_WEBHOOK_URL', false) },
   get n8nAlertsWebhookSecret() { return getEnvVar('N8N_ALERTS_WEBHOOK_SECRET', false) },
   // Error alerting — n8n Error Router webhook (opcional)
@@ -58,14 +52,14 @@ export const serverEnv = {
   // Redis — opcionales (rate limiting graceful fallback sin Redis)
   get upstashRedisUrl() { return getEnvVar('UPSTASH_REDIS_REST_URL', false) },
   get upstashRedisToken() { return getEnvVar('UPSTASH_REDIS_REST_TOKEN', false) },
-  // Firma electrónica — DocuSeal (default) o Documenso (legacy)
-  // SIGNING_PROVIDER: 'docuseal' | 'documenso' (default: 'docuseal')
-  get signingProvider() { return getEnvVar('SIGNING_PROVIDER', false) || 'docuseal' },
+  // Firma electrónica — DocuSeal
   get docusealApiUrl() { return getEnvVar('DOCUSEAL_API_URL', false) || 'https://api.docuseal.com' },
   get docusealApiKey() { return getEnvVar('DOCUSEAL_API_KEY', false) },
   get docusealWebhookSecret() { return getEnvVar('DOCUSEAL_WEBHOOK_SECRET', false) },
-  get documensoApiUrl() { return getEnvVar('DOCUMENSO_API_URL', false) || 'https://app.documenso.com/api/v1' },
-  get documensoApiKey() { return getEnvVar('DOCUMENSO_API_KEY', false) },
+  // Storage — bucket privado de Supabase con los masters rellenables
+  get templatesBucket() { return getEnvVar('TEMPLATES_BUCKET', false) || 'templates' },
+  // Revisiones expertas — SLA en horas (default 72h)
+  get reviewSlaHours() { return Number(getEnvVar('REVIEW_SLA_HOURS', false) || '72') },
   // Facturación electrónica (EasyVerifactu — RD 1007/2023)
   get easyVerifactuApiUrl() { return getEnvVar('EASYVERIFACTU_API_URL', false) },
   get easyVerifactuApiKey() { return getEnvVar('EASYVERIFACTU_API_KEY', false) },
