@@ -45,7 +45,7 @@ Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com
 - Componentes client-side llevan `"use client"` explícito en primera línea; server components (RSC por defecto) NO llevan directiva.
 - Las variables de entorno se centralizan en [`src/lib/env.ts`](src/lib/env.ts) con lazy getters (evita errores en build time).
 - SDKs de terceros (Stripe, Resend, DocuSeal, Verifactu) se instancian **lazy** dentro de funciones, nunca a nivel de módulo.
-- **Documenso es legacy mantenido** (webhook + adapter conservados por compatibilidad). DocuSeal es el firmante activo. No introducir nuevo código que dependa de Documenso.
+- **Documenso descartado** — webhook y adapter eliminados en F1. DocuSeal es el único firmante activo ([`src/lib/signing/`](src/lib/signing/)).
 
 ## Repositorio remoto
 
@@ -80,7 +80,7 @@ GitLab fue descatalogado el 2026-04-14. Las referencias a `official`/GitLab en h
 src/
 ├── app/
 │   ├── (auth)/           — Login, registro, recuperar password
-│   ├── (marketing)/      — Páginas públicas: home, tienda, servicios, revisiones, suscripciones, contacto, legal
+│   ├── (marketing)/      — Páginas públicas: home, tienda, servicios, revisiones, suscripciones, contacto, legal, pago-exitoso, producto/[slug]
 │   ├── api/
 │   │   ├── checkout/     — POST: crea Stripe Checkout session (Zod + rate-limit)
 │   │   ├── contact/      — POST: relay formulario a n8n (Bearer)
@@ -94,7 +94,7 @@ src/
 │   │   └── webhooks/
 │   │       ├── stripe/    — POST: constructEventAsync + Verifactu + email confirmación
 │   │       ├── docuseal/  — POST: HMAC-SHA256, descarga PDF firmado → Storage, revalidateTag
-│   │       └── n8n-alerts/— POST: ingesta de alertas normativas desde n8n (Bearer)
+│   │       └── n8n-alerts/ — POST: ingesta de alertas normativas desde n8n (Bearer)
 │   ├── ops/              — Panel operaciones (roles: admin, ops)
 │   │   ├── pedidos/      — Listado + filtros
 │   │   ├── pedido/[id]/  — Gestión de pedido + subida PDF + envío firma
@@ -134,8 +134,7 @@ src/
 
 prisma/                   — schema.prisma + migrations
 supabase/                 — SQL manual (RLS, índices, Storage buckets)
-docs/                     — n8n-workflows.md (+ docs operativos tras F2)
-Informes para Claude Code/ — roadmap vivo (README + fases + guías)
+docs/                     — docs operativos (UI_GUIDE, ROUTES_MAP, CRON_JOBS, PORTAL_CLIENTE, BACKOFFICE_OPS, runbooks/, roadmap F1-F6, guias/)
 .github/                  — pull_request_template.md, ISSUE_TEMPLATE/
 ```
 
