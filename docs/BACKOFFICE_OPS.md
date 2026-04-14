@@ -157,15 +157,13 @@ Muestra título, urgencia, áreas, fuente, fecha, resumen, link externo. Si est�
 2. `monitor_alerts.update({status: 'reviewed', reviewed_by: user.id, reviewed_at: now})`.
 3. `revalidatePath('/ops/alertas')` + detalle.
 
-## Auditoría `/ops/auditoria` (pendiente en main)
+## Auditoría `/ops/auditoria`
 
-UI diseñada en la rama `chore/lint-and-uiux-brief` (F1) pero **no desplegada** en `main` a fecha de esta revisión. Cuando aterrice se compondrá de:
+UI disponible en `main` desde F1. Archivos: [ops/auditoria/](../src/app/ops/auditoria/).
 
 - Tabla con `audit_log` paginado cursor-based (`take PAGE_SIZE+1`, cursor `after` en query param).
 - Filtros `event`, `user_id`, `from`, `to` persistidos en URL.
 - Server action `exportAuditLogCsv` que genera CSV y registra `event: 'report.exported'` como meta-audit.
-
-**Mientras tanto**, ops consulta la tabla `audit_log` directamente en Supabase (SQL editor o vista del dashboard). La operativa futura está descrita también en [fase-4-ops-avanzado.md](fase-4-ops-avanzado.md).
 
 **Eventos que alimentan la tabla:**
 
