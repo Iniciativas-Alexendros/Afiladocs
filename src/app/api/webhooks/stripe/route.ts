@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { serverEnv, publicEnv } from '@/lib/env'
-import { sendEmail } from '@/lib/email/send'
+import { safeSendEmail } from '@/lib/email/send'
+import { logEvent } from '@/lib/log/structured'
 import { PaymentConfirmation } from '@/emails/PaymentConfirmation'
 import { OrderConfirmationEmail } from '@/emails/order-confirmation'
 import { IntakeRequiredEmail } from '@/emails/intake-required'
 import { PaymentFailedEmail } from '@/emails/payment-failed'
 import { prisma } from '@/lib/prisma/client'
 import { notifyOpsError } from '@/lib/alerts/notify-ops'
+import { fulfillOrderFromSession } from '@/lib/orders/fulfillment'
 import React from 'react'
 
 // Vercel Function: Node.js runtime requerido para crypto nativo (verificación HMAC-SHA256 Stripe)
@@ -24,20 +26,15 @@ function getStripe() {
 }
 
 async function sendConfirmationEmail(session: Stripe.Checkout.Session, customerEmail: string, amount: string): Promise<void> {
-  try {
-    await sendEmail({
+  await safeSendEmail(
+    {
       to: customerEmail,
       subject: 'Confirmación de pago — afiladocs',
       react: React.createElement(PaymentConfirmation, { customerEmail, amount, sessionId: session.id }),
-    })
-  } catch (emailErr) {
-    console.error(JSON.stringify({
-      event: 'email.confirmation.failed',
-      message: emailErr instanceof Error ? emailErr.message : 'Unknown error',
-      sessionId: session.id,
-      ts: new Date().toISOString(),
-    }))
-  }
+    },
+    'email.confirmation.failed',
+    { sessionId: session.id },
+  )
 }
 
 async function createAndPersistInvoice(session: Stripe.Checkout.Session): Promise<void> {
@@ -67,12 +64,10 @@ async function createAndPersistInvoice(session: Stripe.Checkout.Session): Promis
     })
   }
 
-  console.log(JSON.stringify({
-    event: 'verifactu.invoice.created',
+  logEvent.info('verifactu.invoice.created', {
     invoiceId: invoiceResult.invoiceId,
     sessionId: session.id,
-    ts: new Date().toISOString(),
-  }))
+  })
 }
 
 async function generateVerifactuInvoice(session: Stripe.Checkout.Session): Promise<void> {
@@ -81,20 +76,18 @@ async function generateVerifactuInvoice(session: Stripe.Checkout.Session): Promi
   try {
     await createAndPersistInvoice(session)
   } catch (verifactuErr) {
-    console.error(JSON.stringify({
-      event: 'verifactu.invoice.failed',
+    logEvent.error('verifactu.invoice.failed', {
       message: verifactuErr instanceof Error ? verifactuErr.message : 'Unknown',
       sessionId: session.id,
-      ts: new Date().toISOString(),
-    }))
+    })
   }
 }
 
 type OrderWithUser = Awaited<ReturnType<typeof prisma.orders.findFirst<{ include: { user: true } }>>>
 
 async function sendOrderConfirmationEmail(order: NonNullable<OrderWithUser>, customerEmail: string, amount: string): Promise<void> {
-  try {
-    await sendEmail({
+  await safeSendEmail(
+    {
       to: customerEmail,
       subject: 'Comprobante de tu pedido — Afiladocs',
       react: React.createElement(OrderConfirmationEmail, {
@@ -104,20 +97,15 @@ async function sendOrderConfirmationEmail(order: NonNullable<OrderWithUser>, cus
         amount,
         portalUrl: `${publicEnv.siteUrl}/portal/pedido/${order.id}`,
       }),
-    })
-  } catch (emailErr) {
-    console.error(JSON.stringify({
-      event: 'email.order_confirmation.failed',
-      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
-      orderId: order.id,
-      ts: new Date().toISOString(),
-    }))
-  }
+    },
+    'email.order_confirmation.failed',
+    { orderId: order.id },
+  )
 }
 
 async function sendIntakeRequiredEmail(order: NonNullable<OrderWithUser>, customerEmail: string): Promise<void> {
-  try {
-    await sendEmail({
+  await safeSendEmail(
+    {
       to: customerEmail,
       subject: 'Acción requerida: completa los datos de tu pedido — Afiladocs',
       react: React.createElement(IntakeRequiredEmail, {
@@ -125,20 +113,15 @@ async function sendIntakeRequiredEmail(order: NonNullable<OrderWithUser>, custom
         productName: order.product_id,
         intakeUrl: `${publicEnv.siteUrl}/portal/pedido/${order.id}`,
       }),
-    })
-  } catch (emailErr) {
-    console.error(JSON.stringify({
-      event: 'email.intake_required.failed',
-      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
-      orderId: order.id,
-      ts: new Date().toISOString(),
-    }))
-  }
+    },
+    'email.intake_required.failed',
+    { orderId: order.id },
+  )
 }
 
 async function sendPaymentFailedEmail(customerEmail: string, intent: Stripe.PaymentIntent): Promise<void> {
-  try {
-    await sendEmail({
+  await safeSendEmail(
+    {
       to: customerEmail,
       subject: 'Problema con tu pago — Afiladocs',
       react: React.createElement(PaymentFailedEmail, {
@@ -146,15 +129,10 @@ async function sendPaymentFailedEmail(customerEmail: string, intent: Stripe.Paym
         errorMessage: intent.last_payment_error?.message ?? 'Error desconocido en el procesamiento del pago',
         retryUrl: `${publicEnv.siteUrl}/tienda`,
       }),
-    })
-  } catch (emailErr) {
-    console.error(JSON.stringify({
-      event: 'email.payment_failed.failed',
-      message: emailErr instanceof Error ? emailErr.message : 'Unknown',
-      intentId: intent.id,
-      ts: new Date().toISOString(),
-    }))
-  }
+    },
+    'email.payment_failed.failed',
+    { intentId: intent.id },
+  )
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
@@ -164,13 +142,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     currency: session.currency?.toUpperCase() ?? 'EUR',
   }).format((session.amount_total ?? 0) / 100)
 
-  console.log(JSON.stringify({
-    event: 'checkout.completed',
-    sessionId: session.id,
-    customerEmail,
-    amount,
-    ts: new Date().toISOString(),
-  }))
+  logEvent.info('checkout.completed', { sessionId: session.id, customerEmail, amount })
 
   if (customerEmail) {
     await sendConfirmationEmail(session, customerEmail, amount)
@@ -183,13 +155,31 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   })
 
   if (order && customerEmail) {
-    await sendOrderConfirmationEmail(order, customerEmail, amount)
-    if (order.status === 'intake_pending') {
-      await sendIntakeRequiredEmail(order, customerEmail)
-    }
+    await processOrderPostPayment(order, customerEmail, amount)
   }
 
   await generateVerifactuInvoice(session)
+}
+
+// Estados que aún requieren fulfillment. Si el pedido ya está más allá (awaiting_signature,
+// delivered, completed…), un reintento de Stripe no debe volver a disparar DocuSeal, signed URLs
+// ni emails — causaría submissions duplicadas y cobros de soporte.
+const DISPATCHABLE_STATUSES = new Set(['payment_completed', 'pending_payment', 'intake_pending'])
+
+async function processOrderPostPayment(
+  order: NonNullable<OrderWithUser>,
+  customerEmail: string,
+  amount: string,
+): Promise<void> {
+  if (!DISPATCHABLE_STATUSES.has(order.status)) {
+    logEvent.info('dispatch.skipped_idempotent', { orderId: order.id, status: order.status })
+    return
+  }
+  await sendOrderConfirmationEmail(order, customerEmail, amount)
+  if (order.status === 'intake_pending') {
+    await sendIntakeRequiredEmail(order, customerEmail)
+  }
+  await fulfillOrderFromSession(order, customerEmail)
 }
 
 async function handlePaymentFailed(intent: Stripe.PaymentIntent) {
@@ -197,12 +187,7 @@ async function handlePaymentFailed(intent: Stripe.PaymentIntent) {
     ? intent.receipt_email
     : (intent.last_payment_error?.payment_method as Stripe.PaymentMethod | undefined)?.billing_details?.email ?? null
 
-  console.error(JSON.stringify({
-    event: 'payment.failed',
-    intentId: intent.id,
-    lastError: intent.last_payment_error?.message,
-    ts: new Date().toISOString(),
-  }))
+  logEvent.error('payment.failed', { intentId: intent.id, lastError: intent.last_payment_error?.message })
 
   if (customerEmail) {
     await sendPaymentFailedEmail(customerEmail, intent)
@@ -220,11 +205,9 @@ async function isAlreadyProcessed(eventId: string): Promise<boolean> {
 export async function POST(req: Request) {
   const stripe = getStripe()
   if (!stripe || !serverEnv.stripeWebhookSecret) {
-    console.error(JSON.stringify({
-      event: 'stripe.webhook.misconfigured',
+    logEvent.error('stripe.webhook.misconfigured', {
       message: 'Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET',
-      ts: new Date().toISOString(),
-    }))
+    })
     return new NextResponse('Webhook not configured', { status: 503 })
   }
 
@@ -243,11 +226,7 @@ export async function POST(req: Request) {
     event = await stripe.webhooks.constructEventAsync(rawBody, sig, serverEnv.stripeWebhookSecret)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error(JSON.stringify({
-      event: 'stripe.webhook.signature_failed',
-      message,
-      ts: new Date().toISOString(),
-    }))
+    logEvent.error('stripe.webhook.signature_failed', { message })
     void notifyOpsError({ event: 'stripe.webhook.signature_failed', message, severity: 'critical' })
     return new NextResponse(`Webhook signature invalid: ${message}`, { status: 400 })
   }
@@ -268,7 +247,7 @@ export async function POST(req: Request) {
         await handlePaymentFailed(event.data.object as Stripe.PaymentIntent)
         break
       default:
-        console.log(JSON.stringify({ event: 'stripe.unhandled', type: event.type }))
+        logEvent.info('stripe.unhandled', { type: event.type })
     }
     // Record the processed event ID to prevent duplicate processing on retries.
     await prisma.audit_log.create({
@@ -281,12 +260,7 @@ export async function POST(req: Request) {
     // No devolver 500 a Stripe — reintentaría el evento indefinidamente.
     // Loguear el error y responder 200 para confirmar recepción.
     const errMsg = err instanceof Error ? err.message : 'Unknown error'
-    console.error(JSON.stringify({
-      event: 'stripe.handler.error',
-      type: event.type,
-      message: errMsg,
-      ts: new Date().toISOString(),
-    }))
+    logEvent.error('stripe.handler.error', { type: event.type, message: errMsg })
     void notifyOpsError({ event: 'stripe.handler.error', message: errMsg, severity: 'critical', metadata: { type: event.type } })
   }
 

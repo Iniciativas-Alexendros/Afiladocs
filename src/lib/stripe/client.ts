@@ -1,27 +1,45 @@
-import { serverEnv } from '@/lib/env'
+import { cache } from 'react'
+import { prisma } from '@/lib/prisma/client'
 
-/**
- * Map of internal product IDs to Stripe Price IDs.
- * Retorna un objeto nuevo en cada llamada para leer los lazy getters de serverEnv
- * en request time (no en build time).
- */
-export function getProductPriceMap(): Record<string, string | undefined> {
-  return {
-    'AFD-PAK-001': serverEnv.stripePricePak001 || undefined,
-    'AFD-CPS-001': serverEnv.stripePriceCps001 || undefined,
-    'AFD-NDA-001': serverEnv.stripePriceNda001 || undefined,
-    'AFD-PWL-001': serverEnv.stripePricePwl001 || undefined,
-  }
+export type CatalogEntry = {
+  sku: string
+  stripe_price_id: string
+  eidas_level: 'SES' | 'AES'
+  kind: string
+  delivery_mode: string
 }
 
 /**
- * eIDAS signature level per product.
- * SES = Simple Electronic Signature (low risk)
- * AES = Advanced Electronic Signature (higher risk, contracts)
+ * Catálogo vivo indexado por SKU — sólo productos activos con `stripe_price_id` poblado.
+ * Fuente única: tabla `products` (sustituye al whitelist env-based).
+ * Cacheado por request (React `cache`) para evitar queries duplicadas en el mismo handler.
  */
-export const EIDAS_LEVEL_MAP: Record<string, 'SES' | 'AES'> = {
-  'AFD-PAK-001': 'AES',
-  'AFD-CPS-001': 'AES',
-  'AFD-NDA-001': 'AES',
-  'AFD-PWL-001': 'SES',
+export const getActiveCatalog = cache(async (): Promise<Map<string, CatalogEntry>> => {
+  const rows = await prisma.products.findMany({
+    where: { is_active: true, stripe_price_id: { not: null } },
+    select: { sku: true, stripe_price_id: true, eidas_level: true, kind: true, delivery_mode: true },
+  })
+  const map = new Map<string, CatalogEntry>()
+  for (const r of rows) {
+    if (!r.stripe_price_id) continue
+    map.set(r.sku, {
+      sku: r.sku,
+      stripe_price_id: r.stripe_price_id,
+      eidas_level: (r.eidas_level === 'AES' ? 'AES' : 'SES'),
+      kind: r.kind,
+      delivery_mode: r.delivery_mode,
+    })
+  }
+  return map
+})
+
+/**
+ * Legacy-friendly helper: devuelve { sku → stripe_price_id } para los productos activos.
+ * Mantener sólo para compat con tests/código externo; nuevos callers deberían usar `getActiveCatalog`.
+ */
+export async function getProductPriceMap(): Promise<Record<string, string>> {
+  const catalog = await getActiveCatalog()
+  const out: Record<string, string> = {}
+  for (const [sku, entry] of catalog) out[sku] = entry.stripe_price_id
+  return out
 }

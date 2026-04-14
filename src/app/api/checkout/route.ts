@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { serverEnv } from '@/lib/env'
 import { checkoutRateLimit, getClientIp, applyRateLimit } from '@/lib/rate-limit'
-import { getProductPriceMap } from '@/lib/stripe/client'
+import { getActiveCatalog, type CatalogEntry } from '@/lib/stripe/client'
 import { isAllowedOrigin } from '@/lib/csrf'
 
 // Vercel Function: Node.js runtime requerido por Stripe SDK (crypto nativo de Node)
@@ -23,14 +23,30 @@ const CheckoutBodySchema = z.object({
 
 type LineItem = z.infer<typeof LineItemSchema>
 
+type ResolvedItem = { entry: CatalogEntry; quantity: number }
+
+function resolveItems(items: LineItem[], catalog: Map<string, CatalogEntry>): ResolvedItem[] | { error: string } {
+  const bySku = catalog
+  const byStripePriceId = new Map<string, CatalogEntry>()
+  for (const e of catalog.values()) byStripePriceId.set(e.stripe_price_id, e)
+
+  const resolved: ResolvedItem[] = []
+  for (const item of items) {
+    const key = item.variantId ?? item.priceId
+    if (!key) return { error: 'Cada item debe incluir variantId o priceId' }
+    const entry = bySku.get(key) ?? byStripePriceId.get(key)
+    if (!entry) return { error: `Producto no reconocido: ${key}` }
+    resolved.push({ entry, quantity: item.quantity })
+  }
+  return resolved
+}
+
 async function buildStripeSession(
-  items: LineItem[],
+  resolved: ResolvedItem[],
   successUrl: string,
-  cancelUrl: string
+  cancelUrl: string,
 ) {
   if (!serverEnv.stripeSecretKey) return null
-
-  const priceMap = getProductPriceMap()
 
   const Stripe = (await import('stripe')).default
   const stripe = new Stripe(serverEnv.stripeSecretKey, {
@@ -40,13 +56,12 @@ async function buildStripeSession(
 
   return stripe.checkout.sessions.create({
     mode: 'payment',
-    line_items: items.map((item) => {
-      // Resolver: priceId directo > variantId mapeado a Stripe Price via getProductPriceMap
-      const resolvedPrice = item.priceId ?? priceMap[item.variantId ?? ''] ?? item.variantId
-      return { price: resolvedPrice, quantity: item.quantity }
-    }),
+    line_items: resolved.map(r => ({ price: r.entry.stripe_price_id, quantity: r.quantity })),
     success_url: successUrl,
     cancel_url: cancelUrl,
+    metadata: {
+      skus: resolved.map(r => r.entry.sku).join(','),
+    },
   })
 }
 
@@ -57,33 +72,28 @@ async function processCheckout(request: Request): Promise<NextResponse> {
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Parámetros inválidos', details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
   const { items, successUrl, cancelUrl } = parsed.data
 
-  // Whitelist: acepta IDs internos (AFD-*) o Stripe Price IDs directos
-  const priceMap = getProductPriceMap()
-  const allowedInternalIds = new Set(Object.keys(priceMap))
-  const allowedPriceIds = new Set(
-    Object.values(priceMap).filter((v): v is string => Boolean(v))
-  )
-  if (allowedPriceIds.size > 0) {
-    for (const item of items) {
-      const id = item.priceId ?? item.variantId
-      if (id && !allowedInternalIds.has(id) && !allowedPriceIds.has(id)) {
-        return NextResponse.json({ error: 'Producto no reconocido' }, { status: 400 })
-      }
-    }
+  const catalog = await getActiveCatalog()
+  if (catalog.size === 0) {
+    return NextResponse.json({ error: 'Catálogo vacío. Publica al menos un producto activo con stripe_price_id.' }, { status: 503 })
   }
 
-  const session = await buildStripeSession(items, successUrl, cancelUrl)
+  const resolution = resolveItems(items, catalog)
+  if ('error' in resolution) {
+    return NextResponse.json({ error: resolution.error }, { status: 400 })
+  }
+
+  const session = await buildStripeSession(resolution, successUrl, cancelUrl)
 
   if (!session) {
     return NextResponse.json(
       { error: 'Stripe no está configurado. Añade STRIPE_SECRET_KEY al entorno.', url: null },
-      { status: 503 }
+      { status: 503 },
     )
   }
 
@@ -103,14 +113,13 @@ export async function POST(request: Request) {
       {
         status: 429,
         headers: { 'Retry-After': String(retryAfter ?? 60) },
-      }
+      },
     )
   }
 
   try {
     return await processCheckout(request)
   } catch (error) {
-    // Log interno estructurado — NO exponer detalles de Stripe al cliente
     console.error(JSON.stringify({
       event: 'checkout.error',
       message: error instanceof Error ? error.message : 'Unknown error',

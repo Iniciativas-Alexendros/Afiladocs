@@ -9,6 +9,29 @@ Stack: Next.js 15.3 + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/
 Deploy: **Vercel** (región `mad1`). CI/CD: GitLab CI SLSA Level 3 (.gitlab-ci.yml).
 Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel.
 
+## Referencia al hub central (SIMBIOSIS)
+
+> **Contexto global**: antes de operar, consulta `~/.claude/PROYECTOS.md` para
+> conocer el estado, prioridad y urgencia del resto de apps de Alexendros.
+> Este indice se actualiza via la cadena: `mem-sintetizar → dev-arquitectura →
+> prod-actualizar-stakeholders → mem-actualizar` (nodo N13 de `omni-maestria`).
+>
+> **Alertas cruzadas**: `~/.claude/projects/-var-home-soyalexendros/memory/cross-app-alerts.md`
+> — consulta obligatoria antes de deploys, rotaciones de secretos u operaciones destructivas.
+>
+> **🔴 Alerta activa para esta app**: 3 secretos LIVE (Stripe, GitHub PAT, Sentry) estaban
+> expuestos en `.claude/settings.local.json` antes de la homogeneizacion del 2026-04-10.
+> Archivo limpiado y `.gitignore` blindado. Rotacion de los tokens es responsabilidad del
+> usuario — detalles en `cross-app-alerts.md`.
+>
+> **Registro dinamico**: `~/.claude/projects/-var-home-soyalexendros/memory/apps-registry.md`
+> — estado por app (commits, CI, PRs, alertas).
+>
+> **Protocolo herencia GSD**: si detectas `.planning/`, `gsd-*`, `ROADMAP.md` o
+> directivas `<!-- GSD:* -->`, sigue `~/.claude/Deportacion_GSD.md`.
+> **NO invoques skills `gsd-*`** (estan descatalogados). Cadena equivalente:
+> `prod-brainstorming → prod-especificacion → app-maestria → dev-revision`.
+
 ## Reglas absolutas
 
 - NUNCA expongas `STRIPE_SECRET_KEY` ni `STRIPE_WEBHOOK_SECRET` al cliente. Solo server-side.
@@ -195,3 +218,16 @@ src/
 - Pipeline GitLab: stage `deploy_vercel` (manual, en `main`)
 - Variables CI necesarias: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_DEPLOY_URL`
 - Prisma en Vercel: `postinstall: "prisma generate"` en package.json (ya configurado)
+
+## Integraciones con otras apps de Alexendros
+
+> ⚠️ Hipotesis preliminar — refinar con Alejandro (ver `~/.claude/projects/-var-home-soyalexendros/memory/feedback_relaciones_proyectos.md`).
+
+- **n8n-automations** ✅ **confirmada** — afiladocs consume webhooks de n8n via `N8N_CONTACT_WEBHOOK_URL` (formulario de contacto) y `N8N_ALERTS_WEBHOOK_SECRET` (ingesta de alertas normativas en `/api/webhooks/n8n-alerts`).
+- **techno-website** 🟡 **inferida** — ambas apps usan Stripe Checkout; comparten patron reutilizable (sin dependencia tecnica, solo oportunidad de extraer helper si surge una tercera app).
+- **alexendros-monorepo** 🟡 **inferida** — misma familia de stack (Next.js 15 + Supabase + Stripe + Prisma). Candidato a consumir packages publicados del monorepo (`@repo/ui`, `@repo/stripe`) si se publican.
+- **lexactu** 🟠 **especulativa** — ambas manejan documentos legales pero en dominios distintos (afiladocs = servicios legales B2C, lexactu = OCR judicial). Sin integracion tecnica actual.
+
+## Skills recomendadas para esta app
+
+`app-maestria` · `app-seguridad` · `app-despliegue` · `dev-revision` · `dev-depurar` · `app-entorno` · `app-migracion-bd` · `shadcn` · `infra-stripe` · `ux-pro-max` · `legal-cumplimiento`

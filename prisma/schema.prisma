@@ -27,6 +27,8 @@ model orders {
   id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id               String    @db.Uuid
   product_id            String
+  // Nuevo catálogo (tabla `products`). Nullable en transición; se backfillea desde product_id.
+  product_sku           String?
   stripe_session_id     String?   @unique
   stripe_payment_intent String?
   amount_cents          Int
@@ -45,6 +47,7 @@ model orders {
   updated_at            DateTime  @default(now()) @db.Timestamptz(6)
 
   user      profiles    @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  product   products?   @relation(fields: [product_sku], references: [sku], onDelete: Restrict)
   documents documents[]
   audit_log audit_log[]
 
@@ -52,6 +55,7 @@ model orders {
   @@index([status])
   @@index([stripe_session_id])
   @@index([product_id, created_at(sort: Desc)])
+  @@index([product_sku, created_at(sort: Desc)])
 }
 
 model documents {
@@ -114,6 +118,48 @@ model monitor_alerts {
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([status, created_at(sort: Desc)])
+}
+
+/// Catálogo de productos — reemplaza el whitelist hardcoded en src/lib/stripe/client.ts
+/// Seed en prisma/seeds/products.json aplicado vía `npm run seed:products`.
+model products {
+  sku                  String   @id
+  slug                 String   @unique
+  title                String
+  description_md       String
+  category             String // rgpd | arrendamiento | civil | mercantil | pack | reclamacion | review
+  kind                 String // template | review | pack
+  price_cents          Int
+  vat_mode             String   @default("included") // included | excluded
+  stripe_price_id      String?
+  docuseal_template_id String?
+  storage_path         String?
+  delivery_mode        String // docuseal_fill_and_sign | docuseal_fill_only | download_after_payment | human_review
+  eidas_level          String   @default("SES") // SES | AES
+  is_active            Boolean  @default(true)
+  display_order        Int      @default(0)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @db.Timestamptz(6)
+
+  orders         orders[]
+  pack_members   product_packs[] @relation("PackParent")
+  included_in    product_packs[] @relation("PackChild")
+
+  @@index([category, is_active, display_order])
+  @@index([is_active, display_order])
+}
+
+/// Relación N:N para packs (un producto `kind=pack` incluye varios `kind=template`).
+model product_packs {
+  pack_sku  String
+  child_sku String
+  order     Int     @default(0)
+
+  pack  products @relation("PackParent", fields: [pack_sku], references: [sku], onDelete: Cascade)
+  child products @relation("PackChild", fields: [child_sku], references: [sku], onDelete: Restrict)
+
+  @@id([pack_sku, child_sku])
+  @@index([pack_sku])
 }
 
 model subscriptions {
