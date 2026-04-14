@@ -88,7 +88,6 @@ src/
 │   │   │   └── subscription-reminders/   — GET: emails de renovación (suscripciones >25d)
 │   │   └── webhooks/
 │   │       ├── stripe/   — POST: verifica firma + envía email de confirmación (Resend)
-│   │       ├── documenso/— POST: webhooks de firma electrónica (Documenso, legacy)
 │   │       ├── docuseal/ — POST: webhooks de firma electrónica (DocuSeal, activo)
 │   │       └── n8n-alerts/— POST: ingesta de alertas normativas desde n8n (Bearer token)
 │   ├── ops/              — Panel de operaciones (roles: admin, ops)
@@ -153,13 +152,12 @@ src/
 - Rate limiting: Upstash Redis (10 req/min por IP en checkout, 5 req/10min en contact, 5 req/min en crons)
 - Sin Upstash configurado: sin rate limiting (fallback graceful para desarrollo)
 
-## Firma electrónica (DocuSeal / Documenso)
+## Firma electrónica (DocuSeal)
 
-- **DocuSeal** es el proveedor activo de firma electrónica (self-hosted). Webhook → `POST /api/webhooks/docuseal`
-- **Documenso** es el proveedor legacy (mantenido por compatibilidad). Webhook → `POST /api/webhooks/documenso`
-- Ambos webhooks: verificación HMAC-SHA256, descarga PDF firmado → Supabase Storage, `revalidateTag('orders')`, email de notificación al cliente
-- Adapter pattern en `src/lib/signing/` — `getSigningAdapter()` devuelve la implementación activa
-- Env vars de signing en `serverEnv`: `docusealWebhookSecret`, `documensoWebhookSecret`, `documensoApiKey`, `documensoApiUrl`
+- **DocuSeal** (self-hosted) es el único proveedor activo. Webhook → `POST /api/webhooks/docuseal`
+- Verificación HMAC-SHA256 (timingSafeEqual), descarga PDF firmado → Supabase Storage, `revalidateTag('orders')`, email de notificación al cliente
+- Adapter pattern en `src/lib/signing/` — `getSigningAdapter()` devuelve `DocuSealAdapter`
+- Env vars de signing en `serverEnv`: `docusealApiUrl`, `docusealApiKey`, `docusealWebhookSecret`
 
 ## Cron jobs
 
@@ -185,8 +183,7 @@ src/
 | `N8N_ALERTS_WEBHOOK_SECRET` | Server only | Bearer token compartido con n8n para ingestar alertas normativas |
 | `CRON_SECRET` | Server only | Bearer token para autenticar cron jobs de Vercel |
 | `DOCUSEAL_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks DocuSeal |
-| `DOCUMENSO_WEBHOOK_SECRET` | Server only | HMAC secret para verificar webhooks Documenso (legacy) |
-| `SENTRY_AUTH_TOKEN` | Build only | Token para subir source maps (en `.env.sentry-build-plugin`) |
+| `OBSERVABILITY_SENTRY_AUTH_TOKEN` | Build only | Token para subir source maps (inyectado por integración Vercel+Sentry) |
 
 **Dominio activo**: `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` configurado en Vercel. SEO activo (`index: true`), sitemap apunta a afiladocs.com, redirect www→non-www habilitado. En preview deployments sin `NEXT_PUBLIC_SITE_URL`, el fallback mantiene `noindex` y `Disallow: /`.
 

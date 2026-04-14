@@ -41,17 +41,10 @@ describe('env — serverEnv lazy getters', () => {
     vi.unstubAllEnvs()
   })
 
-  it('signingProvider defaults to docuseal when not set', async () => {
-    vi.stubEnv('SIGNING_PROVIDER', '')
+  it('docusealApiUrl falls back to api.docuseal.com default', async () => {
+    vi.stubEnv('DOCUSEAL_API_URL', '')
     const { serverEnv } = await import('@/lib/env')
-    expect(serverEnv.signingProvider).toBe('docuseal')
-    vi.unstubAllEnvs()
-  })
-
-  it('signingProvider returns value when explicitly set', async () => {
-    vi.stubEnv('SIGNING_PROVIDER', 'documenso')
-    const { serverEnv } = await import('@/lib/env')
-    expect(serverEnv.signingProvider).toBe('documenso')
+    expect(serverEnv.docusealApiUrl).toBe('https://api.docuseal.com')
     vi.unstubAllEnvs()
   })
 })
