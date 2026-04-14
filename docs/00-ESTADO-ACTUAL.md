@@ -1,0 +1,50 @@
+# 00 — Estado actual del repositorio
+
+**Fecha de validación:** 2026-04-14
+**Próxima re-auditoría:** 2026-05-14 (o al cierre de la Fase 2)
+**Rama de referencia:** `chore/lint-and-uiux-brief`
+**Última fase cerrada:** F1 Seguridad (2026-04-14)
+
+Snapshot validado contra el repo en el mismo día. Sustituye a todos los análisis previos (que describían un stack ya retirado). Este documento es el insumo que justifica que el **trabajo pendiente es el listado en las fases F1–F6** y no todo lo que aparecía en los informes antiguos.
+
+## Leyenda
+
+- ✅ Hecho (validado en código)
+- 🟡 Parcial (implementado con gaps concretos; detallados en la fase correspondiente)
+- ❌ Pendiente (aparece en fase)
+
+## Matriz por eje
+
+| Eje | Estado | Evidencia | Pendiente → Fase |
+|-----|--------|-----------|-------------------|
+| Testing unit + E2E | ✅ | 18 specs en [src/__tests__/](../src/__tests__/), 4 en [e2e/](../e2e/); configs en [vitest.config.ts](../vitest.config.ts) y [playwright.config.ts](../playwright.config.ts) | Cobertura mínima 70% en críticos → F2 (documenta umbral) |
+| Observabilidad | ✅ | Sentry v10 en [sentry.*.config.ts](../src/), hook [src/instrumentation.ts](../src/instrumentation.ts) | — |
+| Webhooks Stripe/DocuSeal/n8n | ✅ | HMAC SHA-256, descarga PDF firmado, upload a Supabase Storage: [src/app/api/webhooks/docuseal/route.ts](../src/app/api/webhooks/docuseal/route.ts) | — |
+| Documenso legacy | ✅ retirado | Commit `23858a3 chore: retire Documenso legacy adapter`; adapter único DocuSeal en [src/lib/signing/](../src/lib/signing/) | — |
+| Schema Prisma | ✅ | `eidas_level` (no `eideas_level`), `invoice_id`, `invoice_pdf`, `invoiced_at`, `deleted_at`, `stripe_customer_id` en [prisma/schema.prisma](../prisma/schema.prisma) | — |
+| Marketing (blog, tienda, informes, sobre-mí, servicios, legaltech-ia) | ✅ contenido real | Artículos en [src/app/(marketing)/blog/](../src/app/(marketing)/blog/), 4 tipos en informes-jurídicos, categorías dinámicas en tienda | CRO Home (FAQ/HowTo, pulido tienda) → F3 |
+| Portal cliente | ✅ | KPIs en [src/app/portal/page.tsx](../src/app/portal/page.tsx), botón descarga firmado, timeline básico, Stripe Billing Portal | Autoguardado intake, timeline con audit_log → F3, F4 |
+| Panel Ops | ✅ base | Dashboard KPIs, CRUD productos, alertas n8n, upload PDF en [src/app/ops/](../src/app/ops/) | Filtros avanzados, export CSV, SLA extendido → F4; UI audit log → F1 |
+| CSP / seguridad HTTP | ✅ | CSP con nonce por request en [middleware.ts](../middleware.ts) (`buildCsp`), `'unsafe-inline'` eliminado de `script-src`, HSTS preload 2 años en [next.config.ts](../next.config.ts) | — |
+| Middleware | ✅ | Nonce + bot allowlist (Googlebot/Bingbot/…) + geo-blocking vía `GEO_BLOCKED_COUNTRIES` + suspicious-path regex en [middleware.ts](../middleware.ts) | — |
+| Audit log | ✅ | Tabla `audit_log` poblada por webhooks y server actions; vista paginada cursor-based en [src/app/ops/auditoria/page.tsx](../src/app/ops/auditoria/page.tsx) con export CSV (`report.exported`) | — |
+| Docs internas | 🟡 | Solo [docs/n8n-workflows.md](../docs/n8n-workflows.md) (brief UX integrado en [fase-3-ux-conversion.md](fase-3-ux-conversion.md)) | Faltan UI_GUIDE, ROUTES_MAP, CRON_JOBS, PORTAL_CLIENTE, BACKOFFICE_OPS, runbooks → F2 |
+| Verifactu (RD 1007/2023) | ✅ | [src/lib/verifactu/](../src/lib/verifactu/) cableado al webhook Stripe; `orders.invoice_id` poblado | — |
+| Emails transaccionales | ✅ | 13 plantillas en [src/emails/](../src/emails/) (welcome, intake-required, signature-required, document-ready, subscription-*, sla-alert, daily-ops-report, payment-failed, etc.) | — |
+| Cron jobs Vercel | ✅ | 5 crons en [vercel.json](../vercel.json): cleanup, subscription-reminders, intake-reminders, sla-monitor, daily-report | Documentar SLAs y payloads → F2 (CRON_JOBS.md) |
+| Caché de datos | ❌ | Consultas Prisma sin `unstable_cache` ni tags | `revalidateTag('orders'/'products')` → F5 |
+| Bundle analysis | ❌ | Sin `@next/bundle-analyzer` integrado | Integrar en pipeline → F5 |
+| Feature flags | ❌ | Sin Edge Config | Vercel Edge Config → F6 |
+| Blog con MDX | ❌ | Artículos actuales son datos estáticos en TS | Contentlayer2 + RSS → F6 |
+| i18n | ❌ | App monolingüe ES | `next-intl` si hay demanda → F6 |
+
+## Riesgos actuales (a vigilar)
+
+- **`style-src 'unsafe-inline'`** sigue activo por requisito de Tailwind v4. No es bloqueante para OWASP ASVS L2 (riesgo reducido vs. scripts) pero conviene revisar tras cualquier upgrade de Tailwind.
+- **Docs obsoletos en raíz**: `ANALISIS_ARQUITECTURA.md` aún figura en git status como `D` — confirmar su eliminación en el próximo commit que toque documentación.
+- **Cobertura de tests sin umbral declarado**: pasa `vitest run --coverage` pero no falla por debajo de X%. F2 documenta el umbral; cuando se fije, añadirlo al gate de CI.
+
+## Referencias cruzadas
+
+- [CLAUDE.md](../CLAUDE.md) § "Variables de entorno clave" y § "Arquitectura de autenticación y roles"
+- [MEMORY.md](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/memory/MEMORY.md) entry *"Vercel migration completed"* (2026-04-02) y *"Afiladocs architecture overview"*

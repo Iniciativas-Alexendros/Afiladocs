@@ -9,6 +9,7 @@ import {
   Briefcase,
   FileText,
   Package,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -45,6 +46,7 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
     { name: 'Ops Dashboard', href: '/ops', icon: Home },
     { name: 'Gestión Pedidos', href: '/ops/pedidos', icon: FileText },
     { name: 'Catálogo', href: '/ops/productos', icon: Package },
+    { name: 'Auditoría', href: '/ops/auditoria' as Route<string>, icon: ShieldCheck },
     // '/ops/clientes' and '/ops/monitor' pages not yet implemented
   ]
 
