@@ -3,30 +3,11 @@
 ## Identidad del proyecto
 
 Plataforma de servicios legales digitales B2C (Valencia, España).
-Stack: Next.js 15.3 App Router + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/ui
-       + Stripe SDK 21 (API `2026-03-25.dahlia`) + Prisma 7 (con `@prisma/adapter-pg`)
-       + Supabase (Auth + PostgreSQL + Storage) + Resend + EasyVerifactu
-       + DocuSeal (self-hosted, firma electrónica) + n8n (relays + monitores normativos)
-       + Upstash Redis (rate-limit) + Sentry v10 + Framer Motion + react-hook-form + Zod
-       + Sonner + Lucide React.
-Deploy: **Vercel** (región `mad1`). CI/CD: GitLab CI SLSA Level 3 (`.gitlab-ci.yml`).
-Dominio activo: **afiladocs.com**. `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel.
-
-## Roadmap y documentación operativa
-
-- **Roadmap maestro y fases**: [`Informes para Claude Code/`](Informes%20para%20Claude%20Code/) — consulta `README.md`, `00-ESTADO-ACTUAL.md`, `01-ROADMAP-MAESTRO.md` y `fase-N-*.md` antes de empezar cualquier iniciativa no-trivial.
-- **Guías transversales** (reglas vivas): [`Informes para Claude Code/guias/`](Informes%20para%20Claude%20Code/guias/) — `guia-seguridad.md`, `guia-calidad.md`, `guia-ui-ux.md`, `guia-workflows.md`. Toda PR debe respetar la guía correspondiente a su ámbito.
-- **Plantillas GitHub activas**: [`.github/pull_request_template.md`](.github/pull_request_template.md) y [`.github/ISSUE_TEMPLATE/mejora-roadmap.md`](.github/ISSUE_TEMPLATE/mejora-roadmap.md).
-- **Docs operativos** (poblados en F2): [`docs/`](docs/) — hoy contiene sólo [`docs/n8n-workflows.md`](docs/n8n-workflows.md) (payloads e inventario n8n). F2 añade `README.md`, `UI_GUIDE.md`, `ROUTES_MAP.md`, `CRON_JOBS.md`, `PORTAL_CLIENTE.md`, `BACKOFFICE_OPS.md`, `runbooks/`.
-
-## Referencia al hub central (SIMBIOSIS)
-
-> **Contexto global**: antes de operar, consulta `~/.claude/PROYECTOS.md` para conocer el estado, prioridad y urgencia del resto de apps de Alexendros.
-> Indice actualizado via la cadena: `mem-sintetizar → dev-arquitectura → prod-actualizar-stakeholders → mem-actualizar` (nodo N13 de `omni-maestria`).
->
-> **Alertas cruzadas**: `~/.claude/projects/-var-home-soyalexendros/memory/cross-app-alerts.md` — consulta obligatoria antes de deploys, rotaciones de secretos u operaciones destructivas.
->
-> **Registro dinámico**: `~/.claude/projects/-var-home-soyalexendros/memory/apps-registry.md` — estado por app (commits, CI, PRs, alertas).
+Stack: Next.js 15.3 + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/ui
+       + Stripe SDK 21 (API `2026-03-25.dahlia`) + Prisma 7 + Supabase + Resend
+       + Framer Motion + react-hook-form + Zod + Sonner + Lucide React + n8n webhooks.
+Deploy: **Vercel** (región `mad1`). CI/CD: GitHub Actions (pendiente de configurar en `.github/workflows/`).
+Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel.
 
 ## Referencia al hub central (SIMBIOSIS)
 
@@ -64,21 +45,19 @@ Dominio activo: **afiladocs.com**. `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` 
 - Componentes client-side llevan `"use client"` explícito en primera línea; server components (RSC por defecto) NO llevan directiva.
 - Las variables de entorno se centralizan en [`src/lib/env.ts`](src/lib/env.ts) con lazy getters (evita errores en build time).
 - SDKs de terceros (Stripe, Resend, DocuSeal, Verifactu) se instancian **lazy** dentro de funciones, nunca a nivel de módulo.
-- **Documenso está retirado** (commit `chore: retire Documenso legacy adapter`). DocuSeal es el único firmante. No reintroducir referencias a Documenso en código ni docs nuevos.
+- **Documenso es legacy mantenido** (webhook + adapter conservados por compatibilidad). DocuSeal es el firmante activo. No introducir nuevo código que dependa de Documenso.
 
-## Repositorios remotos — sincronización obligatoria
+## Repositorio remoto
 
-Al finalizar cada tarea que genere commits, SIEMPRE sincronizar:
+Remoto único: `github` → GitHub via SSH — `git@github.com:alexendros/afiladocs.git`
+
+Al finalizar cada tarea que genere commits en `main`:
 
 ```bash
-git push github main     # GitHub — https://github.com/alexendros/afiladocs
+git push github main
 ```
 
-Remotos configurados:
-
-- `github` → GitHub via SSH → `git@github.com:alexendros/afiladocs.git`
-
-Si algún push falla, reportarlo explícitamente antes de cerrar la tarea. Nunca asumir que el mirror está sincronizado sin confirmar.
+GitLab fue descatalogado el 2026-04-14. Las referencias a `official`/GitLab en historial previo son legacy. Si el push falla, reportarlo antes de cerrar la tarea.
 
 ## Comandos del proyecto
 
@@ -294,9 +273,9 @@ Al añadir una plantilla nueva: componente `.tsx` + test snapshot + test del han
 ## Deploy Vercel
 
 - [`vercel.json`](vercel.json): región `mad1`, `maxDuration` por función (checkout/webhooks 30 s, crons 60 s, contact 10 s, health 5 s).
-- Ramas con deploy activado: `main`, `staging`, `develop`.
+- Deploy via Vercel Git integration (push a `main` → deploy automático). Ramas `main`, `staging`, `develop` con deploy activado.
 - Crons **solo en producción** (comportamiento por defecto Vercel).
-- Variables CI necesarias: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_DEPLOY_URL`.
+- Variables de integración: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
 - Prisma en Vercel: `postinstall: "prisma generate"` en `package.json` (ya configurado).
 - No cambiar `git.deploymentEnabled` sin coordinación + commit justificativo.
 
