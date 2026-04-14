@@ -4,7 +4,6 @@ import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { PreviewBanner } from '@/components/PreviewBanner'
 
 const dmSans = DM_Sans({
   subsets: ['latin', 'latin-ext'],
@@ -60,7 +59,6 @@ export default function RootLayout({
         <Toaster />
         <Analytics />
         <SpeedInsights />
-        <PreviewBanner />
       </body>
     </html>
   )
