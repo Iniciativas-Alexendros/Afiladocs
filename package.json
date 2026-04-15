@@ -16,7 +16,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "seed:products": "tsx scripts/seed-products.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
