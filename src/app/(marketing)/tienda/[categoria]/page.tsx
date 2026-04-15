@@ -33,7 +33,11 @@ export async function generateMetadata({ params }: { params: Promise<{ categoria
   }
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+
+export function generateStaticParams() {
+  return VALID.map(categoria => ({ categoria }))
+}
 
 export default async function CategoriaPage({ params }: { params: Promise<{ categoria: string }> }) {
   const { categoria } = await params

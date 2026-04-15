@@ -49,15 +49,59 @@ Ambas páginas son estáticas salvo por `getActiveProducts()` / `getProductsByCa
 
 `createProduct`, `updateProduct`, `toggleProductActive` ahora llaman `revalidateProductsCache()` además del `revalidatePath` existente. Así los cambios del catálogo se reflejan en marketing en la siguiente request sin esperar a 3600 s.
 
+## Segunda tanda (este PR de seguimiento)
+
+### `/producto/[slug]` → SSG con `generateStaticParams`
+
+- `force-dynamic` → `revalidate = 3600` + `dynamicParams = true`.
+- `generateStaticParams` pre-renderiza todos los `is_active=true` al build; cualquier slug nuevo se genera bajo demanda por ISR y queda cacheado.
+- Verificado en build: aparece como `●` (SSG) en la tabla de `next build`.
+
+### `/tienda/[categoria]` → SSG con categorías conocidas
+
+- `force-dynamic` → `revalidate = 3600`.
+- `generateStaticParams` devuelve los 7 valores de `VALID` (enum cerrado). Quedan todos pre-renderizados con `1h 1y` según el build.
+
+### `/tienda` (raíz con `?cat=`)
+
+- Retirado `force-dynamic`. El page sigue siendo `ƒ` dinámico porque consume `searchParams`, pero el acceso a DB viaja por `unstable_cache` (catálogo cacheado 1 h).
+- Migración completa a estático exige refactor: mover el filtrado a client component con `useSearchParams()`. Queda como deuda; ROI bajo hasta que subamos el catálogo por encima de ~50 productos.
+
+### RUM / Web Vitals
+
+Ya estaban cableados en [`src/app/layout.tsx`](../src/app/layout.tsx): `<Analytics />` (@vercel/analytics) + `<SpeedInsights />` (@vercel/speed-insights). No requieren cambios.
+
+### Bundle budget (snapshot 2026-04-15)
+
+`npm run analyze` contra este branch. First Load JS compartido: **103 kB gzip**.
+
+Rutas más pesadas:
+| Ruta | Page JS | First Load |
+|------|---------|------------|
+| `/` (home) | 42.5 kB | 234 kB |
+| `/producto/[slug]` | 6.2 kB | 207 kB |
+| `/` (portal/ops, varios) | ~3 kB | ~185 kB |
+
+Top módulos compartidos (gzip):
+- `react-dom-client` · 54 kB — framework, inevitable.
+- Cliente Supabase (`GoTrueClient`, `realtime-js`, `phoenix`) · ~30 kB acumulado — presente en marketing público aunque allí no se necesita sesión.
+- `sonner` · 9 kB — toast global.
+- `framer-motion` (`create-projection-node` y otros) · 5-6 kB visibles, probablemente mayor al tirar del grafo.
+- Varios Radix UI · 3-6 kB cada uno.
+
+Candidatos a optimización en PR separado (ROI descendente):
+1. **Quitar Supabase del bundle de marketing**. El cliente `@supabase/ssr` sólo hace falta en rutas `/portal` y `/ops`. Revisar dónde lo importa `layout.tsx` o componentes compartidos. Ahorro estimado: ~30 kB gzip en home.
+2. **Dynamic-import de `framer-motion`** en secciones que sólo animan al scroll (Hero, Process steps). Next/dynamic + ssr:false donde no aporte a LCP.
+3. **Audit de Lucide React** — usar solo `lucide-react` con imports nombrados (ya lo hacemos) y verificar que Turbopack/webpack está tree-shaking correctamente.
+
 ## Qué queda pendiente en F5
 
 Ordenado por ROI descendente:
 
-1. **Tienda y producto a ISR** — migrar `/tienda*` y `/producto/[slug]` a ISR. Para `producto/[slug]` pre-generar con `generateStaticParams(getActiveProducts)`. Para `tienda` evaluar si los filtros `?cat=` se pueden servir con `<Suspense>` + cliente en lugar de SSR-por-filtro.
-2. **RUM / Web Vitals** — `@vercel/analytics` ya está instalado; verificar que está montado en `layout.tsx` raíz y añadir `<SpeedInsights />` si no lo está. Considerar Sentry Performance (ya tenemos SDK).
-3. **Bundle audit** — correr `npm run analyze` en local, documentar los 3 chunks más pesados y marcar candidatos a `next/dynamic` (probablemente Framer Motion en landings secundarias).
-4. **Cache granular adicional** — `/portal/pedidos` y `/portal/pedido/[id]` hoy leen Supabase por request; estudiar si `unstable_cache` por `user_id` aporta (tag `orders-${user_id}` ya emitido desde webhooks).
-5. **CSP nonce overhead** — F1 introdujo nonce por request; medir impacto en TTFB en producción con los snapshots de baseline como referencia.
+1. **Bundle wins** — sacar Supabase y framer-motion del First Load de marketing (ver arriba).
+2. **PPR en `/tienda`** — una vez Next 15 estabilice Partial Prerendering, migrar la raíz de `/tienda` a static shell + Suspense boundary por filtro.
+3. **Cache granular en portal** — `/portal/pedidos` y `/portal/pedido/[id]` hoy leen Supabase por request. Estudiar `unstable_cache` por `user_id` (tag `orders-${user_id}` ya emitido desde webhooks).
+4. **CSP nonce overhead** — F1 introdujo nonce por request; medir impacto en TTFB con los snapshots de [`docs/performance-baseline/`](./performance-baseline/) como referencia.
 
 ## Cómo verificar en producción
 
