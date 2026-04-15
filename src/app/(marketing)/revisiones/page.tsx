@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { getProductsByCategory } from '@/lib/catalog/query'
 import { ProductCard } from '@/components/ProductCard'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Revisiones expertas de contratos | Afiladocs',
