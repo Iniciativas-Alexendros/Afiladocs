@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+
 import { HeroSection } from '@/components/marketing/HeroSection'
 import { ProcessSteps } from '@/components/marketing/ProcessSteps'
 import { CatalogSection } from '@/components/marketing/CatalogSection'

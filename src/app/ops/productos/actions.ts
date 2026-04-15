@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/auth'
+import { revalidateProductsCache } from '@/lib/catalog/query'
 import { prisma } from '@/lib/prisma/client'
 
 const CATEGORIES = ['rgpd', 'arrendamiento', 'civil', 'mercantil', 'pack', 'reclamacion', 'review'] as const
@@ -60,6 +61,7 @@ export async function createProduct(_prev: ProductFormState, formData: FormData)
   if (exists) return { ok: false, message: `SKU ${data.sku} ya existe` }
   await prisma.products.create({ data })
   revalidatePath('/ops/productos')
+  revalidateProductsCache()
   redirect(`/ops/productos/${data.sku}`)
 }
 
@@ -76,6 +78,7 @@ export async function updateProduct(_prev: ProductFormState, formData: FormData)
   await prisma.products.update({ where: { sku }, data: { ...patch, updated_at: new Date() } })
   revalidatePath('/ops/productos')
   revalidatePath(`/ops/productos/${sku}`)
+  revalidateProductsCache()
   return { ok: true, message: 'Producto actualizado' }
 }
 
@@ -86,5 +89,6 @@ export async function toggleProductActive(sku: string) {
   await prisma.products.update({ where: { sku }, data: { is_active: !product.is_active } })
   revalidatePath('/ops/productos')
   revalidatePath(`/ops/productos/${sku}`)
+  revalidateProductsCache()
   return { ok: true }
 }

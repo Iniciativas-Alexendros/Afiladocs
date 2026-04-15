@@ -3,6 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const findMany = vi.fn()
 const findFirst = vi.fn()
 const findUnique = vi.fn()
+const revalidateTag = vi.fn()
+
+vi.mock('next/cache', () => ({
+  unstable_cache: <Args extends unknown[], R>(fn: (...args: Args) => R) => fn,
+  revalidateTag,
+}))
 
 vi.mock('@/lib/prisma/client', () => ({
   prisma: {
@@ -35,6 +41,7 @@ describe('lib/catalog/query', () => {
     findMany.mockReset()
     findFirst.mockReset()
     findUnique.mockReset()
+    revalidateTag.mockReset()
   })
 
   it('getActiveProducts filters is_active=true and orders by display_order asc, title asc', async () => {
@@ -72,5 +79,11 @@ describe('lib/catalog/query', () => {
     const p = await getProductBySku('AFD-RGPD-REG-001')
     expect(p?.is_active).toBe(false)
     expect(findUnique).toHaveBeenCalledWith({ where: { sku: 'AFD-RGPD-REG-001' } })
+  })
+
+  it('revalidateProductsCache calls revalidateTag("products")', async () => {
+    const { revalidateProductsCache, PRODUCTS_CACHE_TAG } = await import('@/lib/catalog/query')
+    revalidateProductsCache()
+    expect(revalidateTag).toHaveBeenCalledWith(PRODUCTS_CACHE_TAG)
   })
 })
