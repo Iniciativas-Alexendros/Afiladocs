@@ -26,6 +26,7 @@ Describen la arquitectura vigente. Primer sitio al que acudir antes de tocar có
 | [PORTAL_CLIENTE.md](PORTAL_CLIENTE.md) | Journey del cliente en `/portal/*` (intake, documentos, suscripciones) |
 | [BACKOFFICE_OPS.md](BACKOFFICE_OPS.md) | Journey ops en `/ops/*` (KPIs, pedidos, productos, alertas, auditoría) |
 | [n8n-workflows.md](n8n-workflows.md) | IDs y URLs de los 5 workflows n8n |
+| [DEPLOY_MANUAL.md](DEPLOY_MANUAL.md) | Matriz de env vars, contrato CI, requisitos Vercel, fallos frecuentes |
 
 ## Runbooks de incidentes
 

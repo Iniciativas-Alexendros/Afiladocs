@@ -42,12 +42,10 @@ Marca las guías relevantes y confirma que el cambio las respeta:
 
 ## 6. Verificación
 
-- [ ] `npm run typecheck`
-- [ ] `npm run lint`
-- [ ] `npm run test:coverage` (cobertura ≥ 70% en módulos críticos tocados)
+- [ ] `npm run ci:local` verde (equivale a check:env + typecheck + lint + test:coverage + build)
 - [ ] `npm run test:e2e` (si aplica)
-- [ ] `npm run build`
 - [ ] Preview deployment Vercel probado manualmente
+- [ ] He revisado [docs/DEPLOY_MANUAL.md](../docs/DEPLOY_MANUAL.md) y este PR no rompe la matriz de env vars ni el contrato CI
 
 ## 7. Riesgos y rollback
 

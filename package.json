@@ -17,7 +17,9 @@
     "test:e2e": "playwright test",
     "seed:products": "tsx scripts/seed-products.ts",
     "postinstall": "prisma generate",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "check:env": "tsx scripts/check-env-example.ts",
+    "ci:local": "npm run check:env && npm run typecheck && npm run lint && npm run test:coverage && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -105,6 +107,7 @@
     "tsx": "^4.21.0",
     "tw-animate-css": "^1.2.9",
     "typescript": "^5.8.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "@vitest/coverage-v8": "^4.1.2"
   }
 }
