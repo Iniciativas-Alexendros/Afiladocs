@@ -40,6 +40,9 @@ eslint_report.json
 ts_errors.log
 build.log
 
+# Test coverage output (Vitest v8)
+/coverage/
+
 # Claude Code local state (NUNCA commitear — puede contener secretos)
 .claude/settings.local.json
 .claude/cache/
