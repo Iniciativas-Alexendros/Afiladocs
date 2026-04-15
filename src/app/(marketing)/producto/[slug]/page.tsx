@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Check, ShieldCheck } from 'lucide-react'
-import { getProductBySlug } from '@/lib/catalog/query'
+import { getActiveProducts, getProductBySlug } from '@/lib/catalog/query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DeliveryBadge } from '@/components/DeliveryBadge'
@@ -10,7 +10,13 @@ import { PreCheckoutModal } from '@/components/PreCheckoutModal'
 import { formatCurrency } from '@/lib/format'
 import { publicEnv } from '@/lib/env'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+export const dynamicParams = true
+
+export async function generateStaticParams() {
+  const products = await getActiveProducts()
+  return products.map(p => ({ slug: p.slug }))
+}
 
 const DELIVERY_DESCRIPTION: Record<string, string> = {
   docuseal_fill_and_sign: 'Rellenas los campos online, firmas con validez eIDAS y recibes el PDF firmado en tu email.',

@@ -7,7 +7,7 @@ import { ProductCard } from '@/components/ProductCard'
 import { CategoryFilter } from '@/components/CategoryFilter'
 import { Button } from '@/components/ui/button'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 const VALID_CATS: readonly string[] = [
   'rgpd', 'arrendamiento', 'civil', 'mercantil', 'pack', 'reclamacion', 'review',
