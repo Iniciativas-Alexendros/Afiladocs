@@ -1,29 +1,70 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { OrderStatusBadge } from '@/components/OrderStatusBadge'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
-import { formatCurrency } from '@/lib/format'
+import {
+  DEFAULT_PAGE_SIZE,
+  buildCursorArgs,
+  buildPagedHref,
+  paginateCursor,
+} from '@/app/ops/_lib/cursor'
+import { ExportOrdersButton } from './ExportOrdersButton'
+import { OrderFiltersForm } from './OrderFiltersForm'
+import { OrdersTable } from './OrdersTable'
+import {
+  buildOrderOrderBy,
+  buildOrderWhere,
+  type OrderFilters,
+} from './query'
 
 export const metadata = {
   title: 'Gestión de Pedidos | Ops',
+  robots: { index: false, follow: false },
 }
 
-export default async function OpsOrdersPage() {
+interface SearchParams extends OrderFilters {
+  cursor?: string
+}
+
+interface PageProps {
+  searchParams: Promise<SearchParams>
+}
+
+export default async function OpsOrdersPage({ searchParams }: PageProps) {
   await requireRole(['admin', 'ops'])
+  const params = await searchParams
+
+  const filters: OrderFilters = {
+    status: params.status,
+    product_sku: params.product_sku,
+    eidas_level: params.eidas_level,
+    from: params.from,
+    to: params.to,
+    q: params.q,
+    sort: params.sort,
+    dir: params.dir,
+  }
 
   const orders = await prisma.orders.findMany({
+    where: buildOrderWhere(filters),
     include: {
-      user: {
-        select: { full_name: true }
-      }
+      user: { select: { full_name: true } },
+      product: { select: { sku: true } },
     },
-    orderBy: { created_at: 'desc' },
-    take: 50,
+    orderBy: buildOrderOrderBy(filters),
+    take: DEFAULT_PAGE_SIZE + 1,
+    ...buildCursorArgs(params.cursor),
   })
+
+  const { rows, hasNext, nextCursor } = paginateCursor(orders, DEFAULT_PAGE_SIZE)
 
   return (
     <div className="flex flex-col gap-8">
@@ -33,51 +74,41 @@ export default async function OpsOrdersPage() {
           { label: 'Gestión de Pedidos' },
         ]} />
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Gestión de Pedidos</h1>
-        <p className="text-muted-foreground mt-2">Listado de todos los pedidos históricos y activos.</p>
+        <p className="text-muted-foreground mt-2">
+          Listado filtrable de pedidos con paginación cursor-based y exportación CSV.
+        </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Últimos 50 pedidos</CardTitle>
-          <CardDescription>Haz clic en un pedido para gestionarlo, subir documentos o ver su intake form.</CardDescription>
+          <CardTitle>Filtros</CardTitle>
+          <CardDescription>Filtros server-side vía query string.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID Pedido</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Servicio</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Importe</TableHead>
-                <TableHead className="text-right">Acción</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map(order => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}</TableCell>
-                  <TableCell>
-                    {order.user?.full_name ?? order.user_id.slice(0, 8)}
-                  </TableCell>
-                  <TableCell className="font-medium">{order.product_id}</TableCell>
-                  <TableCell>
-                    <OrderStatusBadge status={order.status} />
-                  </TableCell>
-                  <TableCell>
-                    {formatCurrency(order.amount_cents, order.currency)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/ops/pedido/${order.id}`}>
-                        Gestionar
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <OrderFiltersForm filters={filters}>
+            <ExportOrdersButton filters={filters} />
+          </OrderFiltersForm>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pedidos ({rows.length}{hasNext ? '+' : ''})</CardTitle>
+          <CardDescription>
+            Haz clic en un pedido para gestionarlo, subir documentos o revisar su intake.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OrdersTable rows={rows} />
+          {hasNext && nextCursor && (
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildPagedHref('/ops/pedidos', params, { cursor: nextCursor })}>
+                  Siguiente página →
+                </Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,6 @@
 # Backoffice Ops — journey operativo
 
-**Última revisión:** 2026-04-14
+**Última revisión:** 2026-04-15
 **Prefijo:** `/ops/*`
 **Gate:** `requireRole(['admin','ops'])` en [src/app/ops/layout.tsx](../src/app/ops/layout.tsx). Los usuarios sin rol son redirigidos a `/portal`.
 
@@ -17,23 +17,41 @@
 
 **Archivo:** [src/app/ops/page.tsx](../src/app/ops/page.tsx)
 
-**KPI cards (3):**
+**KPI cards (5) — F4, con selector de rango 7d / 30d / 90d / mtd:**
 
 | Card | Fuente | Descripción |
 |------|--------|-------------|
-| **Para redactar** | `orders.count({status: 'processing'})` | Pedidos con intake completado listos para el abogado |
-| **Esperando cliente** | `orders.count({status: 'intake_pending'})` | Pendientes de que el cliente rellene datos |
-| **Suscripciones activas** | `subscriptions.count({status: 'active'})` | Recurring revenue en vigor |
+| **Revenue** | `orders` + `date_trunc('month')` | Ingresos mensuales (últimos 3 meses del rango) |
+| **SLA intake→firma** | `percentile_cont()` sobre `intake_completed_at → signed_at` | P50, P90, P99 en días |
+| **Funnel** | Counts filtrados por etapa | Creados → pagados → intake → firmados |
+| **Alertas pendientes** | `monitor_alerts.count({status: 'pending_review'})` | Enlaza a `/ops/alertas` |
+| **KpiRangeFilter** | URL param `range` | Selector de ventana temporal (client component) |
 
-**Lista "Pedidos que requieren atención":** top 10 `orders` con `status IN ('intake_pending','processing')`, `orderBy: created_at DESC`, incluye `user.full_name` para mostrar cliente. Cada fila linka a `/ops/pedido/{id}`.
+**Componentes:** [`src/app/ops/_components/`](../src/app/ops/_components/) — `RevenueCard`, `SlaCard`, `FunnelCard`, `PendingAlertsCard`, `KpiRangeFilter`.
 
 ## Listado `/ops/pedidos`
 
 **Archivo:** [src/app/ops/pedidos/page.tsx](../src/app/ops/pedidos/page.tsx)
 
-Tabla paginada simple (top 50 por defecto, ordenados por `created_at DESC`). Columnas: ID corto, cliente (`user.full_name`), servicio, estado, importe, botón "Gestionar".
+Tabla con paginación **cursor-based** y filtros persistidos en URL. Soporta selección múltiple con batch actions.
 
-Mejoras previstas en F4 (filtros avanzados, export CSV extendido — ver [fase-4-ops-avanzado.md](fase-4-ops-avanzado.md)).
+**Filtros disponibles** (query params):
+- `status` — `intake_pending | processing | draft_ready | completed`
+- `product_sku` — SKU del producto
+- `eidas_level` — `SES | AES`
+- `from` / `to` — rango de `created_at`
+- `q` — búsqueda libre (nombre, email, NIF)
+- `sort` — `created_at_desc` (default), `amount_asc`, `amount_desc`, `status`
+
+**Batch actions** (selección múltiple con checkbox):
+
+| Acción | Server Action | Efecto |
+|--------|--------------|--------|
+| Marcar en proceso | `batchMarkProcessing(ids)` | Actualiza `status → processing` en transacción + auditoría |
+| Enviar recordatorio | `batchSendIntakeReminder(ids)` | Solo actúa sobre `status = 'intake_pending'` + auditoría |
+| Añadir nota interna | `batchAddInternalNote(ids, body)` | Append a `orders.internal_notes` (JSONB) + auditoría |
+
+**Export CSV:** botón "Exportar CSV" llama `exportOrdersCsv(filters)` — aplica los mismos filtros activos, máximo `CSV_MAX_ROWS` filas, registra `orders.exported` en `audit_log`. Separador `;`, BOM UTF-8.
 
 ## Gestión de pedido `/ops/pedido/[id]`
 
@@ -54,9 +72,12 @@ Mejoras previstas en F4 (filtros avanzados, export CSV extendido — ver [fase-4
   5. Si `draft_ready` → `notifyDraftReady()` (email al cliente, no bloqueante).
   6. `revalidatePath('/ops/pedido/{id}')` + `/ops/pedidos`.
 
+**Notas internas:** campo `orders.internal_notes` (JSONB array). Cada nota tiene `{ id, author_id, body, created_at }`. Visible en el detalle del pedido.
+
 **Columna principal:**
 
 - **Datos de intake** — `IntakeDataViewer` pinta `order.intake_data`. Si está vacío y `status = intake_pending`, muestra alerta ámbar.
+- **OrderTimeline** — componente [OrderTimeline](../src/app/ops/pedido/[id]/OrderTimeline.tsx) que muestra el `audit_log` filtrado por `order_id`, con iconografía por tipo de evento ([event-icons.ts](../src/app/ops/pedido/[id]/event-icons.ts)).
 - **Gestión documental** — dos bloques:
   - **Subir borrador (.pdf)** — input file + submit → `opsUploadDocument(orderId, 'draft', formData)`.
   - **Subir documento final (.pdf)** — equivalente con `type: 'signed'`.
@@ -126,10 +147,22 @@ Tabla ordenada por `category → display_order → title`. Muestra SKU, título,
 
 Las alertas llegan vía `POST /api/webhooks/n8n-alerts` (Bearer `N8N_ALERTS_WEBHOOK_SECRET`). n8n ingesta desde BOE, DOGV, boletines de colegios profesionales, etc.
 
-**Filtros (query params):**
+**Filtros (query params) — F4:**
 
-- `?status=pending_review|reviewed|all` (default `pending_review`).
+- `?status=pending_review|reviewed|archived|dismissed|all` (default `pending_review`).
 - `?urgency=alta|media|baja` (opcional).
+- `?source` — origen de la alerta (BOE, DOGV, etc.)
+- `?from` / `?to` — rango de `published_at`.
+
+**Acciones por alerta — F4:**
+
+| Acción | Campo actualizado | Server action |
+|--------|------------------|---------------|
+| Marcar revisada | `reviewed_at`, `reviewed_by` | `markAlertReviewed(id)` |
+| Archivar | `archived_at` | `archiveAlert(id)` |
+| Descartar | `dismissed_at` | `dismissAlert(id)` |
+
+Todas las acciones registran evento en `audit_log` y revalidan `/ops/alertas`.
 
 **Schema del payload** (Zod en el webhook):
 
@@ -151,11 +184,7 @@ Acepta alerta única o array (máx. 50 por request). Todas se crean con `status 
 
 **Archivo:** [src/app/ops/alertas/[id]/page.tsx](../src/app/ops/alertas/[id]/page.tsx)
 
-Muestra título, urgencia, áreas, fuente, fecha, resumen, link externo. Si está pendiente, botón "Marcar como revisada" llama `markAlertReviewed(alertId)`:
-
-1. `requireRole(['admin','ops'])`.
-2. `monitor_alerts.update({status: 'reviewed', reviewed_by: user.id, reviewed_at: now})`.
-3. `revalidatePath('/ops/alertas')` + detalle.
+Muestra título, urgencia, áreas, fuente, fecha, resumen, link externo. Botones de acción según estado actual (revisar / archivar / descartar).
 
 ## Auditoría `/ops/auditoria`
 

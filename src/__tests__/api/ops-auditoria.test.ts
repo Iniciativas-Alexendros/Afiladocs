@@ -43,7 +43,7 @@ describe('exportAuditLogCsv', () => {
     const result = await exportAuditLogCsv({ event: 'order.created' })
 
     expect(result.rowCount).toBe(1)
-    expect(result.csv).toContain('id,created_at,event,user_id,order_id,ip_hash,metadata')
+    expect(result.csv).toContain('id;created_at;event;user_id;order_id;ip_hash;metadata')
     expect(result.csv).toContain('order.created')
     expect(result.filename).toMatch(/^audit-log-.*\.csv$/)
 

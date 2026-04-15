@@ -37,6 +37,9 @@ model orders {
   eidas_level           String
   intake_data           Json?
   intake_completed_at   DateTime? @db.Timestamptz(6)
+  // Notas internas del equipo ops (F4 — añadidas vía batch action en /ops/pedidos).
+  // Estructura: [{ id, author_id, body, created_at }].
+  internal_notes        Json      @default("[]")
   // Facturación electrónica (EasyVerifactu — RD 1007/2023)
   invoice_id            String?
   invoice_pdf           String?
@@ -56,6 +59,7 @@ model orders {
   @@index([stripe_session_id])
   @@index([product_id, created_at(sort: Desc)])
   @@index([product_sku, created_at(sort: Desc)])
+  @@index([status, created_at(sort: Desc)])
 }
 
 model documents {
@@ -115,9 +119,12 @@ model monitor_alerts {
   areas        String[]
   reviewed_by  String?   @db.Uuid
   reviewed_at  DateTime? @db.Timestamptz(6)
+  archived_at  DateTime? @db.Timestamptz(6)
+  dismissed_at DateTime? @db.Timestamptz(6)
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([status, created_at(sort: Desc)])
+  @@index([source, published_at(sort: Desc)])
 }
 
 /// Catálogo de productos — reemplaza el whitelist hardcoded en src/lib/stripe/client.ts
