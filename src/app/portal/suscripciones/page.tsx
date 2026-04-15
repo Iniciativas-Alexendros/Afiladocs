@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
@@ -26,10 +27,15 @@ function getSubscriptionBadge(status: string) {
 export default async function SuscripcionesPage() {
   const user = await requireAuth()
 
-  const subscriptions = await prisma.subscriptions.findMany({
-    where: { user_id: user.id },
-    orderBy: { created_at: 'desc' },
-  })
+  const getSubscriptions = unstable_cache(
+    () => prisma.subscriptions.findMany({
+      where: { user_id: user.id },
+      orderBy: { created_at: 'desc' },
+    }),
+    [`portal-subscriptions-${user.id}`],
+    { tags: ['subscriptions', `subscriptions-${user.id}`], revalidate: 120 },
+  )
+  const subscriptions = await getSubscriptions()
 
   return (
     <div className="space-y-8">

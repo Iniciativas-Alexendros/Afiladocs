@@ -39,6 +39,8 @@ vi.mock('@/lib/prisma/client', () => ({
 
 vi.mock('@/lib/alerts/notify-ops', () => ({ notifyOpsError: vi.fn() }))
 
+vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
+
 // Mock Stripe using a class so `new Stripe(...)` works correctly
 vi.mock('stripe', () => {
   class MockStripe {

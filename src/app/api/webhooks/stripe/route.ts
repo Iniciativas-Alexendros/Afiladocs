@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import Stripe from 'stripe'
 import { serverEnv, publicEnv } from '@/lib/env'
 import { safeSendEmail } from '@/lib/email/send'
@@ -156,6 +157,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   if (order && customerEmail) {
     await processOrderPostPayment(order, customerEmail, amount)
+    // Invalida la cache del portal para que el cliente vea el pedido actualizado
+    revalidateTag('orders')
+    if (order.user_id) revalidateTag(`orders-${order.user_id}`)
   }
 
   await generateVerifactuInvoice(session)
