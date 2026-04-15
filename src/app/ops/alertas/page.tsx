@@ -1,9 +1,18 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
-import type { Route } from 'next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, CheckCircle2, Clock, ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, CheckCircle2, Clock, Archive, XCircle, ArrowRight } from 'lucide-react'
+import {
+  DEFAULT_PAGE_SIZE,
+  buildCursorArgs,
+  buildPagedHref,
+  paginateCursor,
+} from '@/app/ops/_lib/cursor'
+import { AlertFiltersForm } from './AlertFiltersForm'
+import { AlertRowActions } from './AlertRowActions'
+import { buildAlertsWhere, type AlertFilters } from './query'
 
 export const metadata = {
   title: 'Monitor Normativo | Afiladocs Ops',
@@ -25,14 +34,37 @@ function urgencyBadge(urgency: Urgency | null) {
 }
 
 function statusBadge(status: string) {
-  return status === 'reviewed'
-    ? <span className="inline-flex items-center gap-1 text-xs text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" /> Revisada</span>
-    : <span className="inline-flex items-center gap-1 text-xs text-amber-600"><Clock className="h-3.5 w-3.5" /> Pendiente</span>
+  switch (status) {
+    case 'reviewed':
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+          <CheckCircle2 className="h-3.5 w-3.5" /> Revisada
+        </span>
+      )
+    case 'archived':
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-slate-600">
+          <Archive className="h-3.5 w-3.5" /> Archivada
+        </span>
+      )
+    case 'dismissed':
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+          <XCircle className="h-3.5 w-3.5" /> Descartada
+        </span>
+      )
+    case 'pending_review':
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+          <Clock className="h-3.5 w-3.5" /> Pendiente
+        </span>
+      )
+  }
 }
 
-interface SearchParams {
-  urgency?: string
-  status?: string
+interface SearchParams extends AlertFilters {
+  cursor?: string
 }
 
 interface PageProps {
@@ -43,19 +75,36 @@ export default async function AlertasPage({ searchParams }: PageProps) {
   await requireRole(['admin', 'ops'])
 
   const params = await searchParams
-  const urgencyFilter = params.urgency
   const statusFilter = params.status ?? 'pending_review'
 
-  const alerts = await prisma.monitor_alerts.findMany({
-    where: {
-      ...(urgencyFilter ? { urgency: urgencyFilter } : {}),
-      ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
-    },
+  const effectiveFilters: AlertFilters = {
+    status: statusFilter,
+    urgency: params.urgency,
+    source: params.source,
+    from: params.from,
+    to: params.to,
+  }
+
+  const rows = await prisma.monitor_alerts.findMany({
+    where: buildAlertsWhere(effectiveFilters),
     orderBy: [{ urgency: 'asc' }, { created_at: 'desc' }],
-    take: 50,
+    take: DEFAULT_PAGE_SIZE + 1,
+    ...buildCursorArgs(params.cursor),
   })
 
-  const pendingCount = await prisma.monitor_alerts.count({ where: { status: 'pending_review' } })
+  const { rows: visible, hasNext, nextCursor } = paginateCursor(rows)
+
+  const pendingCount = await prisma.monitor_alerts.count({
+    where: { status: 'pending_review' },
+  })
+
+  const hrefParams: Record<string, string | undefined> = {
+    status: statusFilter,
+    urgency: params.urgency,
+    source: params.source,
+    from: params.from,
+    to: params.to,
+  }
 
   return (
     <div className="space-y-8">
@@ -69,89 +118,72 @@ export default async function AlertasPage({ searchParams }: PageProps) {
             </span>
           )}
         </div>
-        <p className="text-sm text-slate-500">Alertas legales y regulatorias. Revisa y marca cada alerta como procesada.</p>
+        <p className="text-sm text-slate-500">
+          Alertas legales y regulatorias. Revisa, archiva o descarta cada alerta.
+        </p>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { label: 'Pendientes', href: '/ops/alertas?status=pending_review', active: statusFilter === 'pending_review' },
-          { label: 'Revisadas', href: '/ops/alertas?status=reviewed', active: statusFilter === 'reviewed' },
-          { label: 'Todas', href: '/ops/alertas?status=all', active: statusFilter === 'all' },
-        ].map((f) => (
-          <Link
-            key={f.href}
-            href={f.href as Route<string>}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              f.active
-                ? 'bg-slate-900 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {f.label}
-          </Link>
-        ))}
-        <div className="w-px bg-slate-200 mx-1" />
-        {['alta', 'media', 'baja'].map((u) => (
-          <Link
-            key={u}
-            href={`/ops/alertas?status=${statusFilter}&urgency=${u}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors capitalize ${
-              urgencyFilter === u
-                ? 'bg-amber-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {u}
-          </Link>
-        ))}
-        {urgencyFilter && (
-          <Link href={`/ops/alertas?status=${statusFilter}`} className="rounded-full px-3 py-1 text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
-            × Limpiar filtro
-          </Link>
-        )}
-      </div>
-
-      {/* Alerts list */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Alertas ({alerts.length})</CardTitle>
+          <CardTitle className="text-base">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AlertFiltersForm filters={effectiveFilters} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            Alertas ({visible.length}
+            {hasNext ? '+' : ''})
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {alerts.length === 0 ? (
+          {visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-500">
               <CheckCircle2 className="h-10 w-10 text-emerald-400 mb-3" />
               <p className="text-sm">No hay alertas con este filtro.</p>
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {alerts.map((alert) => (
-                <li key={alert.id}>
+              {visible.map((alert) => (
+                <li key={alert.id} className="flex items-start justify-between gap-4 p-4 hover:bg-slate-50 transition-colors">
                   <Link
                     href={`/ops/alertas/${alert.id}`}
-                    className="flex items-start justify-between gap-4 p-4 hover:bg-slate-50 transition-colors group"
+                    className="flex-1 min-w-0 group"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {urgencyBadge(alert.urgency)}
-                        {statusBadge(alert.status)}
-                        {alert.areas.length > 0 && (
-                          <span className="text-xs text-slate-400">{alert.areas.join(', ')}</span>
-                        )}
-                      </div>
-                      <p className="text-sm font-medium text-slate-900 truncate">{alert.title}</p>
-                      {alert.summary && (
-                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{alert.summary}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      {urgencyBadge(alert.urgency)}
+                      {statusBadge(alert.status)}
+                      {alert.areas.length > 0 && (
+                        <span className="text-xs text-slate-400">{alert.areas.join(', ')}</span>
                       )}
-                      <p className="text-xs text-slate-400 mt-1">
-                        {alert.source} — {new Date(alert.created_at).toLocaleDateString('es-ES')}
-                      </p>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 mt-1 flex-shrink-0 transition-colors" />
+                    <p className="text-sm font-medium text-slate-900 truncate group-hover:underline">
+                      {alert.title}
+                    </p>
+                    {alert.summary && (
+                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{alert.summary}</p>
+                    )}
+                    <p className="text-xs text-slate-400 mt-1 inline-flex items-center gap-1">
+                      {alert.source} — {new Date(alert.created_at).toLocaleDateString('es-ES')}
+                      <ArrowRight className="h-3 w-3 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                    </p>
                   </Link>
+                  <AlertRowActions alertId={alert.id} status={alert.status} />
                 </li>
               ))}
             </ul>
+          )}
+          {hasNext && nextCursor && (
+            <div className="flex justify-end p-4 border-t border-slate-100">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildPagedHref('/ops/alertas', hrefParams, { cursor: nextCursor })}>
+                  Siguiente página →
+                </Link>
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

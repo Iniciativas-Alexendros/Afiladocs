@@ -2,9 +2,10 @@ import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { User, Briefcase, FileText } from 'lucide-react'
+import { User, Briefcase, FileText, Activity } from 'lucide-react'
 import { ChangeStatusForm, UploadDocumentForm } from './OpsForms'
 import { IntakeDataViewer } from './IntakeDataViewer'
+import { OrderTimeline } from './OrderTimeline'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
@@ -39,7 +40,6 @@ export default async function OpsOrderDetailPage(props: { params: Promise<{ id: 
     include: {
       user: true,
       documents: true,
-      audit_log: { orderBy: { created_at: 'desc' }, take: 5 }
     }
   })
 
@@ -163,6 +163,18 @@ export default async function OpsOrderDetailPage(props: { params: Promise<{ id: 
                 </div>
               )}
 
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="size-5 text-muted-foreground" />
+                Timeline del pedido
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OrderTimeline orderId={order.id} />
             </CardContent>
           </Card>
 

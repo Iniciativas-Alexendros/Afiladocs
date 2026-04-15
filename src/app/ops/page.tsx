@@ -1,16 +1,52 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { FileText, ArrowRight, AlertCircle, Clock, Users } from 'lucide-react'
 import { OrderStatusBadge } from '@/components/OrderStatusBadge'
+import type { KpiRange } from '@/lib/prisma/orders'
+import { KpiRangeFilter } from './_components/KpiRangeFilter'
+import { RevenueCard } from './_components/RevenueCard'
+import { SlaCard } from './_components/SlaCard'
+import { FunnelCard } from './_components/FunnelCard'
+import { PendingAlertsCard } from './_components/PendingAlertsCard'
 
 export const metadata = {
   title: 'Ops Dashboard | Afiladocs',
 }
 
-export default async function OpsDashboardPage() {
+const VALID_RANGES: readonly KpiRange[] = ['7d', '30d', '90d', 'mtd'] as const
+
+function parseRange(raw: string | undefined): KpiRange {
+  if (raw && (VALID_RANGES as readonly string[]).includes(raw)) {
+    return raw as KpiRange
+  }
+  return '30d'
+}
+
+function KpiSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <Skeleton className="h-4 w-32" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-3/4" />
+      </CardContent>
+    </Card>
+  )
+}
+
+export default async function OpsDashboardPage(props: {
+  searchParams: Promise<{ range?: string }>
+}) {
   await requireRole(['admin', 'ops'])
+  const { range: rawRange } = await props.searchParams
+  const range = parseRange(rawRange)
 
   // Fetch pending action orders
   const pendingOrders = await prisma.orders.findMany({
@@ -39,6 +75,27 @@ export default async function OpsDashboardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Panel de Operaciones</h1>
         <p className="text-muted-foreground mt-2">Visión global accionable de los pedidos y clientes.</p>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold tracking-tight">KPIs</h2>
+          <KpiRangeFilter defaultRange="30d" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Suspense fallback={<KpiSkeleton />}>
+            <RevenueCard range={range} />
+          </Suspense>
+          <Suspense fallback={<KpiSkeleton />}>
+            <SlaCard />
+          </Suspense>
+          <Suspense fallback={<KpiSkeleton />}>
+            <FunnelCard range={range} />
+          </Suspense>
+          <Suspense fallback={<KpiSkeleton />}>
+            <PendingAlertsCard />
+          </Suspense>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

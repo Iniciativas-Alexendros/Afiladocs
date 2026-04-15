@@ -13,7 +13,7 @@ export function MarkReviewedButton({ alertId }: { alertId: string }) {
     setLoading(true)
     try {
       const result = await markAlertReviewed(alertId)
-      if (result.error) {
+      if ('error' in result) {
         toast.error(result.error)
       } else {
         toast.success('Alerta marcada como revisada')
