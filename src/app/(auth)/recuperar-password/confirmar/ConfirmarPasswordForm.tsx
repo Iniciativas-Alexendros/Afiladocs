@@ -2,7 +2,7 @@
 
 import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { loadSupabaseBrowserClient } from '@/lib/supabase/lazy-client'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -36,7 +36,7 @@ export function ConfirmarPasswordForm() {
     }
 
     startTransition(async () => {
-      const supabase = createClient()
+      const supabase = await loadSupabaseBrowserClient()
       const { error: updateError } = await supabase.auth.updateUser({ password: pwd })
 
       if (updateError) {
