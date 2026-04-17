@@ -2,7 +2,7 @@
 
 import { useTransition, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { loadSupabaseBrowserClient } from '@/lib/supabase/lazy-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,7 +23,7 @@ export function RecuperarPasswordForm() {
     if (!email) return
 
     startTransition(async () => {
-      const supabase = createClient()
+      const supabase = await loadSupabaseBrowserClient()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/recuperar-password/confirmar`,
       })

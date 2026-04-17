@@ -1,8 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
+import {
+  loadSupabaseBrowserClient,
+  type SupabaseBrowserClient,
+} from '@/lib/supabase/lazy-client'
 
 const STATUS_LABELS: Record<string, string> = {
   intake_pending: 'Pendiente de datos',
@@ -19,36 +22,48 @@ interface Props {
 }
 
 export function PortalRealtimeSubscription({ userId }: Props) {
-  const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
-
   useEffect(() => {
-    const supabase = createClient()
+    let supabase: SupabaseBrowserClient | null = null
+    let channel: ReturnType<SupabaseBrowserClient['channel']> | null = null
+    let cancelled = false
 
-    const channel = supabase
-      .channel(`portal-orders-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const newStatus = (payload.new as { status?: string })?.status
-          if (!newStatus) return
-          const label = STATUS_LABELS[newStatus] ?? newStatus
-          toast.info(`Estado actualizado: ${label}`, {
-            description: 'Tu pedido ha cambiado de estado.',
-          })
-        },
-      )
-      .subscribe()
+    async function subscribe() {
+      const client = await loadSupabaseBrowserClient()
+      if (cancelled) return
+      supabase = client
+      channel = client
+        .channel(`portal-orders-${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            const newStatus = (payload.new as { status?: string })?.status
+            if (!newStatus) return
+            const label = STATUS_LABELS[newStatus] ?? newStatus
+            toast.info(`Estado actualizado: ${label}`, {
+              description: 'Tu pedido ha cambiado de estado.',
+            })
+          },
+        )
+        .subscribe()
+    }
 
-    channelRef.current = channel
+    subscribe().catch((err) => {
+      console.error(JSON.stringify({
+        event: 'portal.realtime.subscribe_failed',
+        message: err instanceof Error ? err.message : 'Unknown',
+        ts: new Date().toISOString(),
+      }))
+    })
 
     return () => {
-      supabase.removeChannel(channel)
+      cancelled = true
+      if (supabase && channel) supabase.removeChannel(channel)
     }
   }, [userId])
 
