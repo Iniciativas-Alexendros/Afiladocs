@@ -4,6 +4,8 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
 
+  "regions": ["mad1"],
+
   "functions": {
     "src/app/api/checkout/route.ts": { "maxDuration": 30 },
     "src/app/api/webhooks/stripe/route.ts": { "maxDuration": 30 },
