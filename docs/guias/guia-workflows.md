@@ -11,7 +11,7 @@ Aplica a todo cambio en `src/app/api/webhooks/`, `src/app/api/cron/`, `src/lib/s
 | Supabase | PostgreSQL + Auth + Storage | [src/lib/supabase/](../../src/lib/supabase/), Prisma con `@prisma/adapter-pg` | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `DATABASE_URL` |
 | Resend | Email transaccional | [src/lib/email/send.ts](../../src/lib/email/send.ts), [src/emails/](../../src/emails/) | `RESEND_API_KEY` |
 | n8n | Relay de contacto + alertas normativas | [src/app/api/contact/](../../src/app/api/contact/), [src/app/api/webhooks/n8n-alerts/](../../src/app/api/webhooks/n8n-alerts/) | `N8N_CONTACT_WEBHOOK_URL`, `N8N_ALERTS_WEBHOOK_SECRET` |
-| EasyVerifactu | Facturación electrónica (RD 1007/2023) | [src/lib/verifactu/](../../src/lib/verifactu/) | `EASY_VERIFACTU_API_URL`, `EASY_VERIFACTU_API_KEY` |
+| EasyVerifactu | Facturación electrónica (RD 1007/2023) | [src/lib/verifactu/](../../src/lib/verifactu/) | `EASYVERIFACTU_API_URL`, `EASYVERIFACTU_API_KEY` |
 | Upstash Redis | Rate limiting | [src/lib/rate-limit.ts](../../src/lib/rate-limit.ts) | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
 | Vercel Cron | Tareas programadas | [vercel.json](../../vercel.json), [src/app/api/cron/](../../src/app/api/cron/) | `CRON_SECRET` |
 

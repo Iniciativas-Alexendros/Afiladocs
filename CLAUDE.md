@@ -224,8 +224,8 @@ Al añadir una plantilla nueva: componente `.tsx` + test snapshot + test del han
 | `DOCUSEAL_API_URL` | Server | URL base DocuSeal self-hosted |
 | `DOCUSEAL_API_KEY` | Server | API key DocuSeal |
 | `DOCUSEAL_WEBHOOK_SECRET` | Server | HMAC secret para verificar webhooks DocuSeal |
-| `EASY_VERIFACTU_API_URL` | Server | Endpoint EasyVerifactu |
-| `EASY_VERIFACTU_API_KEY` | Server | API key EasyVerifactu |
+| `EASYVERIFACTU_API_URL` | Server | Endpoint EasyVerifactu (clave sin guion bajo intermedio — `EASYVERIFACTU_`, no `EASY_VERIFACTU_`) |
+| `EASYVERIFACTU_API_KEY` | Server | API key EasyVerifactu (idem: `EASYVERIFACTU_API_KEY`) |
 | `UPSTASH_REDIS_REST_URL` | Server | URL Upstash (opcional; sin él, rate-limit pasa a null) |
 | `UPSTASH_REDIS_REST_TOKEN` | Server | Token Upstash |
 | `N8N_CONTACT_WEBHOOK_URL` | Server | Webhook n8n para contacto (opcional) |

@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Afiladocs — camino a producción</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c222b;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f6a800;       /* amber Afiladocs */
+    --accent-soft: #3a2e12;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --todo: #6e7681;
+    --link: #58a6ff;
+    --code-bg: #0b0f14;
+    --shadow: 0 1px 0 rgba(255,255,255,0.03), 0 8px 24px rgba(0,0,0,0.4);
+    --r: 10px;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); font-family: var(--sans); margin: 0; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: var(--mono); font-size: 12.5px; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* Layout shell */
+  .shell { max-width: 1400px; margin: 0 auto; padding: 28px 24px 140px; }
+  .hero { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; margin-bottom: 24px; }
+  .hero h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.02em; }
+  .hero h1 .dot { color: var(--accent); }
+  .hero .subtitle { color: var(--muted); font-size: 14.5px; max-width: 640px; line-height: 1.5; }
+  .hero .stats { display: flex; gap: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 14px; min-width: 110px; }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat .v { font-size: 18px; font-weight: 600; margin-top: 2px; }
+  .stat .v small { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 4px; }
+
+  /* Columns */
+  .grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { margin: 0 0 12px; font-size: 15px; letter-spacing: 0.01em; display: flex; align-items: center; gap: 8px; }
+  .card h2 .badge { font-size: 10px; color: var(--muted); font-weight: 500; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .card + .card { margin-top: 16px; }
+  .hint { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin: 0 0 10px; }
+
+  /* Estrategia radios */
+  .radio-list { display: flex; flex-direction: column; gap: 8px; }
+  .radio {
+    display: flex; align-items: flex-start; gap: 10px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .radio:hover { border-color: #4a5361; }
+  .radio input { margin-top: 3px; accent-color: var(--accent); }
+  .radio.active { border-color: var(--accent); background: var(--accent-soft); }
+  .radio .label { font-size: 13.5px; font-weight: 600; }
+  .radio .desc { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .pill { display: inline-block; background: #21262d; color: var(--muted); font-size: 10.5px; padding: 2px 7px; border-radius: 999px; margin-left: 6px; font-weight: 500; }
+  .pill.rec { background: #133a1a; color: var(--ok); }
+
+  /* Checklist */
+  .check-list { display: flex; flex-direction: column; gap: 6px; }
+  .check {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 10px; border-radius: 7px; border: 1px solid transparent;
+    transition: background .12s, border-color .12s;
+  }
+  .check:hover { background: var(--panel-2); border-color: var(--border); }
+  .check .status { font-size: 14px; line-height: 1.3; min-width: 18px; text-align: center; }
+  .check .title { font-size: 12.8px; }
+  .check .meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .check.togglable { cursor: pointer; }
+  .check.togglable input { display: none; }
+  .check .checkbox-mark {
+    width: 16px; height: 16px; border: 1.5px solid var(--border); border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 1px; flex-shrink: 0;
+    background: var(--panel-2);
+    font-size: 11px; color: transparent;
+  }
+  .check.togglable.done .checkbox-mark {
+    background: var(--ok); border-color: var(--ok); color: #0d1117;
+  }
+  .check.togglable.done .checkbox-mark::after { content: "✓"; }
+  .check.done .title { color: var(--muted); text-decoration: line-through; }
+  .check.locked { cursor: default; }
+
+  /* Flujos */
+  .flow {
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+    margin-bottom: 10px; background: var(--panel-2); transition: border-color .15s;
+  }
+  .flow:hover { border-color: #4a5361; }
+  .flow summary { cursor: pointer; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 10px; list-style: none; outline: none; }
+  .flow summary::-webkit-details-marker { display: none; }
+  .flow summary .icon { width: 24px; height: 24px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+  .flow summary .chev { margin-left: auto; color: var(--muted); transition: transform .2s; }
+  .flow[open] summary .chev { transform: rotate(90deg); }
+  .flow .steps { margin: 10px 0 2px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .flow .step { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; font-size: 12.5px; color: var(--text); line-height: 1.55; }
+  .flow .step .n { width: 18px; height: 18px; border-radius: 50%; background: #21262d; color: var(--muted); font-size: 10.5px; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px; font-family: var(--mono); }
+  .flow .step code { background: var(--code-bg); color: var(--link); padding: 1px 6px; border-radius: 4px; font-size: 11.5px; }
+  .flow .step .t { color: var(--muted); }
+
+  /* Radar / cohesión */
+  .radar { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; font-size: 12.5px; align-items: center; }
+  .radar .item { display: flex; align-items: center; gap: 10px; }
+  .radar .item .name { flex: 1; }
+  .bar { width: 130px; height: 6px; border-radius: 4px; background: #21262d; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--ok); }
+  .bar.warn > span { background: var(--warn); }
+  .bar.todo > span { background: var(--todo); }
+
+  /* Tabla diff */
+  .diff-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .diff-table th, .diff-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .diff-table th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .diff-table td.ruta code { background: var(--code-bg); color: var(--link); padding: 1px 6px; border-radius: 4px; }
+  .diff-table td.delta { font-family: var(--mono); color: var(--ok); font-weight: 600; }
+  .spark { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); }
+  .spark .from { color: var(--muted); text-decoration: line-through; }
+  .spark .to { color: var(--ok); font-weight: 600; }
+  .spark .arr { color: var(--muted); }
+
+  /* Prompt output dock */
+  .dock {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, rgba(13,17,23,0) 0%, var(--bg) 40%);
+    padding: 24px 24px 20px; z-index: 10;
+  }
+  .dock-inner {
+    max-width: 1400px; margin: 0 auto;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.55);
+  }
+  .dock .label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  #prompt { font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--text); white-space: pre-wrap; max-height: 140px; overflow-y: auto; }
+  .copy {
+    background: var(--accent); color: #0d1117; font-weight: 600; font-size: 12.5px;
+    padding: 8px 14px; border: 0; border-radius: 7px; transition: background .15s;
+    white-space: nowrap;
+  }
+  .copy:hover { background: #ffc23b; }
+  .copy.copied { background: var(--ok); color: #0d1117; }
+
+  /* Presets */
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .preset {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    font-size: 11.5px; padding: 5px 10px; border-radius: 999px; transition: all .15s;
+  }
+  .preset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* util */
+  .muted { color: var(--muted); }
+  kbd { font-family: var(--mono); background: var(--code-bg); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-size: 11px; color: var(--muted); }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div>
+      <h1>Afiladocs<span class="dot">.</span> camino a producción</h1>
+      <p class="subtitle">
+        Plataforma de servicios legales B2C en Valencia.
+        Stack: Next.js 15 + React 19 + TypeScript + Prisma + Supabase + Stripe + DocuSeal + Resend.
+        Deploy en Vercel (región <code>mad1</code>), dominio <a href="https://afiladocs.com" target="_blank" rel="noreferrer">afiladocs.com</a> activo.
+        Ajusta los controles de la izquierda para ver qué falta y genera el prompt de siguiente paso.
+      </p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Fases cerradas</div><div class="v">5<small>/ 6</small></div></div>
+      <div class="stat"><div class="k">Home First Load</div><div class="v">194<small>kB (−40)</small></div></div>
+      <div class="stat"><div class="k">Último commit</div><div class="v" style="font-family:var(--mono);font-size:14px">e5411cd</div></div>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+
+    <!-- LEFT: controles -->
+    <aside>
+      <!-- Estrategia -->
+      <section class="card">
+        <h2>Estrategia de lanzamiento <span class="badge">elige una</span></h2>
+        <p class="hint">Cómo quieres llegar a producción. Cada opción cambia el prompt de abajo.</p>
+        <div class="radio-list" id="strategies">
+          <!-- inyectadas por JS -->
+        </div>
+        <div class="presets">
+          <button class="preset" data-preset="mvp">🚀 MVP rápido</button>
+          <button class="preset" data-preset="polish">✨ Pulido antes</button>
+          <button class="preset" data-preset="flags">🧪 Con feature flags</button>
+          <button class="preset" data-preset="ca">🗣️ Audit + CA</button>
+        </div>
+      </section>
+
+      <!-- Checklist pendiente -->
+      <section class="card">
+        <h2>Bloqueantes y pendientes <span class="badge">toggle lo que ya esté hecho</span></h2>
+        <p class="hint">Los verdes son F1–F5.2 ya cerradas (no tocar). Los ámbar y gris son lo que aún depende de ti para producción real.</p>
+        <div class="check-list" id="checklist"></div>
+      </section>
+    </aside>
+
+    <!-- RIGHT: preview -->
+    <main>
+      <!-- Flujos críticos -->
+      <section class="card">
+        <h2>Flujos críticos <span class="badge">abre para ver pasos + archivo</span></h2>
+        <p class="hint">Esto es lo que ocurre end-to-end. Cada paso apunta al archivo real del repo.</p>
+
+        <details class="flow" open>
+          <summary><span class="icon">💳</span> Flujo pago completo (Stripe → Verifactu → DocuSeal → portal) <span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">1</span><span>Cliente añade producto al carrito y va a Stripe Checkout — <code>src/app/api/checkout/route.ts</code></span></li>
+            <li class="step"><span class="n">2</span><span>Stripe llama a webhook <code>/api/webhooks/stripe</code> con firma HMAC — <code>src/app/api/webhooks/stripe/route.ts</code></span></li>
+            <li class="step"><span class="n">3</span><span><code>checkout.session.completed</code> → <code>orders.status = 'processing'</code> + Verifactu crea factura — <code>src/lib/verifactu/easyverifactu.ts</code></span></li>
+            <li class="step"><span class="n">4</span><span>Email <code>PaymentConfirmation</code> via Resend — <code>src/emails/PaymentConfirmation.tsx</code></span></li>
+            <li class="step"><span class="n">5</span><span>Ops sube PDF borrador en <code>/ops/pedido/[id]</code> — <code>src/app/ops/actions.ts</code></span></li>
+            <li class="step"><span class="n">6</span><span>DocuSeal recibe PDF → cliente firma → webhook <code>/api/webhooks/docuseal</code> (HMAC-SHA256) — <code>src/app/api/webhooks/docuseal/route.ts</code></span></li>
+            <li class="step"><span class="n">7</span><span>Descarga PDF firmado → Supabase Storage bucket <code>documents</code> + <code>hash_sha256_signed</code> calculado</span></li>
+            <li class="step"><span class="n">8</span><span><code>revalidateTag('orders' | 'orders-${'$'}{uid}' | 'order-${'$'}{id}')</code> → portal refresca en &lt;5 s</span></li>
+            <li class="step"><span class="n">9</span><span>Email <code>DocumentReady</code> con signed URL 1 h — cliente descarga desde <code>/portal/pedido/[id]</code></span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">📋</span> Flujo intake cliente (formulario pre-redacción) <span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">1</span><span>Tras pago → <code>orders.status = 'intake_pending'</code></span></li>
+            <li class="step"><span class="n">2</span><span>Email <code>IntakeRequired</code> con link al formulario — <code>src/emails/intake-required.tsx</code></span></li>
+            <li class="step"><span class="n">3</span><span>Cliente rellena <code>/portal/pedido/[id]/intake</code> (Zod validation)</span></li>
+            <li class="step"><span class="n">4</span><span>Submit → <code>orders.status = 'processing'</code> → ops empieza redacción</span></li>
+            <li class="step"><span class="n">5</span><span>Cron <code>/api/cron/intake-reminders</code> 9:00 UTC manda recordatorio diario si sigue pendiente</span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">🛠️</span> Flujo ops (panel interno) <span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">1</span><span><code>/ops/pedidos</code> con filtros cursor-based + export CSV (F4) — <code>src/app/ops/pedidos/actions.ts</code></span></li>
+            <li class="step"><span class="n">2</span><span><code>/ops/pedido/[id]</code> para subir PDF borrador / final + <code>OrderTimeline</code> con audit_log</span></li>
+            <li class="step"><span class="n">3</span><span>Batch actions: <code>batchMarkProcessing</code>, <code>batchAddInternalNote</code>, <code>batchSendIntakeReminder</code></span></li>
+            <li class="step"><span class="n">4</span><span><code>/ops</code> dashboard con KPIs: revenue, SLA p50-p99, funnel intake→firma</span></li>
+            <li class="step"><span class="n">5</span><span><code>/ops/alertas</code> ingesta desde n8n (monitores BOE/DOGV, AEPD, CGPJ)</span></li>
+            <li class="step"><span class="n">6</span><span><code>/ops/auditoria</code> UI cursor-paginada + export CSV (F1)</span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">🔐</span> Flujo auth + seguridad (Supabase + middleware) <span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">1</span><span>Supabase Auth (email+pwd) → tabla <code>profiles.role</code>: <code>client</code> / <code>ops</code> / <code>admin</code></span></li>
+            <li class="step"><span class="n">2</span><span><code>middleware.ts</code>: CSP con nonce por request, bot allowlist, geo-block opcional, HSTS preload 2 años</span></li>
+            <li class="step"><span class="n">3</span><span><code>requireAuth()</code> redirige a <code>/login</code> si no hay sesión — <code>src/lib/auth.ts</code></span></li>
+            <li class="step"><span class="n">4</span><span><code>requireRole(['admin','ops'])</code> redirige a <code>/portal</code> si el rol no coincide</span></li>
+            <li class="step"><span class="n">5</span><span>Rate-limit Upstash: <code>/api/checkout</code> 10 rpm, <code>/api/contact</code> 5/10min, crons 5 rpm</span></li>
+            <li class="step"><span class="n">6</span><span>RLS en Supabase: policies por <code>user_id</code> en <code>orders</code>, <code>documents</code>, <code>profiles</code></span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">⚡</span> Flujo cache granular (F5.2, cerrada hoy) <span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">1</span><span>Catálogo en <code>unstable_cache</code> con tag <code>products</code>, revalidate 1h — <code>src/lib/catalog/query.ts</code></span></li>
+            <li class="step"><span class="n">2</span><span><code>/portal/pedidos</code> y <code>/portal/pedido/[id]</code> en <code>unstable_cache</code> con tag por user — <span class="t">keys independientes, cero cross-leak</span></span></li>
+            <li class="step"><span class="n">3</span><span>Webhooks Stripe+DocuSeal y ops actions emiten los 3 tags: <code>orders</code>, <code>orders-${'$'}{uid}</code>, <code>order-${'$'}{id}</code></span></li>
+            <li class="step"><span class="n">4</span><span>Portal refresca en &lt;5 s tras pago/firma sin recargar</span></li>
+            <li class="step"><span class="n">5</span><span>Home + rutas marketing en ISR/SSG, bundle 234→194 kB tras quitar framer-motion</span></li>
+          </ol>
+        </details>
+      </section>
+
+      <!-- Diff F5.2 -->
+      <section class="card">
+        <h2>F5.2 antes / después <span class="badge">cerrada 2026-04-17</span></h2>
+        <p class="hint">Lo que ha cambiado hoy en tu bundle. Números reales de <code>npm run build</code>.</p>
+        <table class="diff-table">
+          <thead>
+            <tr><th>Ruta</th><th>First Load JS</th><th>Delta</th><th>Tipo</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ruta"><code>/</code></td>
+              <td><span class="spark"><span class="from">234 kB</span><span class="arr">→</span><span class="to">194 kB</span></span></td>
+              <td class="delta">−40 kB</td>
+              <td>○ static RSC</td>
+            </tr>
+            <tr>
+              <td class="ruta"><code>/recuperar-password</code></td>
+              <td><span class="spark"><span class="from">189 kB</span><span class="arr">→</span><span class="to">128 kB</span></span></td>
+              <td class="delta">−61 kB</td>
+              <td>○ static</td>
+            </tr>
+            <tr>
+              <td class="ruta"><code>/recuperar-password/confirmar</code></td>
+              <td><span class="spark"><span class="from">189 kB</span><span class="arr">→</span><span class="to">127 kB</span></span></td>
+              <td class="delta">−62 kB</td>
+              <td>○ static</td>
+            </tr>
+            <tr>
+              <td class="ruta"><code>/portal/pedido/[id]</code></td>
+              <td><span class="spark"><span class="to">204 kB</span></span></td>
+              <td class="delta" style="color:var(--muted)">latencia↓</td>
+              <td>ƒ dynamic + cache 60s</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Plan de go-live priorizado -->
+      <section class="card">
+        <h2>Plan de go-live priorizado <span class="badge">P0 → P3 · ~2-3 h efectivas + paperwork en paralelo</span></h2>
+        <p class="hint">Secuencia concreta por cada pendiente: pre-condiciones, pasos y riesgos. <strong>Nada se ejecuta hasta tu luz verde por bloque.</strong></p>
+
+        <details class="flow">
+          <summary><span class="icon" style="background:#133a1a;color:var(--ok)">✓</span>&nbsp;<s style="color:var(--muted)">P0a · Rotar Stripe <code style="font-size:11px;background:var(--code-bg);padding:1px 5px;border-radius:3px">sk_live …LoWWthC</code></s> <span class="pill rec">cerrado 2026-04-17</span><span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">✓</span><span class="t">Rotado por Alejandro. Alerta 🔴 2026-04-14 → Historial en <code>cross-app-alerts.md</code>. Ciclo de rotaciones LIVE cerrado (Stripe <code>…ZcEJgLNf</code> + <code>…LoWWthC</code>, GitHub PAT, Sentry — todos rotados entre 2026-04-13 y 2026-04-17).</span></li>
+          </ol>
+        </details>
+
+        <details class="flow" open>
+          <summary><span class="icon">P0</span>&nbsp;Switch Stripe test → live + smoke 1 € <span class="pill" style="background:#3a1a1a;color:#ff7b72">45-60 min · siguiente</span><span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">0</span><span class="t">Pre-req: Stripe account activado (KYC, cuenta bancaria verificada) — Dashboard → Settings → Account details.</span></li>
+            <li class="step"><span class="n">1</span><span>Confirmar Vercel env: <code>STRIPE_SECRET_KEY</code> = <code>sk_live_…</code> (tras P0a) y <code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> = <code>pk_live_…</code>.</span></li>
+            <li class="step"><span class="n">2</span><span>Stripe Dashboard → Developers → Webhooks → crear endpoint <code>https://afiladocs.com/api/webhooks/stripe</code> con eventos <code>checkout.session.completed</code>, <code>customer.subscription.{created,updated,deleted}</code>, <code>invoice.payment_failed</code>.</span></li>
+            <li class="step"><span class="n">3</span><span>Copiar <strong>live</strong> signing secret (<code>whsec_…</code>, distinto del test) a Vercel env <code>STRIPE_WEBHOOK_SECRET</code>.</span></li>
+            <li class="step"><span class="n">4</span><span>Verificar <code>EASYVERIFACTU_API_KEY</code> apunta a <strong>producción</strong> (no sandbox) — primera factura real la usa.</span></li>
+            <li class="step"><span class="n">5</span><span>Redeploy y observar Sentry + Vercel logs en vivo.</span></li>
+            <li class="step"><span class="n">6</span><span><strong>Smoke test</strong>: producto a 1 €, tarjeta personal real, checkout completo. Validar:
+              <ul style="margin:4px 0 0 16px;padding:0;color:var(--muted);font-size:12px;line-height:1.6">
+                <li>Pago visible en Stripe Dashboard (modo Live)</li>
+                <li>Webhook entregado con 200 en dashboard Stripe</li>
+                <li><code>orders.status='processing'</code> + <code>stripe_event_id</code> en Supabase</li>
+                <li>Factura Verifactu generada (<code>invoice_id</code> poblado)</li>
+                <li>Email <code>PaymentConfirmation</code> recibido</li>
+              </ul>
+            </span></li>
+            <li class="step"><span class="n">7</span><span>Reembolso del 1 € desde Stripe Dashboard → verificar email de refund + webhook de refund si está suscrito.</span></li>
+            <li class="step"><span class="n">⚠</span><span class="t">Riesgo 1 (Verifactu): si la API key sigue en sandbox, el pedido queda sin factura. Rollback: borrar order manualmente y corregir key.</span></li>
+            <li class="step"><span class="n">⚠</span><span class="t">Riesgo 2 (webhook): live <code>whsec_</code> distinto al test. Si no se actualiza, las primeras firmas devuelven 400; Stripe reintenta 3 días pero ensucia logs. Validar primera entrega al instante.</span></li>
+            <li class="step"><span class="n">⚠</span><span class="t">Riesgo 3 (idempotencia): confirmar que el índice UNIQUE sobre <code>audit_log.stripe_event_id</code> está aplicado en prod — si no, un reintento duplica efectos.</span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">P1</span>&nbsp;Redirect <code style="font-size:11px;background:var(--code-bg);padding:1px 5px;border-radius:3px">ops@afiladocs.com</code> → Proton <span class="pill" style="background:#3a2e12;color:var(--accent)">30 min + identificar DNS</span><span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">⚠</span><span class="t"><strong>Hallazgo 2026-04-17</strong>: <code>afiladocs.com</code> NO está en Hostinger (lista contiene <code>alexendros.*</code>, <code>sanemex.*</code>, <code>bitmotiv.*</code>, <code>mentesqueflorecentea.com</code> — nada de afiladocs). El registrador está en otro proveedor. El plan empieza por identificar dónde.</span></li>
+            <li class="step"><span class="n">0</span><span>Identificar registrar/DNS: <code>whois afiladocs.com</code> o Vercel Dashboard → Project <code>afiladocs</code> → Domains → columna <em>Nameservers</em>. Candidatos: Cloudflare, Namecheap, GoDaddy, Vercel DNS.</span></li>
+            <li class="step"><span class="n">1</span><span>Según registrador elegido:
+              <ul style="margin:4px 0 0 16px;padding:0;color:var(--muted);font-size:12px;line-height:1.6">
+                <li><strong>Cloudflare</strong>: activar <em>Email Routing</em> nativo (gratis) — ruta <code>ops@ → alexendros@proton.me</code>, sin ImprovMX.</li>
+                <li><strong>Otros registradores</strong>: alta en ImprovMX (free) y añadir MX en panel del registrador: <code>mx1.improvmx.com</code> prio 10 + <code>mx2.improvmx.com</code> prio 20.</li>
+                <li><strong>Vercel DNS</strong>: <code>vercel dns add afiladocs.com @ MX mx1.improvmx.com 10</code> (+ mx2 prio 20).</li>
+              </ul>
+            </span></li>
+            <li class="step"><span class="n">2</span><span>Crear alias <code>ops@ → alexendros@proton.me</code>. Plantear en la misma tanda <code>admin@</code>, <code>info@</code>, <code>contacto@</code>, <code>soporte@</code>.</span></li>
+            <li class="step"><span class="n">3</span><span>Esperar propagación (5-60 min) → test: enviar desde Gmail externo a <code>ops@afiladocs.com</code> y verificar llegada a Proton.</span></li>
+            <li class="step"><span class="n">4</span><span>Si ya hay TXT SPF (<code>v=spf1</code>) con Resend, añadir <code>include:spf.improvmx.com</code> (o el include del proveedor elegido) — un único TXT SPF por dominio.</span></li>
+            <li class="step"><span class="n">5</span><span>Verificar env <code>OPS_EMAIL</code> en Vercel: si vacío, <code>src/lib/env.ts:69</code> cae al default <code>ops@afiladocs.com</code> — correcto tras P1.</span></li>
+            <li class="step"><span class="n">⚠</span><span class="t">Riesgo: crons <code>sla-monitor</code>, <code>daily-report</code>, <code>payment-failed</code> envían a <code>ops@afiladocs.com</code>. Sin este redirect, alerts se pierden en el vacío.</span></li>
+            <li class="step"><span class="n">⚠</span><span class="t">Riesgo: <code>noreply@afiladocs.com</code> como <code>from</code> de Resend necesita DKIM/SPF configurado en el DNS del registrador. Verificar en Resend Dashboard → Domains → <code>afiladocs.com</code> que los TXT estén todos en verde.</span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">P2</span>&nbsp;Declaración de tratamientos AEPD (RGPD) <span class="pill" style="background:#1a2a3a;color:var(--link)">4 h+ paperwork</span><span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">0</span><span class="t">Afiladocs procesa NIF, email, teléfono, dirección, datos de pago y posibles datos legales de clientes ES/UE. No aplica exención art. 30.5 — procesamiento regular.</span></li>
+            <li class="step"><span class="n">1</span><span>Usar <strong>FACILITA RGPD</strong> (AEPD, gratuito) → genera Registro de Actividades de Tratamiento (RAT) + cláusulas informativas base.</span></li>
+            <li class="step"><span class="n">2</span><span>Firmar DPA con cada encargado: Stripe (Dashboard → Settings → DPA), Supabase (GDPR section), Vercel (Legal), Resend, DocuSeal, EasyVerifactu, ImprovMX o Cloudflare.</span></li>
+            <li class="step"><span class="n">3</span><span>Actualizar <code>/legal/privacidad</code>: enumerar encargados, finalidades, plazos de retención, derechos ARCO-POL, base legal (art. 6 RGPD).</span></li>
+            <li class="step"><span class="n">4</span><span>Documentar transferencias internacionales: verificar regiones (Resend EU, Supabase EU, Vercel <code>mad1</code>). Si algún dato pasa a US → cláusulas SCC.</span></li>
+            <li class="step"><span class="n">5</span><span>Política de retención: ya existe <code>cleanup-expired-sessions</code> (90 d intake) — reflejar en RAT.</span></li>
+            <li class="step"><span class="n">6</span><span>Archivar RAT + DPAs firmadas en Proton Drive → referencia en <code>docs/compliance/RGPD-RAT.md</code>.</span></li>
+            <li class="step"><span class="n">7</span><span>Evaluar DPO (art. 37) — probablemente no obligatorio para volumen inicial, pero documentar la evaluación.</span></li>
+            <li class="step"><span class="n">⚠</span><span class="t">Riesgo: AEPD rara vez audita unilateralmente, pero una queja de usuario activa revisión. Multas hasta 4% facturación o 20 M€. Severidad alta, probabilidad baja con diligencia documentada.</span></li>
+            <li class="step"><span class="n">💡</span><span class="t">Skill a invocar cuando des luz verde: <code>/LEGAL_cumplimiento</code> con scope "RGPD Afiladocs B2C".</span></li>
+          </ol>
+        </details>
+
+        <details class="flow">
+          <summary><span class="icon">P3</span>&nbsp;Pentest + WCAG 2.1 AA audit <span class="pill" style="background:#21262d;color:var(--muted)">2-4 semanas · post-launch</span><span class="chev">›</span></summary>
+          <ol class="steps">
+            <li class="step"><span class="n">0</span><span class="t">No bloquea launch B2C. Recomendado dentro de 60 días post-launch. EU Accessibility Act obliga WCAG AA desde jun-2025.</span></li>
+            <li class="step"><span class="n">1</span><span><strong>Pre-check gratis hoy</strong>: OWASP ZAP baseline scan + <code>axe-core</code> en Playwright (<code>e2e/a11y.spec.ts</code>) + Lighthouse a11y ≥ 95.</span></li>
+            <li class="step"><span class="n">2</span><span><strong>Pentest</strong>: (a) SaaS automatizado Detectify / Intruder / Probely ~100 €/mes; (b) consultor humano 1.500-3.000 € / 3-5 días (Tarlogic, S21sec, listado INCIBE).</span></li>
+            <li class="step"><span class="n">3</span><span><strong>WCAG AA manual</strong>: lector de pantalla (NVDA/VoiceOver) sobre home, checkout, portal, intake; navegación por teclado; focus visible; targets táctiles ≥ 44 px.</span></li>
+            <li class="step"><span class="n">4</span><span>Declaración de conformidad en <code>/legal/accesibilidad</code> listando hallazgos conocidos (modo oscuro parcial, audit teclado).</span></li>
+            <li class="step"><span class="n">💡</span><span class="t">Skills: <code>/UX_accesibilidad</code> (audit estructurado) · <code>/APP_seguridad</code> (hallazgos pentest).</span></li>
+          </ol>
+        </details>
+
+        <div class="divider"></div>
+
+        <h3 style="font-size:13.5px;margin:6px 0 10px;letter-spacing:0.01em">Riesgos transversales antes del go-live</h3>
+        <ol class="steps" style="margin-top:0">
+          <li class="step"><span class="n">1</span><span><strong>Verifactu live keys</strong>: la primera factura real revienta el smoke de P0b si sigue en sandbox. Validar <code>EASYVERIFACTU_API_URL</code> + <code>_KEY</code> antes del primer pago.</span></li>
+          <li class="step"><span class="n">2</span><span><strong>Resend SPF/DKIM/DMARC</strong>: sin DKIM válido, <code>PaymentConfirmation</code> va a spam. Verificar <code>dig TXT resend._domainkey.afiladocs.com</code> + <code>dig TXT _dmarc.afiladocs.com</code>.</span></li>
+          <li class="step"><span class="n">3</span><span><strong>Idempotencia webhooks</strong>: índice UNIQUE en <code>audit_log.stripe_event_id</code> / <code>docuseal_event_id</code> debe estar aplicado en prod. Comprobar en Supabase Dashboard → Database → Indexes.</span></li>
+          <li class="step"><span class="n">4</span><span><strong>Uptime monitoring ausente</strong>: Sentry cubre errores de runtime, no caídas. Añadir UptimeRobot / Better Stack ping cada 5 min sobre <code>/api/health</code> → alerta a <code>ops@</code> (tras P1).</span></li>
+          <li class="step"><span class="n">5</span><span><strong>CSP en producción</strong>: monitorizar Sentry por violaciones de <code>style-src</code>/<code>script-src</code> 48 h tras el primer deploy live. <code>style-src 'unsafe-inline'</code> sigue activo por Tailwind v4 (aceptado).</span></li>
+          <li class="step"><span class="n">6</span><span><strong>Backup Supabase</strong>: free tier sin PITR. Antes de datos reales, subir a Pro (25 $/mes, PITR 7 d) — coste casi obligado tras primer pago real.</span></li>
+          <li class="step"><span class="n">7</span><span><strong>Páginas /legal coherentes con AEPD</strong>: tras P2, sincronizar <code>/legal/privacidad</code>, <code>/legal/cookies</code> y cookie banner con la lista final de encargados.</span></li>
+          <li class="step"><span class="n">8</span><span><strong>Redirect www → non-www</strong>: confirmar <code>curl -I https://www.afiladocs.com</code> devuelve 301 a <code>https://afiladocs.com</code>.</span></li>
+          <li class="step"><span class="n">9</span><span><strong>Rate-limit en prod</strong>: si <code>UPSTASH_REDIS_REST_URL</code> no está seteada, <code>src/lib/rate-limit.ts:9</code> devuelve <code>hasUpstash=false</code> → todos los limiters son <code>null</code> → <code>applyRateLimit</code> responde <code>{limited:false}</code> y pasa todo. Crítico para <code>/api/checkout</code> y <code>/api/contact</code> — verificar antes del smoke.</span></li>
+          <li class="step"><span class="n">10</span><span><strong>Región Vercel</strong>: <code>vercel.json</code> no declara <code>regions</code> → deploy actual en <code>iad1</code> (US-East, verificado vía MCP), no <code>mad1</code> como indica CLAUDE.md. Latencia extra ~80-120 ms desde ES/EU. Decidir: (a) añadir <code>"regions": ["mad1"]</code> al <code>vercel.json</code> o (b) corregir doctrina CLAUDE.md.</span></li>
+          <li class="step"><span class="n">11</span><span><strong>Env var Verifactu</strong>: código usa <code>EASYVERIFACTU_*</code> (sin guion bajo intermedio), no <code>EASY_VERIFACTU_*</code> como algunas docs indicaban. CLAUDE.md y <code>guias/guia-workflows.md</code> corregidos 2026-04-17. Verificar que el env var en Vercel tenga la clave correcta.</span></li>
+        </ol>
+      </section>
+
+      <!-- Radar UI/UX -->
+      <section class="card">
+        <h2>Cohesión UI/UX <span class="badge">qué tal se ve y se siente</span></h2>
+        <p class="hint">Auto-evaluación rápida. Las barras llenas son puntos fuertes, las parciales son cosas que quizá audites antes de escalar.</p>
+        <div class="radar">
+          <div class="item"><span class="name">Design system (shadcn/ui + Tailwind v4)</span><span class="bar"><span style="width:100%"></span></span></div>
+          <div class="item"><span class="name">Tipografía única (DM Sans via <code>next/font</code>)</span><span class="bar"><span style="width:100%"></span></span></div>
+          <div class="item"><span class="name">Paleta semántica + modo claro estable</span><span class="bar"><span style="width:100%"></span></span></div>
+          <div class="item"><span class="name">Animaciones CSS (<code>.afd-fade-up</code>, sin librería)</span><span class="bar"><span style="width:100%"></span></span></div>
+          <div class="item"><span class="name">Cookie consent RGPD con botones equivalentes</span><span class="bar"><span style="width:100%"></span></span></div>
+          <div class="item"><span class="name">Mobile-first responsive</span><span class="bar"><span style="width:100%"></span></span></div>
+          <div class="item"><span class="name">Accesibilidad WCAG 2.1 AA (contraste + focus)</span><span class="bar warn"><span style="width:70%"></span></span></div>
+          <div class="item"><span class="name">A11y teclado + lector de pantalla (audit)</span><span class="bar todo"><span style="width:35%"></span></span></div>
+          <div class="item"><span class="name">Modo oscuro prominente</span><span class="bar todo"><span style="width:20%"></span></span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- PROMPT DOCK -->
+<div class="dock">
+  <div class="dock-inner">
+    <div>
+      <div class="label">Prompt para pegar en Claude</div>
+      <div id="prompt"></div>
+    </div>
+    <button class="copy" id="copy">Copiar prompt</button>
+  </div>
+</div>
+
+<script>
+  // ---------------- STATE ----------------
+  const STRATEGIES = [
+    {
+      id: 'mvp',
+      label: 'Lanzar YA con lo existente',
+      pill: { text: 'Recomendada', cls: 'rec' },
+      desc: 'MVP sólido: F1–F5.2 cerradas. F6 (flags, blog, i18n) se activa sólo cuando haya señales de tracción. Ruta más corta y con menor riesgo de scope creep.',
+      horizon: 'Días',
+    },
+    {
+      id: 'polish',
+      label: 'Cerrar PR 4 (Lighthouse delta) antes',
+      pill: { text: '+1 h', cls: '' },
+      desc: 'Relanzar Lighthouse post-deploy y documentar delta en docs/F5-performance-audit.md. Cierra F5.2 al 100 % y deja números medidos en producción para futuros PRs.',
+      horizon: '1 h',
+    },
+    {
+      id: 'flags',
+      label: 'Añadir F6.1 feature flags primero',
+      pill: { text: '+6-8 h', cls: '' },
+      desc: 'Integrar @vercel/edge-config + src/lib/flags.ts + runbook feature-flags. Desbloquea rollouts controlados sin redeploy. Útil si planeas experimentar A/B o activar funciones gradualmente.',
+      horizon: '6–8 h',
+    },
+    {
+      id: 'ca',
+      label: 'Audit externo + i18n catalán',
+      pill: { text: '+4-6 semanas', cls: '' },
+      desc: 'Pentest + audit WCAG 2.1 AA completo + locale /ca con next-intl (revisión legal CA). Solo si tu target inicial incluye mercado catalán o vas a tráfico orgánico masivo.',
+      horizon: '4–6 semanas',
+    },
+  ];
+
+  const CHECKLIST = [
+    { id: 'f1', status: 'ok',   locked: true,  title: 'F1 Seguridad — CSP nonce + HSTS 2 años + middleware endurecido', meta: 'Cerrada 2026-04-14 · PR #7' },
+    { id: 'f2', status: 'ok',   locked: true,  title: 'F2 Docs operativos + 5 runbooks incidentes', meta: 'Cerrada 2026-04-14 · PR #9' },
+    { id: 'f3', status: 'ok',   locked: true,  title: 'F3 Home CRO + Schema.org (FAQ, HowTo, Product, BreadcrumbList)', meta: 'Cerrada 2026-04-14 · PRs #10/#12/#13' },
+    { id: 'f4', status: 'ok',   locked: true,  title: 'F4 Ops avanzado — filtros cursor, export CSV, KPIs SLA, batch', meta: 'Cerrada 2026-04-15 · PR #15' },
+    { id: 'f5', status: 'ok',   locked: true,  title: 'F5 + F5.2 Performance — ISR/SSG + cache granular + bundle audit', meta: 'Cerrada 2026-04-17 · PRs #19-25' },
+    { id: 'lh',      status: 'ok',   locked: true,  title: 'Lighthouse delta post-deploy F5.2 documentado', meta: 'Cerrada 2026-04-17 · F5-performance-audit.md §Resultados medidos F5.2' },
+    { id: 'rotate',  status: 'ok',   locked: true,  title: 'Rotación secretos LIVE · ciclo completo', meta: 'Cerrada 2026-04-17 · …LoWWthC rotado. Stripe (…ZcEJgLNf), GitHub PAT, Sentry ya rotados el 2026-04-13.' },
+    { id: 'live',    status: 'todo', done: false, priority: 'P0', effort: '45-60 min', title: 'Switch Stripe test → live + smoke 1 € end-to-end', meta: 'Tarjeta real, verificar Verifactu + webhook live + PaymentConfirmation. Reembolso tras OK.' },
+    { id: 'email',   status: 'warn', done: false, priority: 'P1', effort: '30 min', title: 'Redirect ops@afiladocs.com → alexendros@proton.me', meta: 'Paso 0: identificar registrar (afiladocs.com NO está en Hostinger). Luego ImprovMX o Cloudflare Email Routing. Sin esto, alerts SLA/daily-report/payment-failed se pierden.' },
+    { id: 'aepd',    status: 'todo', done: false, priority: 'P2', effort: '4 h+ paperwork', title: 'Declaración de tratamientos ante AEPD (RGPD)', meta: 'FACILITA RGPD + DPAs con encargados. Skill: /LEGAL_cumplimiento. No bloquea técnica, expone legalmente.' },
+    { id: 'audit',   status: 'todo', done: false, priority: 'P3', effort: '2-4 semanas', title: 'Pentest externo + WCAG 2.1 AA audit', meta: 'Post-launch. Pre-check gratis: OWASP ZAP + axe-core + Lighthouse a11y ≥ 95.' },
+  ];
+
+  const state = {
+    strategy: 'mvp',
+    items: Object.fromEntries(CHECKLIST.map(c => [c.id, !!c.done])),
+  };
+
+  // ---------------- RENDER ----------------
+  const stratEl = document.getElementById('strategies');
+  const checkEl = document.getElementById('checklist');
+  const promptEl = document.getElementById('prompt');
+
+  function renderStrategies() {
+    stratEl.innerHTML = STRATEGIES.map(s => `
+      <label class="radio${state.strategy === s.id ? ' active' : ''}" data-id="${s.id}">
+        <input type="radio" name="strat" value="${s.id}" ${state.strategy === s.id ? 'checked' : ''} />
+        <div>
+          <div class="label">${s.label}${s.pill ? `<span class="pill ${s.pill.cls}">${s.pill.text}</span>` : ''}</div>
+          <div class="desc">${s.desc}</div>
+        </div>
+      </label>
+    `).join('');
+    stratEl.querySelectorAll('input[name="strat"]').forEach(r => {
+      r.addEventListener('change', e => { state.strategy = e.target.value; updateAll(); });
+    });
+  }
+
+  function renderChecklist() {
+    checkEl.innerHTML = CHECKLIST.map(c => {
+      const icon = c.status === 'ok' ? '✅' : (c.status === 'warn' ? '🟡' : '⬜');
+      const locked = c.locked;
+      const done = state.items[c.id];
+      const cls = [
+        'check',
+        locked ? 'locked' : 'togglable',
+        done ? 'done' : ''
+      ].filter(Boolean).join(' ');
+      return `
+        <div class="${cls}" data-id="${c.id}">
+          ${locked
+            ? `<span class="status">${icon}</span>`
+            : `<span class="checkbox-mark"></span>`}
+          <div>
+            <div class="title">${c.title}</div>
+            <div class="meta">${c.meta}</div>
+          </div>
+        </div>`;
+    }).join('');
+    checkEl.querySelectorAll('.check.togglable').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        state.items[id] = !state.items[id];
+        updateAll();
+      });
+    });
+  }
+
+  // ---------------- PROMPT ----------------
+  function updatePrompt() {
+    const s = STRATEGIES.find(x => x.id === state.strategy);
+    const pending = CHECKLIST.filter(c => !c.locked && !state.items[c.id]);
+    const resolved = CHECKLIST.filter(c => !c.locked && state.items[c.id]);
+
+    const lines = [];
+    lines.push(`Quiero llevar Afiladocs a producción. Main está en commit e5411cd con F1–F5.2 cerradas.`);
+    lines.push('');
+    lines.push(`Estrategia elegida: "${s.label}" (horizonte ${s.horizon}).`);
+    lines.push(`Razón: ${s.desc}`);
+
+    if (resolved.length) {
+      lines.push('');
+      lines.push('Ya he resuelto por mi cuenta:');
+      resolved.forEach(c => lines.push(`  - ${c.title}`));
+    }
+
+    if (pending.length) {
+      lines.push('');
+      lines.push('Pendientes a coordinar contigo (priorizados P0 → P3):');
+      const order = { P0: 0, P1: 1, P2: 2, P3: 3 };
+      pending
+        .slice()
+        .sort((a, b) => (order[a.priority] ?? 9) - (order[b.priority] ?? 9))
+        .forEach(c => {
+          const label = c.status === 'warn' ? '🟡' : '⬜';
+          const prio = c.priority ? `[${c.priority}] ` : '';
+          const eff = c.effort ? ` (${c.effort})` : '';
+          lines.push(`  - ${prio}${label} ${c.title}${eff} — ${c.meta}`);
+        });
+    } else {
+      lines.push('');
+      lines.push('Todos los bloqueantes están resueltos. Podemos ir a producción.');
+    }
+
+    lines.push('');
+    lines.push('Siguiente paso que espero de ti: priorizar esos pendientes, ofrecer un plan concreto para cada uno (no ejecutes nada aún) y avisarme de cualquier riesgo que veas antes del go-live.');
+
+    promptEl.textContent = lines.join('\n');
+  }
+
+  function updateAll() {
+    renderChecklist();      // rerender to reflect toggles
+    // strategies need active-class update — simpler: re-render
+    renderStrategies();
+    updatePrompt();
+  }
+
+  // ---------------- PRESETS ----------------
+  const PRESETS = {
+    mvp:    { strategy: 'mvp',    items: {} },
+    polish: { strategy: 'polish', items: { lh: true } },
+    flags:  { strategy: 'flags',  items: {} },
+    ca:     { strategy: 'ca',     items: {} },
+  };
+  document.querySelectorAll('.preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = PRESETS[btn.dataset.preset];
+      if (!p) return;
+      state.strategy = p.strategy;
+      state.items = Object.fromEntries(CHECKLIST.map(c => [c.id, !!p.items[c.id]]));
+      updateAll();
+    });
+  });
+
+  // ---------------- COPY ----------------
+  const copyBtn = document.getElementById('copy');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(promptEl.textContent);
+      const old = copyBtn.textContent;
+      copyBtn.textContent = '¡Copiado!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = old; copyBtn.classList.remove('copied'); }, 1400);
+    } catch (e) {
+      copyBtn.textContent = 'Error al copiar';
+    }
+  });
+
+  // ---------------- INIT ----------------
+  updateAll();
+</script>
+</body>
+</html>
