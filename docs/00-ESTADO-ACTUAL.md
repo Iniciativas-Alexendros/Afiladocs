@@ -1,9 +1,9 @@
 # 00 — Estado actual del repositorio
 
-**Fecha de validación:** 2026-04-15
-**Próxima re-auditoría:** 2026-05-15 (o al cierre de la Fase 3)
-**Rama de referencia:** `main` (commit `3aa4afa`)
-**Última fase cerrada:** F3/B+C — Home rediseñada + Schema.org enrichment (PR #12, 2026-04-14)
+**Fecha de validación:** 2026-04-17
+**Próxima re-auditoría:** 2026-05-17 (o al cierre de la siguiente fase)
+**Rama de referencia:** `main` (commit `c8827ca`)
+**Última fase cerrada:** F5.2 — deuda performance (PRs #22/#23/#24, 2026-04-17)
 
 Snapshot validado contra el repo en el mismo día. Sustituye a todos los análisis previos (que describían un stack ya retirado). Este documento es el insumo que justifica que el **trabajo pendiente es el listado en las fases F1–F6** y no todo lo que aparecía en los informes antiguos.
 
@@ -32,8 +32,8 @@ Snapshot validado contra el repo en el mismo día. Sustituye a todos los anális
 | Verifactu (RD 1007/2023) | ✅ | [src/lib/verifactu/](../src/lib/verifactu/) cableado al webhook Stripe; `orders.invoice_id` poblado | — |
 | Emails transaccionales | ✅ | 13 plantillas en [src/emails/](../src/emails/) (welcome, intake-required, signature-required, document-ready, subscription-*, sla-alert, daily-ops-report, payment-failed, etc.) | — |
 | Cron jobs Vercel | ✅ | 5 crons en [vercel.json](../vercel.json): cleanup, subscription-reminders, intake-reminders, sla-monitor, daily-report | Documentar SLAs y payloads → F2 (CRON_JOBS.md) |
-| Caché de datos | ❌ | Consultas Prisma sin `unstable_cache` ni tags | `revalidateTag('orders'/'products')` → F5 |
-| Bundle analysis | ❌ | Sin `@next/bundle-analyzer` integrado | Integrar en pipeline → F5 |
+| Caché de datos | ✅ | `unstable_cache` con tags `products` en catálogo y `orders`/`orders-${uid}`/`order-${id}` en portal + webhooks + ops actions | — (F5.2 cerrada 2026-04-17) |
+| Bundle analysis | ✅ | `@next/bundle-analyzer` integrado (`npm run analyze`); deuda F5.2 cerrada — framer-motion eliminado, `@supabase/ssr` lazy | — (F5.2 cerrada 2026-04-17) |
 | Feature flags | ❌ | Sin Edge Config | Vercel Edge Config → F6 |
 | Blog con MDX | ❌ | Artículos actuales son datos estáticos en TS | Contentlayer2 + RSS → F6 |
 | i18n | ❌ | App monolingüe ES | `next-intl` si hay demanda → F6 |
