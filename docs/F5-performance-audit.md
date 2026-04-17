@@ -98,10 +98,23 @@ Candidatos a optimización en PR separado (ROI descendente):
 
 Ordenado por ROI descendente:
 
-1. **Bundle wins** — sacar Supabase y framer-motion del First Load de marketing (ver arriba).
+1. ~~**Bundle wins** — sacar Supabase y framer-motion del First Load de marketing.~~ **✅ F5.2** (PRs #23, #24, 2026-04-17). framer-motion eliminado del proyecto y migrado a CSS animations nativas (`.afd-fade-up` en [`globals.css`](../src/app/globals.css)); `@supabase/ssr` lazy-loaded vía [`src/lib/supabase/lazy-client.ts`](../src/lib/supabase/lazy-client.ts).
 2. **PPR en `/tienda`** — una vez Next 15 estabilice Partial Prerendering, migrar la raíz de `/tienda` a static shell + Suspense boundary por filtro.
-3. **Cache granular en portal** — `/portal/pedidos` y `/portal/pedido/[id]` hoy leen Supabase por request. Estudiar `unstable_cache` por `user_id` (tag `orders-${user_id}` ya emitido desde webhooks).
+3. ~~**Cache granular en portal** — `/portal/pedidos` y `/portal/pedido/[id]` hoy leen Supabase por request.~~ **✅ F5.2** (PR #22, 2026-04-17). `/portal/pedido/[id]` envuelve `findFirst` en `unstable_cache` con tags `['orders','orders-${uid}','order-${id}']`; webhooks Stripe/DocuSeal y ops actions propagan la invalidación granular.
 4. **CSP nonce overhead** — F1 introdujo nonce por request; medir impacto en TTFB con los snapshots de [`docs/performance-baseline/`](./performance-baseline/) como referencia.
+
+## Resultados medidos F5.2 (2026-04-17)
+
+First Load JS por ruta, build limpio sobre `c8827ca`:
+
+| Ruta | Antes F5 main | Tras F5.2 | Delta |
+|------|---------------|-----------|-------|
+| `/` (home) | 234 kB | **194 kB** | −40 kB (−17 %) |
+| `/recuperar-password` | 189 kB | **128 kB** | −61 kB (−32 %) |
+| `/recuperar-password/confirmar` | 189 kB | **127 kB** | −62 kB (−33 %) |
+| `/portal/pedido/[id]` | 204 kB | 204 kB | sin cambio bundle; latencia de query reducida por cache ~60 s |
+
+Home pasa de ruta híbrida a `○` (estática RSC) al salir framer-motion y migrar Hero+ProcessSteps a Server Components.
 
 ## Cómo verificar en producción
 
