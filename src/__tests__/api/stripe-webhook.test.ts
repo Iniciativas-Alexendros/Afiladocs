@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockFindFirst = vi.fn()
 const mockAuditCreate = vi.fn()
 const mockAuditFindFirst = vi.fn()
+const mockRevalidateTag = vi.fn()
 
 vi.mock('@/lib/env', () => ({
   serverEnv: {
@@ -39,7 +40,7 @@ vi.mock('@/lib/prisma/client', () => ({
 
 vi.mock('@/lib/alerts/notify-ops', () => ({ notifyOpsError: vi.fn() }))
 
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
+vi.mock('next/cache', () => ({ revalidateTag: mockRevalidateTag }))
 
 // Mock Stripe using a class so `new Stripe(...)` works correctly
 vi.mock('stripe', () => {
@@ -57,6 +58,7 @@ describe('POST /api/webhooks/stripe', () => {
     mockFindFirst.mockResolvedValue(null)
     mockAuditCreate.mockResolvedValue({})
     mockAuditFindFirst.mockResolvedValue(null) // not yet processed
+    mockRevalidateTag.mockReset()
   })
 
   it('returns 400 when stripe-signature header is missing', async () => {
@@ -169,5 +171,9 @@ describe('POST /api/webhooks/stripe', () => {
     expect(mockAuditCreate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ event: 'stripe_event.evt_new' }) })
     )
+    // Granular cache tags must be revalidated so portal/pedidos y /portal/pedido/[id] se refrescan al instante
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders-user-1')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('order-order-1')
   })
 })
