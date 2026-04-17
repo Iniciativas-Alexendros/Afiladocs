@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma/client'
 import Link from 'next/link'
@@ -23,15 +24,21 @@ export default async function OrderDetailPage({ params }: PageProps) {
   const resolvedParams = await params
   const { id } = resolvedParams
 
-  const order = await prisma.orders.findFirst({
-    where: {
-      id: id,
-      user_id: user.id
-    },
-    include: {
-      documents: true,
-    }
-  })
+  const getOrder = unstable_cache(
+    () => prisma.orders.findFirst({
+      where: {
+        id: id,
+        user_id: user.id
+      },
+      include: {
+        documents: true,
+      }
+    }),
+    [`portal-order-${id}-${user.id}`],
+    { tags: ['orders', `orders-${user.id}`, `order-${id}`], revalidate: 60 },
+  )
+
+  const order = await getOrder()
 
   if (!order) {
     notFound()

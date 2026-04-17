@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { requireRole } from '@/lib/auth'
@@ -145,6 +145,8 @@ export async function batchMarkProcessing(
     affected: result,
   })
   revalidatePath('/ops/pedidos')
+  revalidateTag('orders')
+  for (const id of ids) revalidateTag(`order-${id}`)
   return { success: true, affected: result }
 }
 
@@ -236,5 +238,7 @@ export async function batchAddInternalNote(
     body_length: noteBody.length,
   })
   revalidatePath('/ops/pedidos')
+  revalidateTag('orders')
+  for (const id of ids) revalidateTag(`order-${id}`)
   return { success: true, affected }
 }

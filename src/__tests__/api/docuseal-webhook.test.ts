@@ -10,9 +10,10 @@ const mockAuditCreate = vi.fn()
 const mockUpload = vi.fn()
 const mockGetDocumentPdf = vi.fn()
 const mockGetUserById = vi.fn()
+const mockRevalidateTag = vi.fn()
 
 vi.mock('next/cache', () => ({
-  revalidateTag: vi.fn(),
+  revalidateTag: mockRevalidateTag,
 }))
 
 vi.mock('@/lib/env', () => ({
@@ -82,6 +83,7 @@ describe('POST /api/webhooks/docuseal', () => {
     mockGetUserById.mockResolvedValue({
       data: { user: { email: 'user@test.com', user_metadata: { full_name: 'Test' } } },
     })
+    mockRevalidateTag.mockReset()
   })
 
   it('returns 401 when signature header is missing', async () => {
@@ -127,5 +129,9 @@ describe('POST /api/webhooks/docuseal', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.success).toBe(true)
+    // Granular cache tags must be revalidated to refresh /portal/pedidos y /portal/pedido/[id]
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders-user-1')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('order-order-1')
   })
 })

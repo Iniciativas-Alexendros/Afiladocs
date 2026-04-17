@@ -9,6 +9,7 @@ const mockUpdateMany = vi.fn()
 const mockUpdate = vi.fn()
 const mockTransaction = vi.fn()
 const mockRevalidatePath = vi.fn()
+const mockRevalidateTag = vi.fn()
 
 vi.mock('@/lib/auth', () => ({
   requireRole: (...args: unknown[]) => mockRequireRole(...args),
@@ -31,6 +32,7 @@ vi.mock('@/lib/prisma/client', () => ({
 
 vi.mock('next/cache', () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
+  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
 }))
 
 // ──────────────────────────────────────────────
@@ -143,6 +145,7 @@ describe('batchMarkProcessing', () => {
     mockUpdateMany.mockReset()
     mockCreateMany.mockReset()
     mockRevalidatePath.mockReset()
+    mockRevalidateTag.mockReset()
   })
 
   it('runs transaction, updates status and creates audit entries', async () => {
@@ -175,6 +178,11 @@ describe('batchMarkProcessing', () => {
       }),
     )
     expect(mockRevalidatePath).toHaveBeenCalledWith('/ops/pedidos')
+    // Cache tags: genérico para listados + granular por cada order afectado
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders')
+    for (const id of validIds) {
+      expect(mockRevalidateTag).toHaveBeenCalledWith(`order-${id}`)
+    }
   })
 
   it('returns error for empty array (min(1) fails)', async () => {

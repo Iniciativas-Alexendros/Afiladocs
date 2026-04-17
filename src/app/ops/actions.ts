@@ -8,7 +8,7 @@ import { createServiceRoleClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email/send'
 import { publicEnv } from '@/lib/env'
 import { DocumentReadyEmail } from '@/emails/document-ready'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 const VALID_ORDER_STATUSES = ['intake_pending', 'processing', 'draft_ready', 'completed'] as const
 type OrderStatus = typeof VALID_ORDER_STATUSES[number]
@@ -63,9 +63,10 @@ export async function opsUpdateOrderStatus(orderId: string, formData: FormData) 
   const validatedStatus = newStatus as OrderStatus
 
   try {
-    await prisma.orders.update({
+    const updated = await prisma.orders.update({
       where: { id: orderId },
       data: { status: validatedStatus },
+      select: { user_id: true },
     })
 
     await prisma.audit_log.create({
@@ -79,6 +80,9 @@ export async function opsUpdateOrderStatus(orderId: string, formData: FormData) 
 
     revalidatePath(`/ops/pedido/${orderId}`, 'page')
     revalidatePath(`/ops/pedidos`, 'page')
+    revalidateTag('orders')
+    revalidateTag(`orders-${updated.user_id}`)
+    revalidateTag(`order-${orderId}`)
 
     if (validatedStatus === 'draft_ready') {
       notifyDraftReady(orderId).catch((emailErr) => {
@@ -153,6 +157,9 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
     })
 
     revalidatePath(`/ops/pedido/${orderId}`, 'page')
+    revalidateTag('orders')
+    revalidateTag(`orders-${order.user_id}`)
+    revalidateTag(`order-${orderId}`)
     return { success: true }
   } catch (err) {
     console.error(JSON.stringify({ event: 'db.update.error_after_upload', message: err instanceof Error ? err.message : 'Unknown', ts: new Date().toISOString() }))
