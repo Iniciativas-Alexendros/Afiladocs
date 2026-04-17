@@ -1,6 +1,3 @@
-"use client"
-
-import { motion, useReducedMotion } from 'framer-motion'
 import { ShoppingCart, ClipboardEdit, Download } from 'lucide-react'
 
 const STEPS = [
@@ -25,8 +22,6 @@ const STEPS = [
 ]
 
 export function ProcessSteps() {
-  const prefersReduced = useReducedMotion()
-
   return (
     <section className="py-20 bg-card/50 border-y border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,13 +36,10 @@ export function ProcessSteps() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {STEPS.map((step, i) => (
-            <motion.div
+            <div
               key={step.number}
-              initial={{ opacity: 0, y: prefersReduced ? 0 : 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.5, ease: 'easeOut', delay: prefersReduced ? 0 : i * 0.15 }}
-              className="flex flex-col items-center text-center"
+              className="afd-fade-up flex flex-col items-center text-center"
+              style={{ ['--afd-delay' as string]: `${i * 150}ms` }}
             >
               <div className="relative mb-6">
                 <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
@@ -59,7 +51,7 @@ export function ProcessSteps() {
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">{step.description}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
