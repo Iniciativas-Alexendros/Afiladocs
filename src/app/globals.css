@@ -170,3 +170,27 @@
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes afd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.afd-fade-up {
+  animation: afd-fade-up 0.55s ease-out both;
+  animation-delay: var(--afd-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .afd-fade-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
