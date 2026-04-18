@@ -6,7 +6,7 @@ Plataforma de servicios legales digitales B2C (Valencia, España).
 Stack: Next.js 15.3 + React 19 + TypeScript 5.8 (strict) + Tailwind v4 + shadcn/ui
        + Stripe SDK 21 (API `2026-03-25.dahlia`) + Prisma 7 + Supabase + Resend
        + Framer Motion + react-hook-form + Zod + Sonner + Lucide React + n8n webhooks.
-Deploy: **Vercel** (región `mad1`). CI/CD: GitHub Actions (pendiente de configurar en `.github/workflows/`).
+Deploy: **Vercel** (región `cdg1` París — PoP más cercano a ES; Vercel no tiene Madrid). CI/CD: GitHub Actions (pendiente de configurar en `.github/workflows/`).
 Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com` en Vercel.
 
 ## Referencia al hub central (SIMBIOSIS)
@@ -271,7 +271,7 @@ Al añadir una plantilla nueva: componente `.tsx` + test snapshot + test del han
 
 ## Deploy Vercel
 
-- [`vercel.json`](vercel.json): región `mad1`, `maxDuration` por función (checkout/webhooks 30 s, crons 60 s, contact 10 s, health 5 s).
+- [`vercel.json`](vercel.json): región `cdg1`, `maxDuration` por función (checkout/webhooks 30 s, crons 60 s, contact 10 s, health 5 s).
 - Deploy via Vercel Git integration (push a `main` → deploy automático). Ramas `main`, `staging`, `develop` con deploy activado.
 - Crons **solo en producción** (comportamiento por defecto Vercel).
 - Variables de integración: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
