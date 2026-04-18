@@ -172,6 +172,51 @@
   .muted { color: var(--muted); }
   kbd { font-family: var(--mono); background: var(--code-bg); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-size: 11px; color: var(--muted); }
   .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  /* Snapshot estado */
+  .status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 900px) { .status-grid { grid-template-columns: repeat(2, 1fr); } }
+  .status-tile { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .status-tile .k { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-tile .v { font-size: 14.5px; font-weight: 600; margin-top: 3px; font-family: var(--mono); }
+  .status-tile .v.ok { color: var(--ok); }
+  .status-tile .v.warn { color: var(--warn); }
+  .status-tile .v small { font-family: var(--sans); color: var(--muted); font-weight: 400; font-size: 10.5px; margin-left: 4px; }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 4px; }
+  .tl-phase { border-left: 2px solid var(--border); padding: 2px 0 12px 14px; position: relative; }
+  .tl-phase:last-child { padding-bottom: 0; }
+  .tl-phase::before { content: ""; position: absolute; left: -5px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .tl-phase.done::before { background: var(--ok); }
+  .tl-phase.active::before { background: var(--accent); }
+  .tl-phase.blocked::before { background: var(--warn); }
+  .tl-phase .tl-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .tl-phase .tl-title { font-size: 13px; font-weight: 600; }
+  .tl-phase .tl-date { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .tl-phase ul { margin: 4px 0 0; padding-left: 16px; color: var(--text); font-size: 12.5px; line-height: 1.55; }
+  .tl-phase ul li { margin: 2px 0; }
+  .tl-phase ul code { background: var(--code-bg); color: var(--link); padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+
+  /* Decisiones */
+  .decision { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .decision:last-child { border-bottom: 0; padding-bottom: 0; }
+  .decision:first-child { padding-top: 0; }
+  .decision-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .decision-options { display: flex; flex-direction: column; gap: 6px; }
+  .decision-option { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .decision-option:hover { border-color: #4a5361; }
+  .decision-option.active { border-color: var(--accent); background: var(--accent-soft); }
+  .decision-option input { margin-top: 3px; accent-color: var(--accent); }
+  .dec-opt-title { font-size: 12.8px; font-weight: 500; }
+  .dec-opt-note { font-size: 11px; color: var(--muted); margin-top: 1px; font-family: var(--mono); }
+
+  /* Retomar · instrucciones numeradas */
+  .resume-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .resume-list li { font-size: 12.8px; line-height: 1.6; color: var(--text); }
+  .resume-list li code { background: var(--code-bg); color: var(--link); padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+  .resume-list li strong { color: var(--accent); font-weight: 600; }
+  .resume-cmd { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-family: var(--mono); font-size: 11.5px; color: var(--text); line-height: 1.5; white-space: pre-wrap; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -191,7 +236,8 @@
     <div class="stats">
       <div class="stat"><div class="k">Fases cerradas</div><div class="v">5<small>/ 6</small></div></div>
       <div class="stat"><div class="k">Home First Load</div><div class="v">194<small>kB (−40)</small></div></div>
-      <div class="stat"><div class="k">Último commit</div><div class="v" style="font-family:var(--mono);font-size:14px">e5411cd</div></div>
+      <div class="stat"><div class="k">Último commit</div><div class="v" style="font-family:var(--mono);font-size:14px">dba2a0a</div></div>
+      <div class="stat"><div class="k">Región prod</div><div class="v" style="font-family:var(--mono);font-size:14px">cdg1<small>París</small></div></div>
     </div>
   </header>
 
@@ -443,6 +489,116 @@
         </ol>
       </section>
 
+      <!-- Estado de proyecto -->
+      <section class="card">
+        <h2>Estado del proyecto <span class="badge">snapshot 2026-04-18</span></h2>
+        <p class="hint">Vista rápida del estado real de Afiladocs ahora mismo. Todo verificado contra main, Vercel MCP y Stripe MCP.</p>
+        <div class="status-grid">
+          <div class="status-tile"><div class="k">Fases cerradas</div><div class="v ok">5 / 6<small>F1-F5.2 ✓</small></div></div>
+          <div class="status-tile"><div class="k">Main commit</div><div class="v">dba2a0a</div></div>
+          <div class="status-tile"><div class="k">Deploy prod</div><div class="v ok">READY</div></div>
+          <div class="status-tile"><div class="k">Región</div><div class="v">cdg1<small>París</small></div></div>
+          <div class="status-tile"><div class="k">Dominio</div><div class="v ok">afiladocs.com<small>LIVE</small></div></div>
+          <div class="status-tile"><div class="k">Home First Load</div><div class="v ok">194 kB<small>−40 kB F5.2</small></div></div>
+          <div class="status-tile"><div class="k">Tests</div><div class="v ok">156 / 156</div></div>
+          <div class="status-tile"><div class="k">Alertas críticas</div><div class="v ok">0<small>cross-app</small></div></div>
+          <div class="status-tile"><div class="k">DNS</div><div class="v">Vercel<small>Name.com registrar</small></div></div>
+          <div class="status-tile"><div class="k">Stripe</div><div class="v warn">live<small>webhook pending</small></div></div>
+          <div class="status-tile"><div class="k">Email ops@</div><div class="v warn">no route<small>P1 pending</small></div></div>
+          <div class="status-tile"><div class="k">AEPD RAT</div><div class="v warn">todo<small>P2 paperwork</small></div></div>
+        </div>
+      </section>
+
+      <!-- Timeline hilos de desarrollo -->
+      <section class="card">
+        <h2>Hilos de desarrollo <span class="badge">completados · activos · bloqueantes</span></h2>
+        <p class="hint">Timeline en tres estratos. Los puntos verdes están cerrados, el ámbar es lo que está en curso esperando tu input, el gris es el bloqueo concreto.</p>
+
+        <div class="timeline">
+          <div class="tl-phase done">
+            <div class="tl-head"><span class="tl-title">Recién completado · 2026-04-17 / 18</span><span class="tl-date">últimos commits</span></div>
+            <ul>
+              <li>Rotación Stripe <code>sk_live …LoWWthC</code> (ciclo LIVE cerrado, 4 secretos al día)</li>
+              <li>Lighthouse delta F5.2 documentado en <code>F5-performance-audit.md</code></li>
+              <li>PR #26 mergeado: región <code>cdg1</code> + a11y baseline <code>axe-core</code> + auditoría idempotencia webhook</li>
+              <li>Fix env var <code>EASYVERIFACTU_*</code> (sin guion bajo intermedio) en código, <code>CLAUDE.md</code> y guía</li>
+              <li>whois <code>afiladocs.com</code> confirmado: registrador Name.com, DNS autoritativo Vercel</li>
+              <li>Stripe <code>charges_enabled=true</code> (KYC completado)</li>
+              <li>CI gates verdes en main: typecheck · lint · tests (156) · build · GitGuardian · Vercel</li>
+            </ul>
+          </div>
+
+          <div class="tl-phase active">
+            <div class="tl-head"><span class="tl-title">Activo · esperando tus credenciales</span><span class="tl-date">2026-04-18</span></div>
+            <ul>
+              <li><strong>P0b Stripe live switch</strong> — crear webhook live, inyectar <code>whsec_</code> + <code>pk_live</code> en Vercel env, redeploy, validar primer evento</li>
+              <li><strong>P1 email routing</strong> — alta ImprovMX + MX records en Vercel DNS + aliases <code>ops/admin/info/contacto/soporte@</code></li>
+            </ul>
+          </div>
+
+          <div class="tl-phase blocked">
+            <div class="tl-head"><span class="tl-title">Bloqueantes next step</span><span class="tl-date">para arrancar autónomo</span></div>
+            <ul>
+              <li>3 tokens en <code>$TMPDIR/</code>: <code>stripe.key</code> (<code>sk_live_…</code>), <code>vercel.token</code> (PAT scope alexendros), <code>improvmx.key</code> (<code>sh_…</code>)</li>
+              <li>Smoke test 1 € con tarjeta real (no puedo hacerlo yo; valido el ciclo tras tu pago)</li>
+              <li>P2 AEPD RAT + DPAs con encargados (paperwork)</li>
+            </ul>
+          </div>
+
+          <div class="tl-phase">
+            <div class="tl-head"><span class="tl-title">Próximo horizonte · post-launch 30-60 d</span><span class="tl-date">diferido</span></div>
+            <ul>
+              <li>P3 pentest humano + WCAG 2.1 AA audit completo</li>
+              <li>F6 feature flags + blog MDX + i18n (si hay tracción)</li>
+              <li>Deuda técnica idempotencia atómica webhooks (ver decisión abajo)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Decisiones pendientes -->
+      <section class="card">
+        <h2>Decisiones pendientes <span class="badge">elige → el prompt las refleja</span></h2>
+        <p class="hint">Cinco decisiones operativas que bloquean avance autónomo o definen el alcance del launch. Cada opción muestra su coste; al cambiar el default, el prompt inferior lo recoge.</p>
+        <div id="decisions"></div>
+      </section>
+
+      <!-- Cómo retomar los trabajos -->
+      <section class="card">
+        <h2>Retomar los trabajos <span class="badge">instrucciones para la próxima sesión Claude</span></h2>
+        <p class="hint">Protocolo operativo si esta conversación se interrumpe o se empieza una nueva. Sigue el orden literal.</p>
+        <ol class="resume-list">
+          <li><strong>Leer contexto vivo</strong> en este orden: (a) este playground <code>docs/estado-produccion-playground.html</code> card "Estado del proyecto" y "Hilos de desarrollo"; (b) <code>TASKS.md</code> sección "Afiladocs · go-live"; (c) <code>~/.claude/projects/-var-home-soyalexendros/memory/cross-app-alerts.md</code>.</li>
+          <li><strong>Verificar presencia de tokens</strong> sin exponer contenidos:
+            <div class="resume-cmd">ls -l "$TMPDIR"/stripe.key "$TMPDIR"/vercel.token "$TMPDIR"/improvmx.key 2&gt;&amp;1</div>
+          </li>
+          <li><strong>Si los tres existen</strong> · ejecutar secuencia P0b (6 pasos REST):
+            <ol style="margin:6px 0 0 16px;padding:0;color:var(--muted);font-size:12px;line-height:1.7">
+              <li><code>POST https://api.stripe.com/v1/webhook_endpoints</code> con los 6 eventos → capturar <code>whsec_</code> del JSON</li>
+              <li><code>POST https://api.vercel.com/v10/projects/prj_A1JNhrCRP9fOUDWweNvh68H6mfu7/env</code> para <code>STRIPE_WEBHOOK_SECRET</code> target production</li>
+              <li>MCP <code>get_stripe_account_info</code> + <code>retrieve /v1/account</code> → confirmar <code>charges_enabled=payouts_enabled=details_submitted=true</code></li>
+              <li><code>POST /v13/deployments?forceNew=1</code> o push trivial a main → monitorizar con <code>list_deployments</code> hasta READY</li>
+              <li><code>curl -I https://afiladocs.com/api/health</code> + <code>GET /v1/webhook_endpoints</code> → verificar endpoint live activo</li>
+              <li>Pedir al usuario que lance smoke 1 € con tarjeta real; auditar ciclo vía Stripe + Supabase MCP + runtime logs Vercel</li>
+            </ol>
+          </li>
+          <li><strong>Si falta algún token</strong> · recordar al usuario la estructura:
+            <div class="resume-cmd">! read -rs -p "Stripe sk_live: " K &amp;&amp; printf %s "$K" &gt; "$TMPDIR/stripe.key" &amp;&amp; chmod 600 "$TMPDIR/stripe.key" &amp;&amp; echo OK
+! read -rs -p "Vercel token:   " K &amp;&amp; printf %s "$K" &gt; "$TMPDIR/vercel.token" &amp;&amp; chmod 600 "$TMPDIR/vercel.token" &amp;&amp; echo OK
+! read -rs -p "ImprovMX API:   " K &amp;&amp; printf %s "$K" &gt; "$TMPDIR/improvmx.key" &amp;&amp; chmod 600 "$TMPDIR/improvmx.key" &amp;&amp; echo OK</div>
+          </li>
+          <li><strong>Tras cada paso completado</strong>: (a) actualizar este playground marcando el bloque como done en la timeline; (b) commit en main con <code>fix(go-live):</code> o <code>feat(go-live):</code>; (c) push vía sandbox desactivado <code>git push github main</code>; (d) registrar entrada <code>EV-</code> en <code>~/.claude/EVENTOS.md</code>.</li>
+          <li><strong>Al cerrar P0b + P1 + smoke</strong>: rotar los 3 tokens (revocar Vercel PAT, regenerar ImprovMX key si se usó solo para setup). <code>rm -f $TMPDIR/{stripe,vercel,improvmx}.{key,token}</code>. Actualizar <code>CARTERA.md</code> a "PROD · post-launch".</li>
+        </ol>
+      </section>
+
+      <!-- Complementos potenciales -->
+      <section class="card">
+        <h2>Complementos fuera de planificación inicial <span class="badge">marca para aprobar</span></h2>
+        <p class="hint">Piezas no incluidas en F1-F5.2 ni en P0-P3 que pueden mejorar el launch o el post-launch. Marca las que quieras que ejecute; el prompt inferior las lista como trabajo aprobado.</p>
+        <div id="improvements" class="check-list"></div>
+      </section>
+
       <!-- Radar UI/UX -->
       <section class="card">
         <h2>Cohesión UI/UX <span class="badge">qué tal se ve y se siente</span></h2>
@@ -521,15 +677,142 @@
     { id: 'audit',   status: 'todo', done: false, priority: 'P3', effort: '2-4 semanas', title: 'Pentest externo + WCAG 2.1 AA audit', meta: 'Post-launch. Pre-check gratis: OWASP ZAP + axe-core + Lighthouse a11y ≥ 95.' },
   ];
 
+  const DECISIONS = [
+    {
+      id: 'execution',
+      label: 'Ejecución P0b + P1 tras recibir tokens',
+      options: [
+        { value: 'batch', label: 'Lanzar P0b y P1 en una tanda autónoma', note: '25-40 min Claude' },
+        { value: 'step',  label: 'Aprobación paso a paso entre bloques', note: '+1-2 días · menos riesgo' },
+      ],
+      default: 'batch',
+      promptText: v => v === 'step'
+        ? 'Ejecutar P0b y P1 paso a paso con tu visto bueno entre bloques.'
+        : 'Ejecutar P0b + P1 en una única tanda autónoma tras recibir tokens en $TMPDIR.',
+    },
+    {
+      id: 'supabase',
+      label: 'Supabase tier antes del primer pago real',
+      options: [
+        { value: 'pro',  label: 'Upgrade a Pro antes del smoke 1 €', note: '25 €/mes · PITR 7 d' },
+        { value: 'free', label: 'Quedarse en Free post-launch', note: '0 €/mes · sin PITR · riesgo total ante corrupción' },
+      ],
+      default: 'pro',
+      promptText: v => v === 'free'
+        ? 'Mantener Supabase Free post-launch (asumiendo pérdida total ante corrupción).'
+        : 'Subir Supabase a Pro antes del primer pago real (PITR 7 d).',
+    },
+    {
+      id: 'improvmx',
+      label: 'Plan ImprovMX para email routing',
+      options: [
+        { value: 'free',    label: 'Free', note: '25 aliases · 10 emails/día' },
+        { value: 'premium', label: 'Premium desde el arranque', note: '9 €/mes · ilimitado · SLA' },
+      ],
+      default: 'free',
+      promptText: v => v === 'premium'
+        ? 'Contratar ImprovMX Premium (9 €/mes, ilimitado) desde el arranque.'
+        : 'ImprovMX Free inicial; revisar upgrade al superar 10 emails/día.',
+    },
+    {
+      id: 'aepd',
+      label: 'RAT AEPD · quién lo firma',
+      options: [
+        { value: 'facilita', label: 'FACILITA RGPD auto-servicio', note: 'gratis · 4 h propio' },
+        { value: 'dpo',      label: 'DPO externo', note: '100-300 €/año · responsabilidad delegada' },
+      ],
+      default: 'facilita',
+      promptText: v => v === 'dpo'
+        ? 'Delegar RAT + derechos ARCO-POL en DPO externo (100-300 €/año).'
+        : 'Generar RAT con FACILITA RGPD en auto-servicio (skill /LEGAL_cumplimiento).',
+    },
+    {
+      id: 'idempotency',
+      label: 'Idempotencia webhooks · ahora o post-launch',
+      options: [
+        { value: 'post', label: 'Aceptar best-effort para launch', note: 'mitigar post-launch · Stripe retries en minutos' },
+        { value: 'now',  label: 'Mitigar ahora con tabla dedicada', note: '+2-3 h · migración Prisma · requiere test DB' },
+      ],
+      default: 'post',
+      promptText: v => v === 'now'
+        ? 'Crear tabla processed_webhook_events(provider,event_id) con @@unique + migración Prisma antes del launch.'
+        : 'Aceptar idempotencia best-effort para launch; mitigación atómica post-launch.',
+    },
+  ];
+
+  const IMPROVEMENTS = [
+    { id: 'uptime',          label: 'Uptime monitor (UptimeRobot free o Better Stack 10 $/mes)',            cost: '10 min setup',                 text: 'Añadir uptime monitor (ping /api/health cada 5 min → ops@) tras cerrar P1.' },
+    { id: 'statuspage',      label: 'Status page pública status.afiladocs.com',                             cost: '20 min',                        text: 'Publicar status page externa (BetterStack o Statuspage) para trust post-launch.' },
+    { id: 'replay',          label: 'Sentry Session Replay 1 % traffic',                                    cost: '50-100 $/mes',                  text: 'Activar Sentry Session Replay al 1 % de tráfico para debug UX.' },
+    { id: 'csp_bench',       label: 'Benchmark CSP nonce overhead en TTFB post-cdg1',                       cost: '30 min',                        text: 'Medir impacto real del CSP nonce en TTFB tras el deploy desde cdg1 (baseline vs. actual).' },
+    { id: 'broadcasts',      label: 'Resend Broadcasts para newsletter (requiere plan marketing F6)',      cost: 'redesign /emails/',             text: 'Migrar emails transaccionales a la arquitectura Resend Broadcasts (solo si F6 se activa).' },
+    { id: 'flags',           label: 'Feature flags Vercel Edge Config (F6.1 roadmap)',                      cost: '6-8 h',                         text: 'Integrar @vercel/edge-config + src/lib/flags.ts + runbook (desbloquea A/B y rollouts).' },
+    { id: 'pentest_human',   label: 'Pentest humano externo + WCAG 2.1 AA audit manual',                   cost: '1 500-3 000 € · 2-4 semanas',   text: 'Contratar pentest externo (Tarlogic, S21sec) y audit WCAG AA humano — ventana 60 d post-launch.' },
+    { id: 'idemp_table',     label: 'Tabla processed_webhook_events (idempotencia atómica Stripe/DocuSeal)', cost: '2-3 h + migración Prisma',      text: 'Crear processed_webhook_events(provider, event_id) con @@unique y refactor de ambos handlers.' },
+  ];
+
   const state = {
     strategy: 'mvp',
     items: Object.fromEntries(CHECKLIST.map(c => [c.id, !!c.done])),
+    decisions: Object.fromEntries(DECISIONS.map(d => [d.id, d.default])),
+    improvements: Object.fromEntries(IMPROVEMENTS.map(i => [i.id, false])),
   };
 
   // ---------------- RENDER ----------------
   const stratEl = document.getElementById('strategies');
   const checkEl = document.getElementById('checklist');
+  const decisionsEl = document.getElementById('decisions');
+  const improvementsEl = document.getElementById('improvements');
   const promptEl = document.getElementById('prompt');
+
+  function renderDecisions() {
+    if (!decisionsEl) return;
+    decisionsEl.innerHTML = DECISIONS.map(d => `
+      <div class="decision">
+        <div class="decision-label">${d.label}</div>
+        <div class="decision-options">
+          ${d.options.map(o => `
+            <label class="decision-option${state.decisions[d.id] === o.value ? ' active' : ''}" data-dec="${d.id}" data-val="${o.value}">
+              <input type="radio" name="dec-${d.id}" value="${o.value}" ${state.decisions[d.id] === o.value ? 'checked' : ''} />
+              <div>
+                <div class="dec-opt-title">${o.label}</div>
+                <div class="dec-opt-note">${o.note}</div>
+              </div>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+    decisionsEl.querySelectorAll('input[type=radio]').forEach(r => {
+      r.addEventListener('change', e => {
+        const id = e.target.name.replace('dec-', '');
+        state.decisions[id] = e.target.value;
+        updateAll();
+      });
+    });
+  }
+
+  function renderImprovements() {
+    if (!improvementsEl) return;
+    improvementsEl.innerHTML = IMPROVEMENTS.map(i => {
+      const done = state.improvements[i.id];
+      return `
+        <div class="check togglable${done ? ' done' : ''}" data-id="${i.id}">
+          <span class="checkbox-mark"></span>
+          <div>
+            <div class="title">${i.label}</div>
+            <div class="meta">${i.cost}</div>
+          </div>
+        </div>`;
+    }).join('');
+    improvementsEl.querySelectorAll('.check.togglable').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        state.improvements[id] = !state.improvements[id];
+        updateAll();
+      });
+    });
+  }
 
   function renderStrategies() {
     stratEl.innerHTML = STRATEGIES.map(s => `
@@ -612,6 +895,20 @@
       lines.push('Todos los bloqueantes están resueltos. Podemos ir a producción.');
     }
 
+    const nonDefault = DECISIONS.filter(d => state.decisions[d.id] !== d.default);
+    if (nonDefault.length) {
+      lines.push('');
+      lines.push('Decisiones operativas (cambiadas respecto al default):');
+      nonDefault.forEach(d => lines.push(`  - ${d.promptText(state.decisions[d.id])}`));
+    }
+
+    const selectedImprovs = IMPROVEMENTS.filter(i => state.improvements[i.id]);
+    if (selectedImprovs.length) {
+      lines.push('');
+      lines.push('Complementos aprobados fuera de planificación inicial:');
+      selectedImprovs.forEach(i => lines.push(`  - ${i.text} (${i.cost})`));
+    }
+
     lines.push('');
     lines.push('Siguiente paso que espero de ti: priorizar esos pendientes, ofrecer un plan concreto para cada uno (no ejecutes nada aún) y avisarme de cualquier riesgo que veas antes del go-live.');
 
@@ -622,6 +919,8 @@
     renderChecklist();      // rerender to reflect toggles
     // strategies need active-class update — simpler: re-render
     renderStrategies();
+    renderDecisions();
+    renderImprovements();
     updatePrompt();
   }
 
