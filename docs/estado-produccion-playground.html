@@ -184,7 +184,7 @@
       <p class="subtitle">
         Plataforma de servicios legales B2C en Valencia.
         Stack: Next.js 15 + React 19 + TypeScript + Prisma + Supabase + Stripe + DocuSeal + Resend.
-        Deploy en Vercel (región <code>mad1</code>), dominio <a href="https://afiladocs.com" target="_blank" rel="noreferrer">afiladocs.com</a> activo.
+        Deploy en Vercel (región <code>cdg1</code> París — el PoP más cercano a ES; Vercel no tiene Madrid), dominio <a href="https://afiladocs.com" target="_blank" rel="noreferrer">afiladocs.com</a> activo.
         Ajusta los controles de la izquierda para ver qué falta y genera el prompt de siguiente paso.
       </p>
     </div>
@@ -404,7 +404,7 @@
             <li class="step"><span class="n">1</span><span>Usar <strong>FACILITA RGPD</strong> (AEPD, gratuito) → genera Registro de Actividades de Tratamiento (RAT) + cláusulas informativas base.</span></li>
             <li class="step"><span class="n">2</span><span>Firmar DPA con cada encargado: Stripe (Dashboard → Settings → DPA), Supabase (GDPR section), Vercel (Legal), Resend, DocuSeal, EasyVerifactu, ImprovMX o Cloudflare.</span></li>
             <li class="step"><span class="n">3</span><span>Actualizar <code>/legal/privacidad</code>: enumerar encargados, finalidades, plazos de retención, derechos ARCO-POL, base legal (art. 6 RGPD).</span></li>
-            <li class="step"><span class="n">4</span><span>Documentar transferencias internacionales: verificar regiones (Resend EU, Supabase EU, Vercel <code>mad1</code>). Si algún dato pasa a US → cláusulas SCC.</span></li>
+            <li class="step"><span class="n">4</span><span>Documentar transferencias internacionales: verificar regiones (Resend EU, Supabase EU, Vercel <code>cdg1</code> París). Si algún dato pasa a US → cláusulas SCC.</span></li>
             <li class="step"><span class="n">5</span><span>Política de retención: ya existe <code>cleanup-expired-sessions</code> (90 d intake) — reflejar en RAT.</span></li>
             <li class="step"><span class="n">6</span><span>Archivar RAT + DPAs firmadas en Proton Drive → referencia en <code>docs/compliance/RGPD-RAT.md</code>.</span></li>
             <li class="step"><span class="n">7</span><span>Evaluar DPO (art. 37) — probablemente no obligatorio para volumen inicial, pero documentar la evaluación.</span></li>
@@ -438,7 +438,7 @@
           <li class="step"><span class="n">7</span><span><strong>Páginas /legal coherentes con AEPD</strong>: tras P2, sincronizar <code>/legal/privacidad</code>, <code>/legal/cookies</code> y cookie banner con la lista final de encargados.</span></li>
           <li class="step"><span class="n">8</span><span><strong>Redirect www → non-www</strong>: confirmar <code>curl -I https://www.afiladocs.com</code> devuelve 301 a <code>https://afiladocs.com</code>.</span></li>
           <li class="step"><span class="n">9</span><span><strong>Rate-limit en prod</strong>: si <code>UPSTASH_REDIS_REST_URL</code> no está seteada, <code>src/lib/rate-limit.ts:9</code> devuelve <code>hasUpstash=false</code> → todos los limiters son <code>null</code> → <code>applyRateLimit</code> responde <code>{limited:false}</code> y pasa todo. Crítico para <code>/api/checkout</code> y <code>/api/contact</code> — verificar antes del smoke.</span></li>
-          <li class="step"><span class="n">10</span><span><strong>Región Vercel</strong>: ✅ resuelto en rama <code>feat/go-live-polish</code> — <code>vercel.json</code> ahora declara <code>"regions": ["mad1"]</code>. Tras merge del PR, próximo deploy sirve desde Madrid (−80-120 ms desde ES/EU).</span></li>
+          <li class="step"><span class="n">10</span><span><strong>Región Vercel</strong>: ✅ resuelto en PR #26 — <code>vercel.json</code> declara <code>"regions": ["cdg1"]</code>. Corrección 2026-04-18: <code>mad1</code> no existe en el catálogo Vercel (primera iteración del PR falló con "Invalid region"). <code>cdg1</code> (París) es el PoP más cercano a ES — Vercel no tiene Madrid. Tras merge, próximo deploy desde París (−70-100 ms vs <code>iad1</code>).</span></li>
           <li class="step"><span class="n">11</span><span><strong>Env var Verifactu</strong>: código usa <code>EASYVERIFACTU_*</code> (sin guion bajo intermedio), no <code>EASY_VERIFACTU_*</code> como algunas docs indicaban. CLAUDE.md y <code>guias/guia-workflows.md</code> corregidos 2026-04-17. Verificar que el env var en Vercel tenga la clave correcta.</span></li>
         </ol>
       </section>
