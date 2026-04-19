@@ -1,11 +1,13 @@
 # Cron Jobs — Afiladocs
 
-**Última revisión:** 2026-04-14
-**Gestor:** Vercel Cron (configurado en [vercel.json](../vercel.json))
-**Runtime:** `nodejs`, `force-dynamic`, `maxDuration: 60s`
+**Última revisión:** 2026-04-19
+**Gestor:** Vercel Cron (declarados en [vercel.json](../vercel.json) → `crons[]` + `functions[].maxDuration`)
+**Runtime por ruta:** `export const runtime = 'nodejs'` + `export const dynamic = 'force-dynamic'` (declarado en cada `route.ts`)
+**`maxDuration`:** 60 s para los 5 crons (override por función en `vercel.json`)
 **Método HTTP:** `GET` (Vercel Cron dispara GET por defecto)
 **Autenticación:** `Authorization: Bearer ${CRON_SECRET}` en cada request
 **Rate limiting:** `cronRateLimit` (5 req/min por IP) vía [src/lib/rate-limit.ts](../src/lib/rate-limit.ts)
+**Entorno:** Vercel Cron **sólo se dispara en `production`** (por defecto de Vercel). Previews no ejecutan crons.
 
 ## Tabla de contenidos
 
@@ -16,12 +18,13 @@
 - [4. sla-monitor](#4-sla-monitor)
 - [5. daily-report](#5-daily-report)
 - [Patrón de error handling](#patrón-de-error-handling)
+- [Disparar manualmente](#disparar-manualmente)
 - [Variables de entorno](#variables-de-entorno)
 - [Monitoreo](#monitoreo)
 
 ## Overview
 
-Los 5 crons están declarados en [vercel.json](../vercel.json) y ejecutan server actions serverless en Vercel (región `mad1`). Todos comparten el mismo contrato:
+Los 5 crons están declarados en [vercel.json](../vercel.json) y ejecutan server actions serverless en Vercel (región `cdg1`). Todos comparten el mismo contrato:
 
 - Verifican el header `Authorization: Bearer ${CRON_SECRET}` (401 si falla, 503 si no hay secreto).
 - Pasan por `cronRateLimit` (429 si se excede).
@@ -162,7 +165,23 @@ try {
 }
 ```
 
-`notifyOpsError()` (en [src/lib/ops-alerts.ts](../src/lib/ops-alerts.ts)) es void (no bloqueante) y despacha a Sentry + email ops.
+`notifyOpsError()` (en [src/lib/alerts/notify-ops.ts](../src/lib/alerts/notify-ops.ts)) es void (no bloqueante) y despacha a Sentry + email ops.
+
+## Disparar manualmente
+
+Útil durante rotación de secretos ([runbooks/rotacion-secretos.md](runbooks/rotacion-secretos.md)), reconciliación ([runbooks/stripe-webhook-fallido.md](runbooks/stripe-webhook-fallido.md)) o validación tras deploy.
+
+```bash
+# Producción (requiere CRON_SECRET válido del entorno Production)
+curl -s -H "Authorization: Bearer $CRON_SECRET" \
+  https://afiladocs.com/api/cron/daily-report
+
+# Local (dev server activo)
+curl -s -H "Authorization: Bearer $CRON_SECRET" \
+  http://localhost:3000/api/cron/sla-monitor
+```
+
+Todos son idempotentes: relanzarlos no duplica emails (guardan el último `sent_at` por pedido) ni pedidos (`updateMany` por `id`). El rate-limit de 5 req/min por IP aplica también a disparo manual.
 
 ## Variables de entorno
 
@@ -172,9 +191,9 @@ try {
 | `OPS_EMAIL` | Server | sí | Destinatario alertas (sla-monitor, daily-report, errores) |
 | `RESEND_API_KEY` | Server | sí | Emails transaccionales |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server | sí | Auth Admin API (user email) |
-| `DATABASE_URL` | Server | sí | Prisma (Supavisor pooler 6543) |
+| `DATABASE_URL` | Server | sí | Prisma (Supavisor pooler puerto 6543) |
 
-Documentadas también en [CLAUDE.md](../CLAUDE.md) § "Variables de entorno clave".
+Matriz completa por entorno (local · CI · Preview · Prod) en [DEPLOY_MANUAL.md](DEPLOY_MANUAL.md#1-matriz-de-entornos). Documentadas también en [CLAUDE.md](../CLAUDE.md) § "Variables de entorno clave".
 
 ## Monitoreo
 
@@ -186,4 +205,9 @@ Documentadas también en [CLAUDE.md](../CLAUDE.md) § "Variables de entorno clav
 
 **Cadencia esperada de emails por semana:** ~10-15 (1-2 SLA, 5 daily-report, ~3 intake, 1 subscription lunes).
 
-**Runbook asociado:** [runbooks/stripe-webhook-fallido.md](runbooks/stripe-webhook-fallido.md) para reconciliación manual si un cron de reportes detecta inconsistencias vs Stripe.
+**Runbooks asociados:**
+- [runbooks/stripe-webhook-fallido.md](runbooks/stripe-webhook-fallido.md) — reconciliación manual si un cron de reportes detecta inconsistencias vs Stripe.
+- [runbooks/rotacion-secretos.md](runbooks/rotacion-secretos.md) — rotar `CRON_SECRET` sin downtime.
+- [runbooks/recovery-docuseal.md](runbooks/recovery-docuseal.md) — si `sla-monitor` reporta volumen anómalo por webhook DocuSeal caído.
+
+**Relación con otros docs:** las rutas de estos crons aparecen también en [ROUTES_MAP.md § Cron](ROUTES_MAP.md#cron-vercel-cron--get). Los emails disparados usan las plantillas de [src/emails/](../src/emails/) listadas en [CLAUDE.md § Emails transaccionales](../CLAUDE.md#emails-transaccionales-13-plantillas-react-email).

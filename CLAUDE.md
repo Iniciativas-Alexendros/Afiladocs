@@ -1,5 +1,27 @@
 # CLAUDE.md — Afiladocs Project Context
 
+## Estado al 2026-04-19
+
+**Rama:** `main` · **Últimas fases cerradas:** F2 documentación operativa + Fase 3 pivote auto-entrega (2026-04-18) · F5.2 performance (2026-04-17) · F1 seguridad + Fases 1-2 pivote (2026-04-14).
+
+**Go-live P0b en preparación (2026-04-19):**
+- AH3 Notion reconciliada tras drift legacy (taxonomía actualizada a tienda + 5 páginas legacy AFD-CON/REV/INF/LTK/PCK descatalogadas por comentario).
+- `catalog/drafts/` × 10 SKUs con `draft-v0.1.0.md` completos.
+- **AFD-RGPD-REG-001**: QA jurídica preliminar ejecutada → `catalog/drafts/AFD-RGPD-REG-001/notes-legal.md` + `draft-v1.0.0.md` (65 campos DocuSeal, checklist de cierre 13 pasos). **Pendiente firma humana** antes de maquetación DOCX. Sincronizado en página Notion del SKU (`3467ded224cb814f8bfefac43724e9f7`).
+- Plan de hilo vivo: `~/.claude/plans/tingly-riding-hearth.md`.
+
+**Modelo de negocio:** tienda B2C de plantillas legales rellenables vía DocuSeal + revisiones expertas humanas. Pivote desde consultoría a tienda consolidado el 2026-04-14. Catálogo vive en tabla Prisma `products` (no en whitelist de env vars). Checkout Stripe → Verifactu → DocuSeal → descarga firmada en portal.
+
+**Producción:** Vercel (`cdg1`) · dominio `afiladocs.com` activo · Supabase self-hosted en `supabase.afiladocs.com` (Kong + Let's Encrypt R13) · Stripe en modo LIVE pendiente de poblar catálogo.
+
+**Próximo hito bloqueante:** P0b go-live Stripe LIVE (crear 10 productos + 10 templates DocuSeal y mapearlos vía `/ops/productos`). Ver §"P0b — Go-live Stripe LIVE".
+
+**Roadmap vivo:** F3 UX/CRO (home hero, intake autosave) · F4 ops avanzado (filtros batch, SLA) · F6 crecimiento (MDX blog, edge flags, i18n). Ver `docs/01-ROADMAP-MAESTRO.md`.
+
+**Documento maestro del pivote:** `~/.claude/plans/giggly-strolling-gizmo.md` — Fases 1→3 cerradas. Fase 4 (QA y pre-producción) y Fase 5 (apertura pública) pendientes de go-live.
+
+**Notion hub:** [página raíz Afiladocs](https://www.notion.so/3347ded224cb80168940eace1cbb9808) con 5 subpáginas (AH1/AH3/AH4/AH5/AH6). DB `📦 Catálogo Afiladocs · vigente` bajo AH3 + DB `📝 Masters DOCX · versiones` bajo AH5 · subpágina `AH5 · Pipeline go-live P0b`. Sincronización repo ↔ Notion vía agente `afiladocs-notion-keeper` (detalle en `~/.claude/skills/AFILADOCS_golive/NOTION_INTEGRATION.md`). **Regla autoritativa**: repo (`catalog/manifest.json`) es fuente de verdad para IDs externos + version + legal_sources; Notion es autoritativo solo para `Status` (Kanban) y `Notas` (colaboración).
+
 ## Identidad del proyecto
 
 Plataforma de servicios legales digitales B2C (Valencia, España).
@@ -11,21 +33,17 @@ Dominio: **afiladocs.com** (activo). `NEXT_PUBLIC_SITE_URL=https://afiladocs.com
 
 ## Referencia al hub central (SIMBIOSIS)
 
-> **Contexto global**: antes de operar, consulta `~/.claude/PROYECTOS.md` para
-> conocer el estado, prioridad y urgencia del resto de apps de Alexendros.
-> Este indice se actualiza via la cadena: `mem-sintetizar → dev-arquitectura →
-> prod-actualizar-stakeholders → mem-actualizar` (nodo N13 de `omni-maestria`).
+> **Contexto global**: antes de operar, consulta `~/.claude/CARTERA.md` para
+> conocer el estado, prioridad y urgencia del resto de apps de Alexendros
+> (sustituye a `PROYECTOS.md` desde 2026-04-15).
 >
 > **Alertas cruzadas**: `~/.claude/projects/-var-home-soyalexendros/memory/cross-app-alerts.md`
 > — consulta obligatoria antes de deploys, rotaciones de secretos u operaciones destructivas.
 >
-> **🔴 Alerta activa para esta app**: 3 secretos LIVE (Stripe, GitHub PAT, Sentry) estaban
-> expuestos en `.claude/settings.local.json` antes de la homogeneizacion del 2026-04-10.
-> Archivo limpiado y `.gitignore` blindado. Rotacion de los tokens es responsabilidad del
-> usuario — detalles en `cross-app-alerts.md`.
->
-> **Registro dinamico**: `~/.claude/projects/-var-home-soyalexendros/memory/apps-registry.md`
-> — estado por app (commits, CI, PRs, alertas).
+> **✅ Alerta LIVE cerrada (histórico)**: 3 secretos LIVE (Stripe, GitHub PAT, Sentry) más
+> `STRIPE_WEBHOOK_SECRET` estaban expuestos antes del 2026-04-10. Archivo limpiado,
+> `.gitignore` blindado, y los 4 tokens rotados entre 2026-04-13 y 2026-04-17.
+> Ver `cross-app-alerts.md` para trazabilidad.
 >
 > **Protocolo herencia GSD**: si detectas `.planning/`, `gsd-*`, `ROADMAP.md` o
 > directivas `<!-- GSD:* -->`, sigue `~/.claude/Deportacion_GSD.md`.
@@ -69,6 +87,46 @@ GitLab fue descatalogado el 2026-04-14. Las referencias a `official`/GitLab en h
 - `npm run test:e2e` — Playwright (Chromium)
 - `npx prisma generate` — Regenerar cliente Prisma tras cambios en schema
 - `npx prisma migrate dev` — Aplicar migraciones en desarrollo
+
+## Fases del pivote a tienda (plan maestro)
+
+Esquema paralelo al roadmap F1–F6 del repo. El plan maestro está en `~/.claude/plans/giggly-strolling-gizmo.md`.
+
+- **Fase 1 — Cimientos + Ops CRUD** ✅ cerrada 2026-04-14
+  - Migración `20260414121224_add_products_catalog` aplicada; modelos `products` + `product_packs` en `prisma/schema.prisma`.
+  - Seed 10 SKUs (`scripts/seed-products.ts`, `prisma/seeds/products.json`): 4 RGPD · 3 arrendamiento · 2 civil · 1 revisión. Todos `is_active:false` hasta poblar IDs externos.
+  - Panel Ops `/ops/productos` (listado + edición + alta con Server Actions y Zod).
+  - `src/lib/catalog/query.ts` con `getActiveProducts/ByCategory/BySlug/BySku` (React cache).
+  - `/api/checkout` valida SKU contra BD (ya no usa whitelist de env vars).
+
+- **Fase 2 — Tienda pública** ✅ cerrada 2026-04-14
+  - `/tienda` (RSC dynamic, listado desde BD, `CategoryFilter`), `/tienda/[categoria]` (7 categorías: rgpd/arrendamiento/civil/mercantil/pack/reclamacion/review), `/producto/[slug]` (ficha + `BuyButton` + Schema.org Product + badge "Próximamente" si falta `stripe_price_id`).
+  - Componentes nuevos: `DeliveryBadge`, `ProductCard`, `CategoryFilter`, `BuyButton`.
+
+- **Fase 3 — Auto-entrega** ✅ cerrada 2026-04-18
+  - `src/lib/orders/dispatch.ts` con `dispatchByProductKind` — router por 4 `delivery_mode` (fill_and_sign, fill_only, download_after_payment, human_review) devolviendo `DispatchResult` tipado.
+  - `src/lib/orders/fulfillment.ts` con `fulfillOrderFromSession` — orquestador, error handling con `notifyOpsError`, email `TemplateDownloadReady` para `download_url`.
+  - `src/lib/signing/docuseal.ts` — `createFromTemplate()` + `buildSubmitterPayload()` operando contra `POST /submissions` con `template_id` (DocuSeal self-hosted confirmado OK).
+  - `src/lib/storage/templates.ts` con `getTemplateSignedUrl()` — bucket `templates` + TTL 7 días.
+  - Webhook Stripe `/api/webhooks/stripe` invoca `fulfillOrderFromSession` vía `processOrderPostPayment`; protege contra re-entrega con `DISPATCHABLE_STATUSES`.
+  - Webhook DocuSeal `/api/webhooks/docuseal` acepta `metadata.productSku`; `resolveDocument()` hace fallback por `orderId` si no encuentra por `signing_document_id`.
+  - Emails: `document-ready.tsx`, `review-ready.tsx`, `template-download-ready.tsx`.
+  - Landing `/revisiones` con HowTo + FAQPage Schema.org; lee productos `category=review` de BD.
+  - Seed `AFD-REV-CONTRACT-001` (99 €, `human_review`) presente en `prisma/seeds/products.json`.
+
+**Relación con el roadmap F1–F6 del repo** (`docs/01-ROADMAP-MAESTRO.md`): F1–F6 describe ejes transversales (seguridad, docs, CRO, ops, performance, crecimiento) de forma independiente al pivote de negocio. Las dos líneas avanzan en paralelo. F5.2 (performance) cerrada 2026-04-17. F2 (documentación operativa) cerrada 2026-04-18 a la vez que Fase 3 del pivote.
+
+## P0b — Go-live Stripe LIVE
+
+Bloqueante para activar la tienda en producción. Registrado en `~/.claude/CARTERA.md` línea 14 y `~/.claude/projects/-var-home-soyalexendros/memory/cross-app-alerts.md`.
+
+1. **[Alejandro]** Crear los 10 productos seed en Stripe LIVE y obtener cada `stripe_price_id`.
+2. **[Alejandro]** Crear los 10 templates correspondientes en DocuSeal self-hosted y obtener cada `docuseal_template_id`.
+3. **[Alejandro]** En `/ops/productos` poblar para cada SKU: `stripe_price_id`, `docuseal_template_id`; marcar `is_active=true` sólo cuando ambos estén presentes.
+4. **[Alejandro]** Rotar `STRIPE_WEBHOOK_SECRET` en Stripe Dashboard (sanitizado en `.env` línea 34 el 2026-04-14; rotación operativa pendiente). Actualizar después en Vercel env vars.
+5. **[posterior]** Smoke test checkout end-to-end contra Stripe producción (1 SKU de cada categoría).
+
+Secretos ya rotados (no repetir): Stripe `…ZcEJgLNf` · GitHub PAT `…R6wmhShDXT` · Sentry `…GqNLdnf+1RQ` · Stripe webhook `…LoWWthC`.
 
 ## Documentación operativa
 
@@ -151,7 +209,7 @@ docs/                     — docs operativos (UI_GUIDE, ROUTES_MAP, CRON_JOBS, 
 - `@prisma/adapter-pg` (engine JS puro, serverless-safe, sin binario nativo).
 - **`DATABASE_URL`** → Supavisor pooler puerto 6543 (queries runtime).
 - **`DIRECT_URL`** → puerto 5432 (migraciones `prisma migrate`).
-- Modelos principales: `profiles`, `orders`, `documents`, `audit_log`, `subscriptions`, `monitor_alerts`, `products`.
+- Modelos principales: `profiles`, `orders`, `documents`, `audit_log`, `subscriptions`, `monitor_alerts`, `products`, `product_packs`.
 - Regenerar cliente tras cambios: `npx prisma generate` (también se ejecuta en `postinstall`).
 
 ## Flujo de pago (Stripe → Verifactu → DocuSeal)
@@ -280,13 +338,9 @@ Al añadir una plantilla nueva: componente `.tsx` + test snapshot + test del han
 
 ## Integraciones con otras apps de Alexendros
 
-> ⚠️ Hipotesis preliminar — refinar con Alejandro (ver `~/.claude/projects/-var-home-soyalexendros/memory/feedback_relaciones_proyectos.md`).
-
-- **n8n-automations** ✅ **confirmada** — afiladocs consume webhooks de n8n via `N8N_CONTACT_WEBHOOK_URL` (formulario de contacto) y `N8N_ALERTS_WEBHOOK_SECRET` (ingesta de alertas normativas en `/api/webhooks/n8n-alerts`).
-- **techno-website** 🟡 **inferida** — ambas apps usan Stripe Checkout; comparten patron reutilizable (sin dependencia tecnica, solo oportunidad de extraer helper si surge una tercera app).
-- **alexendros-monorepo** 🟡 **inferida** — misma familia de stack (Next.js 15 + Supabase + Stripe + Prisma). Candidato a consumir packages publicados del monorepo (`@repo/ui`, `@repo/stripe`) si se publican.
-- **lexactu** 🟠 **especulativa** — ambas manejan documentos legales pero en dominios distintos (afiladocs = servicios legales B2C, lexactu = OCR judicial). Sin integracion tecnica actual.
+- **n8n-automations** ✅ **confirmada** — afiladocs consume webhooks de n8n vía `N8N_CONTACT_WEBHOOK_URL` (formulario de contacto) y `N8N_ALERTS_WEBHOOK_SECRET` (ingesta de alertas normativas en `/api/webhooks/n8n-alerts`).
+- **alexendros-pro / alexendros-me** 🟡 oportunidad — tras el split del monorepo el 2026-04-11 (ver `~/.claude/projects/-var-home-soyalexendros/memory/project_alexendros_split.md`), si alguno publica packages reutilizables de UI/Stripe podrían consumirse aquí. Sin dependencia técnica hoy.
 
 ## Skills recomendadas para esta app
 
-`app-maestria` · `app-seguridad` · `app-despliegue` · `dev-revision` · `dev-depurar` · `app-entorno` · `app-migracion-bd` · `shadcn` · `infra-stripe` · `ux-pro-max` · `legal-cumplimiento`
+`APP_maestria` · `APP_seguridad` · `APP_despliegue` · `APP_entorno` · `APP_migracion-bd` · `APP_ci-cd` · `DEV_depurar` · `DEV_estrategia-tests` · `DEV_incidente` · `shadcn` · `LEGAL_cumplimiento` · `UX_critica` · `UX_accesibilidad`

@@ -236,7 +236,7 @@
     <div class="stats">
       <div class="stat"><div class="k">Fases cerradas</div><div class="v">5<small>/ 6</small></div></div>
       <div class="stat"><div class="k">Home First Load</div><div class="v">194<small>kB (−40)</small></div></div>
-      <div class="stat"><div class="k">Último commit</div><div class="v" style="font-family:var(--mono);font-size:14px">dba2a0a</div></div>
+      <div class="stat"><div class="k">Último commit</div><div class="v" style="font-family:var(--mono);font-size:14px">ddc8329</div></div>
       <div class="stat"><div class="k">Región prod</div><div class="v" style="font-family:var(--mono);font-size:14px">cdg1<small>París</small></div></div>
     </div>
   </header>
@@ -491,11 +491,11 @@
 
       <!-- Estado de proyecto -->
       <section class="card">
-        <h2>Estado del proyecto <span class="badge">snapshot 2026-04-18</span></h2>
+        <h2>Estado del proyecto <span class="badge">snapshot 2026-04-19</span></h2>
         <p class="hint">Vista rápida del estado real de Afiladocs ahora mismo. Todo verificado contra main, Vercel MCP y Stripe MCP.</p>
         <div class="status-grid">
-          <div class="status-tile"><div class="k">Fases cerradas</div><div class="v ok">5 / 6<small>F1-F5.2 ✓</small></div></div>
-          <div class="status-tile"><div class="k">Main commit</div><div class="v">dba2a0a</div></div>
+          <div class="status-tile"><div class="k">Fases cerradas</div><div class="v ok">4 / 6<small>F1·F2·F4·F5 archivadas</small></div></div>
+          <div class="status-tile"><div class="k">Main commit</div><div class="v">ddc8329</div></div>
           <div class="status-tile"><div class="k">Deploy prod</div><div class="v ok">READY</div></div>
           <div class="status-tile"><div class="k">Región</div><div class="v">cdg1<small>París</small></div></div>
           <div class="status-tile"><div class="k">Dominio</div><div class="v ok">afiladocs.com<small>LIVE</small></div></div>
@@ -516,12 +516,13 @@
 
         <div class="timeline">
           <div class="tl-phase done">
-            <div class="tl-head"><span class="tl-title">Recién completado · 2026-04-17 / 18</span><span class="tl-date">últimos commits</span></div>
+            <div class="tl-head"><span class="tl-title">Recién completado · 2026-04-17 / 19</span><span class="tl-date">últimos commits</span></div>
             <ul>
+              <li>Limpieza docs 2026-04-19: fases F1/F2/F4/F5 archivadas en <code>docs/archive/</code>, playground fusionado, Documenso eliminado de copy user-facing, bug fantasma <code>webhooks/documenso/route.ts</code> fuera de <code>vercel.json</code></li>
+              <li>Docs nuevos: <a href="CATALOG.md">CATALOG.md</a>, <a href="runbooks/golive-stripe-live.md">runbooks/golive-stripe-live.md</a>, <a href="n8n-workflows.md">n8n-workflows.md</a></li>
               <li>Rotación Stripe <code>sk_live …LoWWthC</code> (ciclo LIVE cerrado, 4 secretos al día)</li>
-              <li>Lighthouse delta F5.2 documentado en <code>F5-performance-audit.md</code></li>
+              <li>Lighthouse delta F5.2 documentado en <code>archive/fase-5-performance.md</code></li>
               <li>PR #26 mergeado: región <code>cdg1</code> + a11y baseline <code>axe-core</code> + auditoría idempotencia webhook</li>
-              <li>Fix env var <code>EASYVERIFACTU_*</code> (sin guion bajo intermedio) en código, <code>CLAUDE.md</code> y guía</li>
               <li>whois <code>afiladocs.com</code> confirmado: registrador Name.com, DNS autoritativo Vercel</li>
               <li>Stripe <code>charges_enabled=true</code> (KYC completado)</li>
               <li>CI gates verdes en main: typecheck · lint · tests (156) · build · GitGuardian · Vercel</li>
@@ -529,9 +530,10 @@
           </div>
 
           <div class="tl-phase active">
-            <div class="tl-head"><span class="tl-title">Activo · esperando tus credenciales</span><span class="tl-date">2026-04-18</span></div>
+            <div class="tl-head"><span class="tl-title">Activo · esperando tus credenciales</span><span class="tl-date">2026-04-19</span></div>
             <ul>
-              <li><strong>P0b Stripe live switch</strong> — crear webhook live, inyectar <code>whsec_</code> + <code>pk_live</code> en Vercel env, redeploy, validar primer evento</li>
+              <li><strong>P0b go-live Stripe LIVE</strong> — runbook completo en <a href="runbooks/golive-stripe-live.md">golive-stripe-live.md</a>: 10 productos Stripe + 10 templates DocuSeal + activar vía <code>/ops/productos</code> + smoke test por delivery_mode</li>
+              <li><strong>QA jurídica humana AFD-RGPD-REG-001</strong> — <code>catalog/drafts/AFD-RGPD-REG-001/draft-v1.0.0.md</code> con 12 findings resueltos por Claude; falta firma humana antes de maquetación DOCX</li>
               <li><strong>P1 email routing</strong> — alta ImprovMX + MX records en Vercel DNS + aliases <code>ops/admin/info/contacto/soporte@</code></li>
             </ul>
           </div>
@@ -599,6 +601,70 @@
         <div id="improvements" class="check-list"></div>
       </section>
 
+      <!-- Catálogo 10 SKUs -->
+      <section class="card">
+        <h2>Catálogo · 10 SKUs <span class="badge">0 de 10 activos</span></h2>
+        <p class="hint">Fuente de verdad: <code>catalog/manifest.json</code>. Detalle operativo en <a href="../CATALOG.md">CATALOG.md</a> y runbook en <a href="../runbooks/golive-stripe-live.md">golive-stripe-live.md</a>. Estado al 2026-04-19: todos en <code>draft</code>; AFD-RGPD-REG-001 con QA jurídica preliminar (<code>notes-legal.md</code>), pendiente firma humana.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;color:var(--text);">
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid var(--border);color:var(--muted);">
+              <th style="padding:6px 8px;font-weight:500;">SKU</th>
+              <th style="padding:6px 8px;font-weight:500;">Familia</th>
+              <th style="padding:6px 8px;font-weight:500;">Delivery</th>
+              <th style="padding:6px 8px;font-weight:500;">Precio</th>
+              <th style="padding:6px 8px;font-weight:500;">Estado</th>
+            </tr>
+          </thead>
+          <tbody style="font-family:var(--mono);">
+            <tr><td style="padding:5px 8px;">AFD-RGPD-REG-001</td><td style="padding:5px 8px;">RGPD</td><td style="padding:5px 8px;">fill_only</td><td style="padding:5px 8px;">49 €</td><td style="padding:5px 8px;color:var(--warn);">qa preliminar</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-RGPD-POL-001</td><td style="padding:5px 8px;">RGPD</td><td style="padding:5px 8px;">fill_only</td><td style="padding:5px 8px;">39 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-CIV-NDA-001</td><td style="padding:5px 8px;">Civil</td><td style="padding:5px 8px;">fill_and_sign · AES</td><td style="padding:5px 8px;">59 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-RGPD-CES-001</td><td style="padding:5px 8px;">RGPD</td><td style="padding:5px 8px;">fill_and_sign · AES</td><td style="padding:5px 8px;">69 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-ARR-VIV-001</td><td style="padding:5px 8px;">Arrendamiento</td><td style="padding:5px 8px;">fill_and_sign · AES</td><td style="padding:5px 8px;">79 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-ARR-TEMP-001</td><td style="padding:5px 8px;">Arrendamiento</td><td style="padding:5px 8px;">fill_and_sign · AES</td><td style="padding:5px 8px;">79 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-ARR-LOC-001</td><td style="padding:5px 8px;">Arrendamiento</td><td style="padding:5px 8px;">fill_and_sign · AES</td><td style="padding:5px 8px;">89 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-CIV-CPS-001</td><td style="padding:5px 8px;">Civil</td><td style="padding:5px 8px;">fill_and_sign · AES</td><td style="padding:5px 8px;">79 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-RGPD-BASE-001</td><td style="padding:5px 8px;">RGPD pack</td><td style="padding:5px 8px;">download_after_payment</td><td style="padding:5px 8px;">99 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+            <tr><td style="padding:5px 8px;">AFD-REV-CONTRACT-001</td><td style="padding:5px 8px;">Revisión humana</td><td style="padding:5px 8px;">human_review</td><td style="padding:5px 8px;">99 €</td><td style="padding:5px 8px;color:var(--todo);">draft</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Infraestructura operativa -->
+      <section class="card">
+        <h2>Infraestructura operativa del go-live <span class="badge">skill + agentes + repo + Notion</span></h2>
+        <p class="hint">Piezas que orquestan el trabajo del catálogo, todas alineadas contra <code>catalog/manifest.json</code> como fuente de verdad.</p>
+        <ol class="steps" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+          <li class="step"><span class="n">1</span><span><strong>Skill <code>/AFILADOCS_golive</code></strong> (<code>~/.claude/skills/AFILADOCS_golive/</code>) · 5 archivos: <code>SKILL.md</code> (matriz 10 prices + 8 templates + 1 pack + 1 review), <code>REFERENCIAS_LEGALES.md</code> (RGPD 13-14/28/30, LAU II/III, Ley 12/2023, Ley 1/2019, CC, Decisión UE 2021/915), <code>INDICE_CONTENIDOS.md</code> (8 esqueletos por tipo), <code>PLAYBOOK.md</code> (6 fases con owners), <code>NOTION_INTEGRATION.md</code> (IDs y autoridad por campo).</span></li>
+          <li class="step"><span class="n">2</span><span><strong>Agente <code>afiladocs-golive-auditor</code></strong> · Sonnet read-only. Contrasta 4 fuentes (BD Prisma, Stripe LIVE, DocuSeal API, Supabase Storage SHA256) contra el manifest. Reporta ✅ / 🟡 / ❌ por SKU con causa y acción.</span></li>
+          <li class="step"><span class="n">3</span><span><strong>Agente <code>afiladocs-notion-keeper</code></strong> · sincroniza repo ↔ Notion en 5 modos: <code>push &lt;SKU&gt;</code>, <code>push all</code>, <code>pull</code>, <code>diff</code>, <code>add-version</code>.</span></li>
+          <li class="step"><span class="n">4</span><span><strong>Repo scaffolding</strong> en <code>catalog/</code>: <code>manifest.json</code> (10 SKUs · version · legal_sources · changelog), <code>drafts/&lt;SKU&gt;/</code> (10 subcarpetas), <code>audit-reports/</code>, <code>scripts/audit-catalog.ts</code> (CLI BD + legal age + Stripe + DocuSeal — ver <a href="../CATALOG.md#audit-catalog">CATALOG.md</a>).</span></li>
+          <li class="step"><span class="n">5</span><span><strong>Notion hub</strong> bajo página <code>3347ded2…1cbb9808</code>: DB Catálogo vigente (10 filas, 19 propiedades 1:1 manifest), DB Masters DOCX (append-only con SHA256), AH5 · Pipeline go-live P0b (matriz, fases toggle, orden sugerido).</span></li>
+        </ol>
+      </section>
+
+      <!-- Regla autoridad repo ↔ Notion -->
+      <section class="card">
+        <h2>Regla de autoridad repo ↔ Notion <span class="badge">quién gana cuando hay divergencia</span></h2>
+        <p class="hint">Cualquier cambio que afecte a producción vive en git. Notion es autoritativo sólo para <code>Status</code> del kanban y <code>Notas</code> colaborativas. Más detalle en <code>~/.claude/skills/AFILADOCS_golive/NOTION_INTEGRATION.md</code>.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;color:var(--text);">
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid var(--border);color:var(--muted);">
+              <th style="padding:6px 8px;font-weight:500;">Campo</th>
+              <th style="padding:6px 8px;font-weight:500;">Autoritativo</th>
+              <th style="padding:6px 8px;font-weight:500;">Razón</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:5px 8px;">SKU · Slug · Kind · Categoría · Delivery · eIDAS · Precio</td><td style="padding:5px 8px;color:var(--ok);">Repo (seed Prisma)</td><td style="padding:5px 8px;color:var(--muted);">Inmutable una vez vivo</td></tr>
+            <tr><td style="padding:5px 8px;"><code>stripe_price_id</code> · <code>docuseal_template_id</code> · <code>storage_path</code></td><td style="padding:5px 8px;color:var(--ok);">Repo (manifest)</td><td style="padding:5px 8px;color:var(--muted);">Versionados en git, auditables</td></tr>
+            <tr><td style="padding:5px 8px;"><code>version</code> · <code>legal_sources</code> · <code>legal_reviewed_*</code></td><td style="padding:5px 8px;color:var(--ok);">Repo (manifest)</td><td style="padding:5px 8px;color:var(--muted);">Historial en <code>changelog[]</code></td></tr>
+            <tr><td style="padding:5px 8px;"><strong>Status</strong> (Kanban)</td><td style="padding:5px 8px;color:var(--accent);">Bidireccional</td><td style="padding:5px 8px;color:var(--muted);">Usuario arrastra Kanban; <code>pull</code> refleja al manifest</td></tr>
+            <tr><td style="padding:5px 8px;"><strong>Notas</strong></td><td style="padding:5px 8px;color:var(--accent);">Notion</td><td style="padding:5px 8px;color:var(--muted);">Colaboración humana; <code>[changelog] autor: texto</code> → entrada manifest</td></tr>
+          </tbody>
+        </table>
+      </section>
+
       <!-- Radar UI/UX -->
       <section class="card">
         <h2>Cohesión UI/UX <span class="badge">qué tal se ve y se siente</span></h2>
@@ -644,7 +710,7 @@
       id: 'polish',
       label: 'Cerrar PR 4 (Lighthouse delta) antes',
       pill: { text: '+1 h', cls: '' },
-      desc: 'Relanzar Lighthouse post-deploy y documentar delta en docs/F5-performance-audit.md. Cierra F5.2 al 100 % y deja números medidos en producción para futuros PRs.',
+      desc: 'Relanzar Lighthouse post-deploy y documentar delta en docs/archive/fase-5-performance.md. Cierra F5.2 al 100 % y deja números medidos en producción para futuros PRs.',
       horizon: '1 h',
     },
     {
@@ -666,10 +732,10 @@
   const CHECKLIST = [
     { id: 'f1', status: 'ok',   locked: true,  title: 'F1 Seguridad — CSP nonce + HSTS 2 años + middleware endurecido', meta: 'Cerrada 2026-04-14 · PR #7' },
     { id: 'f2', status: 'ok',   locked: true,  title: 'F2 Docs operativos + 5 runbooks incidentes', meta: 'Cerrada 2026-04-14 · PR #9' },
-    { id: 'f3', status: 'ok',   locked: true,  title: 'F3 Home CRO + Schema.org (FAQ, HowTo, Product, BreadcrumbList)', meta: 'Cerrada 2026-04-14 · PRs #10/#12/#13' },
+    { id: 'f3', status: 'warn', locked: true,  title: 'F3 UX/CRO — A+B+C cerradas (Home + Schema.org); F3/D tienda+portal en curso', meta: 'F3/A+B+C cerradas 2026-04-14 · PRs #10/#12/#13 · F3/D pendiente (docs/fase-3-ux-conversion.md)' },
     { id: 'f4', status: 'ok',   locked: true,  title: 'F4 Ops avanzado — filtros cursor, export CSV, KPIs SLA, batch', meta: 'Cerrada 2026-04-15 · PR #15' },
     { id: 'f5', status: 'ok',   locked: true,  title: 'F5 + F5.2 Performance — ISR/SSG + cache granular + bundle audit', meta: 'Cerrada 2026-04-17 · PRs #19-25' },
-    { id: 'lh',      status: 'ok',   locked: true,  title: 'Lighthouse delta post-deploy F5.2 documentado', meta: 'Cerrada 2026-04-17 · F5-performance-audit.md §Resultados medidos F5.2' },
+    { id: 'lh',      status: 'ok',   locked: true,  title: 'Lighthouse delta post-deploy F5.2 documentado', meta: 'Cerrada 2026-04-17 · archive/fase-5-performance.md §Resultados medidos F5.2' },
     { id: 'rotate',  status: 'ok',   locked: true,  title: 'Rotación secretos LIVE · ciclo completo', meta: 'Cerrada 2026-04-17 · …LoWWthC rotado. Stripe (…ZcEJgLNf), GitHub PAT, Sentry ya rotados el 2026-04-13.' },
     { id: 'live',    status: 'todo', done: false, priority: 'P0', effort: '45-60 min (+ activación KYC)', title: 'Switch Stripe test → live + smoke 1 € end-to-end', meta: 'Pre-req: charges_enabled=true (Stripe Dashboard → Activate payments, 5 secciones). Después: webhook live + env Vercel + redeploy + smoke 1 € con tarjeta real.' },
     { id: 'email',   status: 'warn', done: false, priority: 'P1', effort: '25 min', title: 'Redirect ops@afiladocs.com → Proton · Vercel DNS + ImprovMX', meta: 'Confirmado 2026-04-18: registrador Name.com, DNS autoritativo Vercel (ns1/ns2.vercel-dns.com). MX vía `vercel dns add` o dashboard Vercel → Domains → DNS.' },
@@ -866,7 +932,7 @@
     const resolved = CHECKLIST.filter(c => !c.locked && state.items[c.id]);
 
     const lines = [];
-    lines.push(`Quiero llevar Afiladocs a producción. Main está en commit e5411cd con F1–F5.2 cerradas.`);
+    lines.push(`Quiero llevar Afiladocs a producción. Main al 2026-04-19 tiene F1/F2/F4/F5 cerradas (docs/archive/), F3 parcial, F6 pendiente.`);
     lines.push('');
     lines.push(`Estrategia elegida: "${s.label}" (horizonte ${s.horizon}).`);
     lines.push(`Razón: ${s.desc}`);

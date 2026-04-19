@@ -15,7 +15,7 @@ Aplica a todo cambio en `src/app/api/webhooks/`, `src/app/api/cron/`, `src/lib/s
 | Upstash Redis | Rate limiting | [src/lib/rate-limit.ts](../../src/lib/rate-limit.ts) | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
 | Vercel Cron | Tareas programadas | [vercel.json](../../vercel.json), [src/app/api/cron/](../../src/app/api/cron/) | `CRON_SECRET` |
 
-**Documenso es legacy mantenido.** Webhook y adapter persisten por compatibilidad con contratos firmados antes del switch a DocuSeal, pero ningún flujo nuevo debe referenciarlo. Para firma electrónica usa siempre DocuSeal ([src/lib/signing/](../../src/lib/signing/)).
+**Documenso descartado.** Webhook y adapter eliminados en F1 (2026-04-14). DocuSeal es el único firmante activo ([src/lib/signing/](../../src/lib/signing/)). Si aparece en commits antiguos o comentarios, ignorar.
 
 ## 2. Contratos y tipos
 

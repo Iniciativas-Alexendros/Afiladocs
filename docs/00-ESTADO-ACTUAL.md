@@ -1,9 +1,10 @@
 # 00 — Estado actual del repositorio
 
-**Fecha de validación:** 2026-04-17
-**Próxima re-auditoría:** 2026-05-17 (o al cierre de la siguiente fase)
-**Rama de referencia:** `main` (commit `c8827ca`)
-**Última fase cerrada:** F5.2 — deuda performance (PRs #22/#23/#24, 2026-04-17)
+**Fecha de validación:** 2026-04-18
+**Próxima re-auditoría:** 2026-05-18 (o al cierre de la siguiente fase)
+**Rama de referencia:** `main` (commit `ddc8329`)
+**Última fase cerrada:** F2 — documentación operativa + Fase 3 pivote auto-entrega (2026-04-18)
+**Fases previas:** F5.2 deuda performance (PRs #22/#23/#24, 2026-04-17) · F1 seguridad + Fases 1-2 pivote (2026-04-14)
 
 Snapshot validado contra el repo en el mismo día. Sustituye a todos los análisis previos (que describían un stack ya retirado). Este documento es el insumo que justifica que el **trabajo pendiente es el listado en las fases F1–F6** y no todo lo que aparecía en los informes antiguos.
 
@@ -20,7 +21,7 @@ Snapshot validado contra el repo en el mismo día. Sustituye a todos los anális
 | Testing unit + E2E | ✅ | 18 specs en [src/__tests__/](../src/__tests__/), 4 en [e2e/](../e2e/); configs en [vitest.config.ts](../vitest.config.ts) y [playwright.config.ts](../playwright.config.ts) | Cobertura mínima 70% en críticos → F2 (documenta umbral) |
 | Observabilidad | ✅ | Sentry v10 en [sentry.*.config.ts](../src/), hook [src/instrumentation.ts](../src/instrumentation.ts) | — |
 | Webhooks Stripe/DocuSeal/n8n | ✅ | HMAC SHA-256, descarga PDF firmado, upload a Supabase Storage: [src/app/api/webhooks/docuseal/route.ts](../src/app/api/webhooks/docuseal/route.ts) | — |
-| Documenso legacy | 🟡 mantenido (compat) | Webhook `/api/webhooks/documenso` y adapter se conservan por compatibilidad; flujo activo es DocuSeal en [src/lib/signing/](../src/lib/signing/). Ningún desarrollo nuevo depende de Documenso | Retirada completa → backlog |
+| Documenso legacy | ✅ descatalogado | Webhook y adapter eliminados en F1 (2026-04-14). DocuSeal es único firmante en [src/lib/signing/](../src/lib/signing/) | — |
 | Schema Prisma | ✅ | `eidas_level` (no `eideas_level`), `invoice_id`, `invoice_pdf`, `invoiced_at`, `deleted_at`, `stripe_customer_id` en [prisma/schema.prisma](../prisma/schema.prisma) | — |
 | Marketing (blog, tienda, informes, sobre-mí, servicios, legaltech-ia) | ✅ contenido real | Artículos en [src/app/(marketing)/blog/](../src/app/(marketing)/blog/), 4 tipos en informes-jurídicos, categorías dinámicas en tienda | CRO Home (FAQ/HowTo, pulido tienda) → F3 |
 | Portal cliente | ✅ | KPIs en [src/app/portal/page.tsx](../src/app/portal/page.tsx), botón descarga firmado, timeline básico, Stripe Billing Portal | Autoguardado intake, timeline con audit_log → F3, F4 |
@@ -28,7 +29,7 @@ Snapshot validado contra el repo en el mismo día. Sustituye a todos los anális
 | CSP / seguridad HTTP | ✅ | CSP con nonce por request en [middleware.ts](../middleware.ts) (`buildCsp`), `'unsafe-inline'` eliminado de `script-src`, HSTS preload 2 años en [next.config.ts](../next.config.ts) | — |
 | Middleware | ✅ | Nonce + bot allowlist (Googlebot/Bingbot/…) + geo-blocking vía `GEO_BLOCKED_COUNTRIES` + suspicious-path regex en [middleware.ts](../middleware.ts) | — |
 | Audit log | ✅ | Tabla `audit_log` poblada por webhooks y server actions; vista paginada cursor-based en [src/app/ops/auditoria/page.tsx](../src/app/ops/auditoria/page.tsx) con export CSV (`report.exported`) | — |
-| Docs internas | 🟡 | Solo [docs/n8n-workflows.md](../docs/n8n-workflows.md) (brief UX integrado en [fase-3-ux-conversion.md](fase-3-ux-conversion.md)) | Faltan UI_GUIDE, ROUTES_MAP, CRON_JOBS, PORTAL_CLIENTE, BACKOFFICE_OPS, runbooks → F2 |
+| Docs internas | ✅ | [docs/README.md](README.md) índice; 5 docs operativos ([UI_GUIDE](UI_GUIDE.md), [ROUTES_MAP](ROUTES_MAP.md), [CRON_JOBS](CRON_JOBS.md), [PORTAL_CLIENTE](PORTAL_CLIENTE.md), [BACKOFFICE_OPS](BACKOFFICE_OPS.md)) + 5 runbooks en [runbooks/](runbooks/); umbral 70% declarado | — (F2 cerrada 2026-04-18) |
 | Verifactu (RD 1007/2023) | ✅ | [src/lib/verifactu/](../src/lib/verifactu/) cableado al webhook Stripe; `orders.invoice_id` poblado | — |
 | Emails transaccionales | ✅ | 13 plantillas en [src/emails/](../src/emails/) (welcome, intake-required, signature-required, document-ready, subscription-*, sla-alert, daily-ops-report, payment-failed, etc.) | — |
 | Cron jobs Vercel | ✅ | 5 crons en [vercel.json](../vercel.json): cleanup, subscription-reminders, intake-reminders, sla-monitor, daily-report | Documentar SLAs y payloads → F2 (CRON_JOBS.md) |

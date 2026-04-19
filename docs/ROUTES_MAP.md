@@ -94,8 +94,7 @@ Gate: `requireRole(['admin','ops'])` en [ops/layout.tsx](../src/app/ops/layout.t
 | Ruta | HTTP | Archivo | Origen |
 |------|------|---------|--------|
 | `/api/webhooks/stripe` | POST | [webhooks/stripe/route.ts](../src/app/api/webhooks/stripe/route.ts) | `checkout.session.completed`, `invoice.paid`, etc. |
-| `/api/webhooks/docuseal` | POST | [webhooks/docuseal/route.ts](../src/app/api/webhooks/docuseal/route.ts) | Firma DocuSeal (activo) |
-| `/api/webhooks/documenso` | POST | [webhooks/documenso/route.ts](../src/app/api/webhooks/documenso/route.ts) | Firma Documenso (legacy) |
+| `/api/webhooks/docuseal` | POST | [webhooks/docuseal/route.ts](../src/app/api/webhooks/docuseal/route.ts) | Firma DocuSeal (único firmante) |
 | `/api/webhooks/n8n-alerts` | POST | [webhooks/n8n-alerts/route.ts](../src/app/api/webhooks/n8n-alerts/route.ts) | Alertas normativas (Bearer token) |
 
 ### Cron (Vercel Cron → GET)
