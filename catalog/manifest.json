@@ -1,0 +1,222 @@
+{
+  "$schema": "./manifest.schema.json",
+  "version": 1,
+  "updated_at": "2026-04-18T00:00:00Z",
+  "description": "Fuente de verdad de trazabilidad del catalogo Afiladocs (10 SKUs). Sincronizar tras cualquier cambio en Stripe, DocuSeal, Storage o revisiones legales.",
+  "products": [
+    {
+      "sku": "AFD-RGPD-BASE-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Reglamento (UE) 2016/679 (RGPD)",
+        "LO 3/2018 LOPDGDD",
+        "Ley 34/2002 LSSI-CE",
+        "Guia AEPD Adecuacion al RGPD"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-RGPD-REG-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "RGPD art. 30",
+        "LOPDGDD art. 31",
+        "Guia AEPD Registro de actividades"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-RGPD-POL-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "RGPD arts. 13-14",
+        "LSSI-CE art. 10",
+        "LOPDGDD arts. 11-12",
+        "Directrices EDPB 5/2020 (consentimiento)",
+        "Directrices EDPB 3/2022 (patrones enganosos)"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-RGPD-CES-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "RGPD art. 28",
+        "LOPDGDD art. 33",
+        "Decision (UE) 2021/915 clausulas tipo responsable-encargado"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-ARR-VIV-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Ley 29/1994 LAU Titulo II",
+        "Codigo Civil arts. 1542-1582",
+        "Ley 12/2023 derecho a la vivienda",
+        "RD-Ley 7/2019"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-ARR-TEMP-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Ley 29/1994 LAU Titulo III (art. 3)",
+        "Codigo Civil arts. 1542-1582",
+        "Jurisprudencia TS 2019-2023 sobre temporada vs. uso turistico"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-ARR-LOC-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Ley 29/1994 LAU Titulo III",
+        "Codigo de Comercio",
+        "RD 2/2004 ITP-AJD",
+        "Ley 7/1996 Ordenacion del Comercio Minorista"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-CIV-CPS-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Codigo Civil arts. 1583-1587",
+        "Codigo Civil arts. 1544 y ss.",
+        "Ley 15/2007 Defensa de la Competencia (si aplica)",
+        "Jurisprudencia TS 2022-2023 delimitacion servicios vs. laboral"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-CIV-NDA-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Codigo Civil art. 1255",
+        "Ley 1/2019 Secretos Empresariales (trasposicion Directiva 2016/943/UE)",
+        "Codigo Penal arts. 278-280"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial)"}
+      ]
+    },
+    {
+      "sku": "AFD-REV-CONTRACT-001",
+      "version": "0.1.0",
+      "status": "draft",
+      "stripe_price_id": null,
+      "stripe_last_verified": null,
+      "docuseal_template_id": null,
+      "docuseal_last_verified": null,
+      "storage_paths": [],
+      "storage_sha256": {},
+      "legal_sources": [
+        "Variable segun contrato aportado por el cliente (LAU, CC, RGPD, Ley 1/2019 etc.)"
+      ],
+      "legal_reviewed_by": null,
+      "legal_reviewed_at": null,
+      "changelog": [
+        {"date": "2026-04-18", "author": "system", "note": "SKU registrado en manifest (draft inicial, producto de revision humana sin DOCX master)"}
+      ]
+    }
+  ]
+}
