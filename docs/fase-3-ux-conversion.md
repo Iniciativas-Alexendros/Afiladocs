@@ -250,7 +250,7 @@ Copyright + enlace a changelog (si existe) en la parte inferior.
 - Webhooks (`/api/webhooks/*`).
 - Prisma schema, migraciones, seed.
 - Infraestructura Vercel / Supabase.
-- Panel `/ops/*` — brief independiente en [fase-4-ops-avanzado.md](fase-4-ops-avanzado.md).
+- Panel `/ops/*` — brief independiente en [archive/fase-4-ops-avanzado.md](archive/fase-4-ops-avanzado.md) (cerrada 2026-04-15).
 
 ## Cierre
 
