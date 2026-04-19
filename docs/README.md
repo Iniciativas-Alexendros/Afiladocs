@@ -1,7 +1,7 @@
 # Documentación Afiladocs
 
-**Última revisión:** 2026-04-14
-**Próxima re-auditoría:** 2026-05-14 (o al cierre de la siguiente fase).
+**Última revisión:** 2026-04-19
+**Próxima re-auditoría:** 2026-05-19 (o al cierre de la siguiente fase).
 
 Hub único de la documentación técnica y operativa del proyecto. Sustituye al viejo `docs-INDEX.md`. Los docs viven organizados en 3 ejes: **operativos** (cómo funciona el sistema hoy), **runbooks** (qué hacer cuando algo va mal) y **roadmap** (qué falta por hacer).
 
@@ -25,8 +25,10 @@ Describen la arquitectura vigente. Primer sitio al que acudir antes de tocar có
 | [CRON_JOBS.md](CRON_JOBS.md) | Los 5 crons de Vercel: schedule, SLA, payload, alertas |
 | [PORTAL_CLIENTE.md](PORTAL_CLIENTE.md) | Journey del cliente en `/portal/*` (intake, documentos, suscripciones) |
 | [BACKOFFICE_OPS.md](BACKOFFICE_OPS.md) | Journey ops en `/ops/*` (KPIs, pedidos, productos, alertas, auditoría) |
-| [n8n-workflows.md](n8n-workflows.md) | IDs y URLs de los 5 workflows n8n |
+| [CATALOG.md](CATALOG.md) | Ciclo de vida de los 10 SKUs: draft → DocuSeal → Stripe → live + script `audit-catalog.ts` |
+| [n8n-workflows.md](n8n-workflows.md) | Los 5 workflows n8n: monitores normativos, contact relay, error router |
 | [DEPLOY_MANUAL.md](DEPLOY_MANUAL.md) | Matriz de env vars, contrato CI, requisitos Vercel, fallos frecuentes |
+| [estado.html](estado.html) | Playground interactivo del estado y go-live (checklist P0-P3, DNS, catálogo, autoridad repo↔Notion) |
 
 ## Runbooks de incidentes
 
@@ -34,6 +36,7 @@ Recetas paso a paso para respuesta a incidencias. Un externo debe poder ejecutar
 
 | Runbook | Escenario |
 |---------|-----------|
+| [runbooks/golive-stripe-live.md](runbooks/golive-stripe-live.md) | Go-live P0b: poblar 10 SKUs en Stripe LIVE + DocuSeal + activar |
 | [runbooks/rollback-vercel.md](runbooks/rollback-vercel.md) | Revertir un deploy fallido (CLI/dashboard) |
 | [runbooks/rotacion-secretos.md](runbooks/rotacion-secretos.md) | Rotar Stripe, Supabase, DocuSeal, Resend, CRON_SECRET sin downtime |
 | [runbooks/recovery-docuseal.md](runbooks/recovery-docuseal.md) | Recuperar un PDF firmado si falla el webhook DocuSeal |
@@ -46,12 +49,17 @@ Estado del producto y hoja de ruta a 6 fases. Sólo contienen trabajo pendiente 
 
 - [00-ESTADO-ACTUAL.md](00-ESTADO-ACTUAL.md) — snapshot validado por eje (hecho / parcial / pendiente).
 - [01-ROADMAP-MAESTRO.md](01-ROADMAP-MAESTRO.md) — secuencia y dependencias F1–F6.
-- [fase-1-seguridad.md](fase-1-seguridad.md) — ✅ cerrada 2026-04-14.
-- [fase-2-documentacion.md](fase-2-documentacion.md) — ← en curso, este README es uno de los entregables.
-- [fase-3-ux-conversion.md](fase-3-ux-conversion.md) — CRO home, Schema.org, pulido tienda/intake.
-- [fase-4-ops-avanzado.md](fase-4-ops-avanzado.md) — filtros, export CSV extendido, KPIs SLA.
-- [fase-5-performance.md](fase-5-performance.md) — cache granular, bundle analysis, edge.
-- [fase-6-crecimiento.md](fase-6-crecimiento.md) — feature flags, MDX blog, i18n.
+- [fase-3-ux-conversion.md](fase-3-ux-conversion.md) — 🟡 parcial (F3/A+B+C cerradas; F3/D tienda+portal en curso).
+- [fase-6-crecimiento.md](fase-6-crecimiento.md) — ❌ pendiente (feature flags, MDX blog, i18n).
+
+**Fases cerradas (archivadas en [archive/](archive/)):** histórico read-only, no reeditables. Si algo queda obsoleto se mueve a una nueva fase, no se edita en sitio.
+
+| Fase | Cerrada | Doc |
+|------|---------|-----|
+| F1 Seguridad | 2026-04-14 | [archive/fase-1-seguridad.md](archive/fase-1-seguridad.md) |
+| F2 Documentación | 2026-04-18 | [archive/fase-2-documentacion.md](archive/fase-2-documentacion.md) |
+| F4 Ops avanzado | 2026-04-15 | [archive/fase-4-ops-avanzado.md](archive/fase-4-ops-avanzado.md) |
+| F5 Performance (+ ex `F5-performance-audit.md` fusionado) | 2026-04-17 | [archive/fase-5-performance.md](archive/fase-5-performance.md) |
 
 **Guías transversales** (reglas que aplican a todas las fases):
 
@@ -104,6 +112,6 @@ Detalles operativos y roles de revisor en [guias/guia-calidad.md](guias/guia-cal
 - [CLAUDE.md](../CLAUDE.md) — reglas absolutas del stack (lo que no se negocia).
 - [MEMORY.md](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/memory/MEMORY.md) — memoria persistente de Claude Code.
 - [reference/roadmap-enterprise/](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/reference/roadmap-enterprise/) — mirror protegido read-only de los docs de roadmap, por si `docs/` queda desalineado.
-- `~/.claude/PROYECTOS.md` — contexto SIMBIOSIS de las demás apps de Alexendros.
+- `~/.claude/CARTERA.md` — estado vivo de las demás apps de Alexendros (sustituye al antiguo `PROYECTOS.md` desde 2026-04-15).
 
 Legacy (VPS, Nginx, PM2, Documenso) archivado en [reference/legacy-stack/](../../.claude/projects/-var-home-soyalexendros-Apps-afiladocs-website/reference/legacy-stack/). Si aparece en commits antiguos o comentarios, ignorar: el stack vigente es el descrito en [CLAUDE.md](../CLAUDE.md).

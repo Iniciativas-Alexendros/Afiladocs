@@ -1,12 +1,14 @@
 # Fase 2 — Documentación técnica operativa
 
+## Estado: ✅ CERRADA — 2026-04-18
+
 **Duración estimada:** 1 semana
 **Prioridad:** Alta (habilita onboarding y reduce MTTR en incidentes)
 **Dependencias:** ninguna (se ejecuta en paralelo con F1)
 
 ## Objetivo
 
-Completar la carpeta [docs/](../docs/) con los documentos operativos que hoy están referenciados pero no existen. Sustituir el viejo `docs-INDEX.md` (que apuntaba a archivos inexistentes) por un `docs/README.md` real y útil tanto para humanos como para Claude Code.
+Completar la carpeta [docs/](../../docs/) con los documentos operativos que hoy están referenciados pero no existen. Sustituir el viejo `docs-INDEX.md` (que apuntaba a archivos inexistentes) por un `docs/README.md` real y útil tanto para humanos como para Claude Code.
 
 ## Entregables
 
@@ -17,7 +19,7 @@ Completar la carpeta [docs/](../docs/) con los documentos operativos que hoy est
 | `docs/README.md` | Índice operativo con enlaces relativos a todos los docs; reemplaza a `docs-INDEX.md` |
 | `docs/UI_GUIDE.md` | Design system: tokens (color, espaciado, tipografía), componentes base (`src/components/ui`), variantes de Button/Input/Card/Dialog, patrones de formulario con `react-hook-form` + Zod, reglas de accesibilidad Radix |
 | `docs/ROUTES_MAP.md` | Mapa de rutas `src/app` por dominio (marketing, auth, portal, ops, api) con propósito de negocio, autenticación requerida y doc asociado |
-| `docs/CRON_JOBS.md` | Los 5 crons de [vercel.json](../vercel.json): schedule, SLA esperado, payload, dependencias externas, alertas de fallo |
+| `docs/CRON_JOBS.md` | Los 5 crons de [vercel.json](../../vercel.json): schedule, SLA esperado, payload, dependencias externas, alertas de fallo |
 | `docs/PORTAL_CLIENTE.md` | Journey cliente: dashboard, listado pedidos, detalle, intake, descarga firmado, gestión suscripción |
 | `docs/BACKOFFICE_OPS.md` | Journey ops: dashboard KPIs, gestión pedidos, upload PDF, envío a firma, alertas normativas, audit log |
 
@@ -42,7 +44,7 @@ Crear `docs/runbooks/` con al menos:
 
 - [ ] `docs/README.md` existe con índice funcional; `docs-INDEX.md` ya no aparece en la raíz del repo.
 - [ ] Los 5 docs operativos + 5 runbooks existen con contenido real (no TODO placeholders).
-- [ ] Cada doc tiene TOC, enlaces relativos a código (sintaxis `[file.ts](../src/...)`) y fecha de última revisión.
+- [ ] Cada doc tiene TOC, enlaces relativos a código (sintaxis `[file.ts](../../src/...)`) y fecha de última revisión.
 - [ ] El umbral de cobertura 70% está declarado en `docs/README.md` y referenciado en `guias/guia-calidad.md`.
 - [ ] Ningún doc referencia Documenso, Hostinger, PM2 o Nginx (stack legacy ya retirado).
 - [ ] `rg -i 'documenso|hostinger|nginx|PM2' docs/` devuelve 0.

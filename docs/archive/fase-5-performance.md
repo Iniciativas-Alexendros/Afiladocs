@@ -1,5 +1,9 @@
 # Fase 5 — Performance y coste
 
+## Estado: ✅ CERRADA — 2026-04-17 (scope F5.1 + F5.2)
+
+Deuda remanente documentada en §"Deuda performance cerrada" al final del archivo (ex `F5-performance-audit.md`, fusionado aquí).
+
 **Duración estimada:** continua (se introduce gradualmente)
 **Prioridad:** Media (más alta si los costes de Vercel o los tiempos de respuesta se degradan)
 **Dependencias:** F1 (convive con middleware para nonce+geo)
@@ -18,7 +22,7 @@ Introducir `unstable_cache` con tags invalidables en las queries del portal:
 - `getProductCatalog()` → tags `['products']`, `revalidate: 300`.
 - `getUserSubscriptions(userId)` → tags `['subscriptions', 'user:{userId}']`, `revalidate: 120`.
 
-En los webhooks que mutan datos, llamar `revalidateTag('orders')` / `revalidateTag('products')` según corresponda. Los webhooks afectados: [src/app/api/webhooks/stripe/route.ts](../src/app/api/webhooks/stripe/route.ts), [src/app/api/webhooks/docuseal/route.ts](../src/app/api/webhooks/docuseal/route.ts).
+En los webhooks que mutan datos, llamar `revalidateTag('orders')` / `revalidateTag('products')` según corresponda. Los webhooks afectados: [src/app/api/webhooks/stripe/route.ts](../../src/app/api/webhooks/stripe/route.ts), [src/app/api/webhooks/docuseal/route.ts](../../src/app/api/webhooks/docuseal/route.ts).
 
 ### 5.2 Bundle analyzer en CI
 
@@ -83,3 +87,53 @@ Extender el middleware de F1 para aprovechar `request.geo`:
 
 - La fase **no se cierra**: queda como proceso continuo. Cada release añade mejoras incrementales.
 - Cada 30 días: snapshot en [00-ESTADO-ACTUAL.md](00-ESTADO-ACTUAL.md) con métricas RUM.
+
+---
+
+## Deuda performance cerrada (F5.1 + F5.2)
+
+**Fecha:** 2026-04-15 → 2026-04-17. Baseline Lighthouse: [performance-baseline/](performance-baseline/) (6 snapshots: home/tienda/suscripciones × desktop/mobile).
+
+### Hallazgo principal
+
+Todas las páginas de marketing consumiendo catálogo estaban `export const dynamic = 'force-dynamic'` (introducido en `3aa4afa feat(f3/b+c)`), forzando SSR por request y anulando ISR. El catálogo es público y cambia raras veces — candidato obvio para ISR con invalidación por tag.
+
+### Páginas migradas (F5.1)
+
+| Ruta | Antes | Después |
+|------|-------|---------|
+| [/](../../src/app/(marketing)/page.tsx) | `force-dynamic` | `revalidate = 3600` |
+| [/revisiones](../../src/app/(marketing)/revisiones/page.tsx) | `force-dynamic` | `revalidate = 3600` |
+| [/producto/[slug]](../../src/app/(marketing)/producto/[slug]/page.tsx) | `force-dynamic` | SSG con `generateStaticParams` |
+| [/tienda/[categoria]](../../src/app/(marketing)/tienda/[categoria]/page.tsx) | `force-dynamic` | SSG (7 categorías `VALID`) |
+| [/tienda](../../src/app/(marketing)/tienda/page.tsx) | `force-dynamic` | dinámico por `searchParams`, DB vía cache |
+
+`src/lib/catalog/query.ts` migrado de `cache()` (per-request) a `unstable_cache` con tag único `products`, `revalidate: 3600`. `.catch()` fuera del wrapper → si DB falla no se cachea el vacío. `revalidateProductsCache()` expuesto para writes desde `src/app/ops/productos/actions.ts`.
+
+### Bundle wins (F5.2, PRs #22/#23/#24)
+
+| Ruta | Antes F5 | Tras F5.2 | Delta |
+|------|----------|-----------|-------|
+| `/` (home) | 234 kB | **194 kB** | −40 kB (−17 %) |
+| `/recuperar-password` | 189 kB | **128 kB** | −61 kB (−32 %) |
+| `/recuperar-password/confirmar` | 189 kB | **127 kB** | −62 kB (−33 %) |
+| `/portal/pedido/[id]` | 204 kB | 204 kB | latencia query reducida ~60 s por cache granular |
+
+Home pasa de ruta híbrida a `○` (RSC estática) al sacar framer-motion y migrar Hero+ProcessSteps a Server Components.
+
+Cambios concretos:
+- **framer-motion eliminado** del proyecto; migrado a CSS animations nativas (`.afd-fade-up` en [globals.css](../../src/app/globals.css)).
+- **`@supabase/ssr` lazy-loaded** vía [src/lib/supabase/lazy-client.ts](../../src/lib/supabase/lazy-client.ts).
+- **Cache granular portal:** `/portal/pedido/[id]` envuelve `findFirst` en `unstable_cache` con tags `['orders', 'orders-${uid}', 'order-${id}']`; webhooks Stripe/DocuSeal y ops actions propagan invalidación granular.
+
+### Qué queda pendiente (ROI descendente)
+
+1. **PPR en /tienda** — esperando estabilización de Partial Prerendering de Next 15; entonces static shell + Suspense boundary por filtro.
+2. **CSP nonce overhead** — medir impacto en TTFB con snapshots de [performance-baseline/](performance-baseline/) como referencia.
+3. **Migración completa de /tienda a estático** — exige mover filtrado `?cat=` a client component con `useSearchParams()`. ROI bajo hasta superar ~50 productos.
+
+### Cómo verificar en producción
+
+- Tras deploy: `curl -I https://afiladocs.com/ | grep -i 'x-nextjs-cache\|age'`. Primera request debe ser `MISS`; siguientes `HIT` hasta 3600 s o `revalidateProductsCache()`.
+- Tocar un producto en `/ops/productos` → recargar `/` → cambio inmediato (invalidación por tag).
+- Relanzar Lighthouse sobre `https://afiladocs.com/` y comparar contra [performance-baseline/home-desktop.json](performance-baseline/home-desktop.json).

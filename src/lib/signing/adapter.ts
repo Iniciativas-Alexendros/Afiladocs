@@ -1,6 +1,6 @@
 /**
  * Abstraction layer for e-signature providers.
- * Implement this interface for each provider (Documenso, DocuSeal, etc.).
+ * DocuSeal is the only active implementation (Documenso retired in F1, 2026-04-14).
  * Pattern mirrors src/lib/verifactu/adapter.ts.
  */
 export interface SigningDocument {

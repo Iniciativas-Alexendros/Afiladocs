@@ -71,7 +71,7 @@ El workflow [.github/workflows/ci.yml](../.github/workflows/ci.yml) es la fuente
 
 ## 4. Requisitos Vercel
 
-- **Región**: `mad1` (declarado en [vercel.json](../vercel.json)).
+- **Región**: `cdg1` (París, PoP más cercano a ES — Vercel no tiene Madrid). Declarada en [vercel.json](../vercel.json).
 - **`maxDuration`**: 30 s para checkout/webhooks, 60 s para crons, 10 s para contact, 5 s para health.
 - **Crons**: sólo se ejecutan en `production`. Preview no dispara crons.
 - **`NEXT_PUBLIC_SITE_URL`**: sólo definida en `production` (`https://afiladocs.com`). Previews la omiten a propósito para que [robots.ts](../src/app/robots.ts) devuelva `Disallow: /` y `sitemap.ts` responda `noindex`.

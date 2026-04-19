@@ -94,4 +94,4 @@ Ejecutar en una transacción si es posible. Sólo un admin puede hacerlo (RLS).
 
 - [BACKOFFICE_OPS.md](../BACKOFFICE_OPS.md) — server action `opsUploadDocument`.
 - [src/app/api/webhooks/docuseal/route.ts](../../src/app/api/webhooks/docuseal/route.ts) — handler y verificación HMAC.
-- [src/lib/signing/](../../src/lib/signing/) — adapter pattern DocuSeal/Documenso.
+- [src/lib/signing/](../../src/lib/signing/) — adapter pattern DocuSeal (único firmante).
