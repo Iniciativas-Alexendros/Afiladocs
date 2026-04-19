@@ -24,7 +24,7 @@ export const SignatureRequiredEmail = ({ userName, productName, signUrl }: Signa
             </Heading>
             
             <Text className="text-base text-slate-600 mb-6 leading-relaxed">
-              Hola {userName}, hemos enviado a través de nuestro proveedor de firma cualificada (Documenso) el documento finalizado de: <strong>{productName}</strong>.
+              Hola {userName}, hemos enviado a través de nuestro proveedor de firma cualificada (DocuSeal) el documento finalizado de: <strong>{productName}</strong>.
             </Text>
 
             <Section className="text-center mt-8 mb-8 p-6 bg-slate-50 rounded-lg">
@@ -32,7 +32,7 @@ export const SignatureRequiredEmail = ({ userName, productName, signUrl }: Signa
                 href={signUrl}
                 className="bg-indigo-600 text-white rounded-md px-6 py-3 text-base font-semibold inline-block shadow-sm"
               >
-                Acceder a Documenso para firmar
+                Acceder a DocuSeal para firmar
               </Link>
             </Section>
 

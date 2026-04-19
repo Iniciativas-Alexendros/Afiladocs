@@ -142,7 +142,7 @@ export default async function OpsOrderDetailPage(props: { params: Promise<{ id: 
 
               <div className="flex flex-col gap-4">
                 <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">2. Subir Documento Final Firmado</h3>
-                <p className="text-sm text-muted-foreground">Sube aquí el PDF validado o finalizado (si no se usa la API de Documenso). Cambiará a `completed`.</p>
+                <p className="text-sm text-muted-foreground">Sube aquí el PDF validado o finalizado (si no se usa la API de DocuSeal). Cambiará a `completed`.</p>
                 <div className="p-4 bg-muted rounded-lg border border-border">
                   <UploadDocumentForm orderId={order.id} type="signed" />
                 </div>
