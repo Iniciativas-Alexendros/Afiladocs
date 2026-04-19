@@ -9,7 +9,6 @@
   "functions": {
     "src/app/api/checkout/route.ts": { "maxDuration": 30 },
     "src/app/api/webhooks/stripe/route.ts": { "maxDuration": 30 },
-    "src/app/api/webhooks/documenso/route.ts": { "maxDuration": 30 },
     "src/app/api/webhooks/docuseal/route.ts": { "maxDuration": 30 },
     "src/app/api/webhooks/n8n-alerts/route.ts": { "maxDuration": 15 },
     "src/app/api/contact/route.ts": { "maxDuration": 10 },

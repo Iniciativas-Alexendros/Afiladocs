@@ -37,7 +37,7 @@ export const DocumentCompletedEmail = ({ userName, productName, portalUrl }: Doc
             </Section>
 
             <Text className="text-base text-slate-600 mb-6 leading-relaxed">
-              Tanto tú como las otras partes habéis recibido el registro de auditoría de Documenso acreditando la firma con sello de tiempo oficial.
+              Tanto tú como las otras partes habéis recibido el registro de auditoría de DocuSeal acreditando la firma con sello de tiempo oficial.
             </Text>
 
             <Text className="text-sm text-slate-400 mt-12 border-t border-slate-100 pt-6">
