@@ -14,7 +14,7 @@ concurrency:
 jobs:
   quality:
     name: Typecheck · Lint · Tests · Build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ts]
     timeout-minutes: 20
     # Placeholders compartidos por todos los steps. No son secretos: Stripe/Resend
     # no se contactan en build, y Supabase/DB sólo se consultan en runtime.
