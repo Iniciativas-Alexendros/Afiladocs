@@ -205,6 +205,17 @@ async function auditSku(prisma: PrismaClient, mp: ManifestProduct): Promise<SkuA
   return { sku: mp.sku, verdict: verdictFromSeverity(worstSeverity(checks)), checks }
 }
 
+const SEVERITY_MARK: Record<Severity, string> = {
+  ok: '✓',
+  warn: '!',
+  critical: '✗',
+  skipped: '·',
+}
+
+function severityMark(severity: Severity): string {
+  return SEVERITY_MARK[severity]
+}
+
 function formatText(audits: SkuAudit[]): string {
   const lines: string[] = []
   const emoji = { ready: '✅', warn: '🟡', block: '❌', partial: '⏭️ ' } as const
@@ -217,8 +228,7 @@ function formatText(audits: SkuAudit[]): string {
   for (const a of audits) {
     lines.push(`## ${a.sku} ${emoji[a.verdict]} ${a.verdict.toUpperCase()}`)
     for (const c of a.checks) {
-      const mark = c.severity === 'ok' ? '✓' : c.severity === 'warn' ? '!' : c.severity === 'critical' ? '✗' : '·'
-      lines.push(`- ${mark} \`${c.name}\`: ${c.message}`)
+      lines.push(`- ${severityMark(c.severity)} \`${c.name}\`: ${c.message}`)
     }
     lines.push('')
   }
