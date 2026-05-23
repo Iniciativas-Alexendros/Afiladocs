@@ -75,5 +75,5 @@ export async function getProductBySku(sku: string) {
 }
 
 export function revalidateProductsCache() {
-  revalidateTag(PRODUCTS_CACHE_TAG)
+  revalidateTag(PRODUCTS_CACHE_TAG, 'default')
 }

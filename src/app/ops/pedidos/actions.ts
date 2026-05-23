@@ -145,8 +145,8 @@ export async function batchMarkProcessing(
     affected: result,
   })
   revalidatePath('/ops/pedidos')
-  revalidateTag('orders')
-  for (const id of ids) revalidateTag(`order-${id}`)
+  revalidateTag('orders', 'default')
+  for (const id of ids) revalidateTag(`order-${id}`, 'default')
   return { success: true, affected: result }
 }
 
@@ -238,7 +238,7 @@ export async function batchAddInternalNote(
     body_length: noteBody.length,
   })
   revalidatePath('/ops/pedidos')
-  revalidateTag('orders')
-  for (const id of ids) revalidateTag(`order-${id}`)
+  revalidateTag('orders', 'default')
+  for (const id of ids) revalidateTag(`order-${id}`, 'default')
   return { success: true, affected }
 }

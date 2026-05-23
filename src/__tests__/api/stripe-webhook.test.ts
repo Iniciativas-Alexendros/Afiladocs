@@ -172,8 +172,8 @@ describe('POST /api/webhooks/stripe', () => {
       expect.objectContaining({ data: expect.objectContaining({ event: 'stripe_event.evt_new' }) })
     )
     // Granular cache tags must be revalidated so portal/pedidos y /portal/pedido/[id] se refrescan al instante
-    expect(mockRevalidateTag).toHaveBeenCalledWith('orders')
-    expect(mockRevalidateTag).toHaveBeenCalledWith('orders-user-1')
-    expect(mockRevalidateTag).toHaveBeenCalledWith('order-order-1')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders', 'default')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders-user-1', 'default')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('order-order-1', 'default')
   })
 })

@@ -166,9 +166,9 @@ async function processSignedSubmission(payload: DocuSealWebhookPayload): Promise
     return updated
   })
 
-  revalidateTag('orders')
-  revalidateTag(`orders-${order.user_id}`)
-  revalidateTag(`order-${order.id}`)
+  revalidateTag('orders', 'default')
+  revalidateTag(`orders-${order.user_id}`, 'default')
+  revalidateTag(`order-${order.id}`, 'default')
   await notifyClient(order.id, order.user_id, order.product_id)
   return NextResponse.json({ success: true })
 }

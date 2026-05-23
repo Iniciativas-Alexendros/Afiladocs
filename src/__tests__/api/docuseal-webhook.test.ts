@@ -130,8 +130,8 @@ describe('POST /api/webhooks/docuseal', () => {
     const json = await res.json()
     expect(json.success).toBe(true)
     // Granular cache tags must be revalidated to refresh /portal/pedidos y /portal/pedido/[id]
-    expect(mockRevalidateTag).toHaveBeenCalledWith('orders')
-    expect(mockRevalidateTag).toHaveBeenCalledWith('orders-user-1')
-    expect(mockRevalidateTag).toHaveBeenCalledWith('order-order-1')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders', 'default')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders-user-1', 'default')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('order-order-1', 'default')
   })
 })

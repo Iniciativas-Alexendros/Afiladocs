@@ -84,6 +84,6 @@ describe('lib/catalog/query', () => {
   it('revalidateProductsCache calls revalidateTag("products")', async () => {
     const { revalidateProductsCache, PRODUCTS_CACHE_TAG } = await import('@/lib/catalog/query')
     revalidateProductsCache()
-    expect(revalidateTag).toHaveBeenCalledWith(PRODUCTS_CACHE_TAG)
+    expect(revalidateTag).toHaveBeenCalledWith(PRODUCTS_CACHE_TAG, 'default')
   })
 })

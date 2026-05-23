@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     })),
   })
 
-  revalidateTag('alerts')
+  revalidateTag('alerts', 'default')
 
   console.log(JSON.stringify({
     event: 'n8n_alerts.ingested',

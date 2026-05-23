@@ -48,7 +48,7 @@ export async function markAlertReviewed(alertId: string): Promise<ActionResult> 
 
     revalidatePath('/ops/alertas')
     revalidatePath(`/ops/alertas/${alertId}`)
-    revalidateTag('alerts')
+    revalidateTag('alerts', 'default')
 
     return { success: true }
   } catch {
@@ -85,7 +85,7 @@ export async function archiveAlert(alertId: string): Promise<ActionResult> {
 
     revalidatePath('/ops/alertas')
     revalidatePath(`/ops/alertas/${alertId}`)
-    revalidateTag('alerts')
+    revalidateTag('alerts', 'default')
 
     return { success: true }
   } catch {
@@ -122,7 +122,7 @@ export async function dismissAlert(alertId: string): Promise<ActionResult> {
 
     revalidatePath('/ops/alertas')
     revalidatePath(`/ops/alertas/${alertId}`)
-    revalidateTag('alerts')
+    revalidateTag('alerts', 'default')
 
     return { success: true }
   } catch {

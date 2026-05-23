@@ -80,9 +80,9 @@ export async function opsUpdateOrderStatus(orderId: string, formData: FormData) 
 
     revalidatePath(`/ops/pedido/${orderId}`, 'page')
     revalidatePath(`/ops/pedidos`, 'page')
-    revalidateTag('orders')
-    revalidateTag(`orders-${updated.user_id}`)
-    revalidateTag(`order-${orderId}`)
+    revalidateTag('orders', 'default')
+    revalidateTag(`orders-${updated.user_id}`, 'default')
+    revalidateTag(`order-${orderId}`, 'default')
 
     if (validatedStatus === 'draft_ready') {
       notifyDraftReady(orderId).catch((emailErr) => {
@@ -157,9 +157,9 @@ export async function opsUploadDocument(orderId: string, type: 'draft' | 'signed
     })
 
     revalidatePath(`/ops/pedido/${orderId}`, 'page')
-    revalidateTag('orders')
-    revalidateTag(`orders-${order.user_id}`)
-    revalidateTag(`order-${orderId}`)
+    revalidateTag('orders', 'default')
+    revalidateTag(`orders-${order.user_id}`, 'default')
+    revalidateTag(`order-${orderId}`, 'default')
     return { success: true }
   } catch (err) {
     console.error(JSON.stringify({ event: 'db.update.error_after_upload', message: err instanceof Error ? err.message : 'Unknown', ts: new Date().toISOString() }))

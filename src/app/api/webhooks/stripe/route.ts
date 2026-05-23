@@ -158,9 +158,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (order && customerEmail) {
     await processOrderPostPayment(order, customerEmail, amount)
     // Invalida la cache del portal para que el cliente vea el pedido actualizado
-    revalidateTag('orders')
-    if (order.user_id) revalidateTag(`orders-${order.user_id}`)
-    revalidateTag(`order-${order.id}`)
+    revalidateTag('orders', 'default')
+    if (order.user_id) revalidateTag(`orders-${order.user_id}`, 'default')
+    revalidateTag(`order-${order.id}`, 'default')
   }
 
   await generateVerifactuInvoice(session)

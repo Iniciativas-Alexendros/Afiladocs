@@ -179,9 +179,9 @@ describe('batchMarkProcessing', () => {
     )
     expect(mockRevalidatePath).toHaveBeenCalledWith('/ops/pedidos')
     // Cache tags: genérico para listados + granular por cada order afectado
-    expect(mockRevalidateTag).toHaveBeenCalledWith('orders')
+    expect(mockRevalidateTag).toHaveBeenCalledWith('orders', 'default')
     for (const id of validIds) {
-      expect(mockRevalidateTag).toHaveBeenCalledWith(`order-${id}`)
+      expect(mockRevalidateTag).toHaveBeenCalledWith(`order-${id}`, 'default')
     }
   })
 
