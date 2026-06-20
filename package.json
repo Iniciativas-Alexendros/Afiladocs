@@ -17,9 +17,19 @@
     "test:e2e": "playwright test",
     "seed:products": "tsx scripts/seed-products.ts",
     "postinstall": "prisma generate",
+    "prepare": "husky",
     "analyze": "ANALYZE=true next build",
     "check:env": "tsx scripts/check-env-example.ts",
     "ci:local": "npm run check:env && npm run typecheck && npm run lint && npm run test:coverage && npm run build"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -80,6 +90,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
     "@eslint/eslintrc": "^3.3.1",
     "@next/bundle-analyzer": "^16.2.2",
     "@playwright/test": "^1.59.1",
@@ -100,6 +112,8 @@
     "eslint-plugin-security": "^4.0.0",
     "eslint-plugin-sonarjs": "^4.0.2",
     "happy-dom": "^20.8.9",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "msw": "^2.12.14",
     "prisma": "^7.6.0",
     "supabase": "^2.84.5",
