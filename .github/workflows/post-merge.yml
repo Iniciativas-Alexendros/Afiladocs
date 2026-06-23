@@ -35,5 +35,3 @@ jobs:
       enable_attest: true
       enable_release: false # afiladocs publica vía Vercel, no via release-please todavía
     # El reusable no declara secrets en workflow_call; usa GITHUB_TOKEN implícito + OIDC.
-    # No se heredan secrets de organización, se bloquea el surface de secretos.
-    secrets: {}

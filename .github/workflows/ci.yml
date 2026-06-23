@@ -48,7 +48,8 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        # npm ci falla con optional platform deps en el lockfile generado por npm 11
+        run: npm install
         env:
           # prisma generate (postinstall) necesita una URL válida para leer el schema,
           # pero NO conecta a la BD. Usamos un placeholder para el runner de CI.
