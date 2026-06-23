@@ -43,7 +43,7 @@ npx prisma generate            # Regenerar cliente tras schema changes
 - TypeScript strict: prohibido `any`, `@ts-ignore` sin justificacion + issue
 - Server Components por defecto; `"use client"` solo para interactividad browser
 - Variables de entorno centralizadas en `src/lib/env.ts` (lazy getters)
-- SDKs de terceros (Stripe, Resend, DocuSeal) instanciados lazy dentro de funciones, nunca a nivel de modulo
+- SDKs de terceros (Stripe, Resend, DocuSeal, Verifactu) instanciados lazy dentro de funciones, nunca a nivel de modulo
 - Validar `rgpd_accepted === true` server-side antes de procesar datos personales
 - Usar `next/image` para imagenes (regla ESLint activa)
 - Componentes shadcn/ui en `components/ui/` con helper `cn()` en `lib/utils.ts`
@@ -79,7 +79,8 @@ npx prisma generate            # Regenerar cliente tras schema changes
 
 - Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DIRECT_URL`
-- DocuSeal: `DOCUSEAL_API_KEY`
+- DocuSeal: `DOCUSEAL_API_URL`, `DOCUSEAL_API_KEY`, `DOCUSEAL_WEBHOOK_SECRET`
+- Verifactu: `EASYVERIFACTU_API_URL`, `EASYVERIFACTU_API_KEY`
 - Resend: `RESEND_API_KEY`
 - Cron: `CRON_SECRET`
 - Ubicacion: `/run/repo_secrets/Afiladocs/.env.secrets` (NO imprimir)
