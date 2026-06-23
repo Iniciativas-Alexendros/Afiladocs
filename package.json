@@ -2,6 +2,7 @@
   "name": "afiladocs-website",
   "version": "1.0.0",
   "private": true,
+  "license": "UNLICENSED",
   "engines": {
     "node": "22.x"
   },
@@ -123,5 +124,9 @@
     "tw-animate-css": "^1.2.9",
     "typescript": "^6.0.3",
     "vitest": "^4.1.2"
+  },
+  "overrides": {
+    "postcss": ">= 8.5.10",
+    "js-yaml": ">= 4.2.0"
   }
 }

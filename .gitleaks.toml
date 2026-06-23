@@ -1,0 +1,10 @@
+title = "Afiladocs gitleaks config"
+
+[allowlist]
+description = "Ignora el placeholder de Stripe usado exclusivamente en CI"
+paths = [
+  '''.github/workflows/ci.yml''',
+]
+regexes = [
+  '''sk_test_placeholder''',
+]
