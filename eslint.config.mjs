@@ -5,7 +5,7 @@ import sonarjs from "eslint-plugin-sonarjs";
 
 const eslintConfig = [
   {
-    ignores: ["next-env.d.ts", ".next/**"],
+    ignores: ["next-env.d.ts", ".next/**", ".claude/**"],
   },
   ...nextCoreWebVitals,
   ...nextTypescript,

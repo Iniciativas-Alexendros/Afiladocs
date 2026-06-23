@@ -1,10 +1,10 @@
 # Falsos positivos gitleaks · Stripe placeholder en workflow CI
 #
-# Los 2 hallazgos en .github/workflows/ci.yml:31 son falsos positivos:
-# el valor real es STRIPE_SECRET_KEY: sk_test_placeholder (no es token real).
-# La regla stripe-access-token matchea el prefijo sk_test_ aunque el sufijo
-# (placeholder) no sea un token Stripe válido.
+# El valor `sk_test_placeholder` en .github/workflows/ci.yml es un placeholder
+# de CI (no es un token Stripe real). Se ignora a nivel de regla/patrón en
+# .gitleaks.toml (allowlist de path + regex), por lo que los fingerprints
+# individuales ya no son necesarios para futuros scans.
 #
-# Fingerprints emitidos por gitleaks detect --log-opts="--all" el 2026-05-22.
+# Fingerprints históricos emitidos por gitleaks detect --log-opts="--all" el 2026-05-22.
 2be2161367e296ac7215b3eb83125ab41f2bdb00:.github/workflows/ci.yml:stripe-access-token:31
 425e91bc68c7659ba1bc45346187bb15d72f2157:.github/workflows/ci.yml:stripe-access-token:31

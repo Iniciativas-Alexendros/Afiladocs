@@ -1,8 +1,8 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # post-merge · afiladocs · piloto
 #
-# Apunta al SHA pinned be5a8dd (PR #20 merge en plantillas) hasta tag v1.0.0.
-# Detect-stack identifica TS (Next.js) + Docker (Dockerfile) + Markdown.
+# Apunta al SHA pinned be5a8dd8c56cb2f9ac1455174072832928bb1643 (PR #20 merge
+# en plantillas). Detect-stack identifica TS (Next.js) + Docker (Dockerfile) + Markdown.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 name: post-merge
@@ -28,10 +28,10 @@ concurrency:
 
 jobs:
   run:
-    uses: Alexendros/plantillas/.github/workflows/_lib-post-merge.yml@main
+    uses: Alexendros/plantillas/.github/workflows/_lib-post-merge.yml@be5a8dd8c56cb2f9ac1455174072832928bb1643 # v1.0.0
     with:
       enable_linters: true
       enable_sbom: true
       enable_attest: true
-      enable_release: false      # afiladocs publica vía Vercel, no via release-please todavía
-    secrets: inherit
+      enable_release: false # afiladocs publica vía Vercel, no via release-please todavía
+    # El reusable no declara secrets en workflow_call; usa GITHUB_TOKEN implícito + OIDC.

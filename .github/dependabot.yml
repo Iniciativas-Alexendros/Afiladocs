@@ -1,37 +1,16 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
+  # Actualiza las acciones de GitHub usadas en los workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Madrid"
-    open-pull-requests-limit: 1
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "alexendros"
     labels:
-      - deps
+      - "dependencies"
+      - "github-actions"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
       include: "scope"
-    groups:
-      all-others:
-        patterns:
-          - "*"
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Madrid"
-    open-pull-requests-limit: 1
-    labels:
-      - deps
-      - ci
-    commit-message:
-      prefix: "chore(ci)"
-    groups:
-      all-others:
-        patterns:
-          - "*"
