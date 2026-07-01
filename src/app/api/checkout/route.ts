@@ -57,7 +57,7 @@ async function buildStripeSession(
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(serverEnv.stripeSecretKey, {
-    apiVersion: "2026-05-27.dahlia",
+    apiVersion: "2026-06-24.dahlia",
     timeout: 8000,
   });
 

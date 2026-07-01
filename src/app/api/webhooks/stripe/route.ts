@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 function getStripe() {
   const key = serverEnv.stripeSecretKey;
   if (!key) return null;
-  return new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
+  return new Stripe(key, { apiVersion: "2026-06-24.dahlia" });
 }
 
 async function sendConfirmationEmail(
@@ -236,8 +236,7 @@ async function handlePaymentFailed(intent: Stripe.PaymentIntent) {
       ? intent.receipt_email
       : ((
           intent.last_payment_error?.payment_method as
-            | Stripe.PaymentMethod
-            | undefined
+            Stripe.PaymentMethod | undefined
         )?.billing_details?.email ?? null);
 
   logEvent.error("payment.failed", {
