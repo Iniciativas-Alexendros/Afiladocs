@@ -13,7 +13,7 @@ export async function createCheckoutSession(
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(serverEnv.stripeSecretKey, {
-    apiVersion: "2026-05-27.dahlia",
+    apiVersion: "2026-06-24.dahlia",
   });
 
   const stripeSession = await stripe.checkout.sessions.create({
