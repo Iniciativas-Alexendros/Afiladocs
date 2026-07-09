@@ -93,7 +93,7 @@ jobs:
       - name: Lint GitHub Actions with actionlint
         run: |
           curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash | bash
-          ./actionlint -color
+          ./actionlint -color -config-file actionlint.yaml
         shell: bash
 
       - name: Audit workflows with zizmor
