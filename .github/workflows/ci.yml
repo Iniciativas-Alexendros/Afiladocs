@@ -17,7 +17,7 @@ concurrency:
 jobs:
   quality:
     name: Typecheck · Lint · Tests · Build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ts]
     timeout-minutes: 20
     permissions:
       contents: read
@@ -80,7 +80,7 @@ jobs:
 
   security:
     name: Workflow audit
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ts]
     timeout-minutes: 10
     permissions:
       contents: read
